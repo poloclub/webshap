@@ -1,5 +1,5 @@
 # WebSHAP
 
-[![Github Actions Status](https://github.com/xiaohk/webshap/workflows/tests/badge.svg)](https://github.com/xiaohk/webshap/actions/workflows/tests.yml)
+[![build](https://github.com/xiaohk/webshap/actions/workflows/build.yml/badge.svg)](https://github.com/xiaohk/webshap/actions/workflows/build.yml)
 
 Explain any machine learning models anywhere!
