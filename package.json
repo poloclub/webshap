@@ -1,0 +1,58 @@
+{
+  "name": "webshap",
+  "version": "0.1.0",
+  "description": "Explain any ML models anywhere",
+  "main": "./dist/index.umd.js",
+  "module": "./dist/index.es.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/index.umd.js",
+      "import": "./dist/index.es.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xiaohk/webshap"
+  },
+  "keywords": [
+    "machine-learning",
+    "machine",
+    "learning",
+    "ai",
+    "metrics"
+  ],
+  "author": "Jay Wang",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/xiaohk/webshap/issues"
+  },
+  "homepage": "https://github.com/xiaohk/webshap#readme",
+  "scripts": {
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "coverage": "vitest run --coverage && c8 report && pnpm run coverage:badge",
+    "coverage:badge": "pnpx make-coverage-badge --output-path ./imgs/coverage-badge.svg",
+    "build": "pnpm run clean && vite build",
+    "clean": "rimraf ./dist"
+  },
+  "devDependencies": {
+    "@rollup/plugin-typescript": "^11.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.49.0",
+    "@typescript-eslint/parser": "^5.49.0",
+    "c8": "^7.12.0",
+    "eslint": "^8.32.0",
+    "eslint-config-prettier": "^8.6.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "make-coverage-badge": "^1.2.0",
+    "prettier": "^2.8.3",
+    "rimraf": "^4.1.2",
+    "rollup": "^3.10.1",
+    "tslib": "^2.4.1",
+    "typescript": "^4.9.4",
+    "vite": "^4.0.4",
+    "vitest": "^0.28.1"
+  }
+}
