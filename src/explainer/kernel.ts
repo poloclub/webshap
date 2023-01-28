@@ -226,6 +226,53 @@ export class KernelSHAP {
     }
   };
 
+  // Add a feature coalition sample into `self.sampled_data`
+  addSample(x: number[], mask: number[], weight: number) {
+    if (this.sampledData === null) {
+      console.error('this.sampleData is null');
+      return;
+    }
+
+    if (this.maskMat === null) {
+      console.error('this.maskMat is null');
+      return;
+    }
+
+    if (this.kernelWeight === null) {
+      console.error('this.kernelWeight is null');
+      return;
+    }
+
+    // (1) Find the current block in self.sampled_data to modify
+    const backgroundDataLength = this.data.length;
+    const rStart = this.nSamplesAdded * backgroundDataLength;
+    const rEnd = rStart + backgroundDataLength;
+
+    // (2) Fill columns with mask=1 to be corresponding value from the
+    // explaining instance x
+    for (let i = 0; i < mask.length; i++) {
+      if (mask[i] === 1) {
+        const newColumn = new Array(backgroundDataLength).fill(x[i]);
+        this.sampledData.subset(
+          math.index(math.range(rStart, rEnd), i),
+          newColumn
+        );
+      }
+    }
+
+    // (3) Update tracker variables
+    // Record the mask in self.mask_mat
+    this.maskMat.subset(
+      math.index(this.nSamplesAdded, math.range(0, this.maskMat.size()[1])),
+      mask
+    );
+
+    // Record the weight in self.kernel_weight
+    this.kernelWeight.subset(math.index(this.nSamplesAdded, 0), weight);
+
+    this.nSamplesAdded += 1;
+  }
+
   /**
    * Initialize data structures to prepare for the feature coalition sampling
    * @param nSamples Number of coalitions to sample

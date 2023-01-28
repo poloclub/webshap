@@ -55,9 +55,93 @@ test<LocalTestContext>('sampleFeatureCoalitions()', ({ model, data }) => {
   const explainer = new KernelSHAP(model, data, 0.20071022);
   const nSamples = 14;
 
-  const testArray = [1, 2, 3, 4, 5, 6, 7];
-  const result = testArray.flatMap((v, i) =>
-    testArray.slice(i + 1).map(d => [v, d])
-  );
-  console.log(result);
+  const result = math.matrix([
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9]
+  ]);
+  // console.log(math.row(result, 1));
+  // console.log(result.subset(math.index(1, math.range(0, 3))));
+});
+
+test<LocalTestContext>('addSample() basic', ({ model, data }) => {
+  const explainer = new KernelSHAP(model, data, 0.20071022);
+  const nSamples = 14;
+
+  // Initialize the sample data
+  explainer.prepareSampling(nSamples);
+
+  // Test adding a sample
+  const x1 = [4.8, 3.8, 2.1, 5.4];
+  const mask1 = [1.0, 0.0, 1.0, 0.0];
+  const weight1 = 0.52;
+  explainer.addSample(x1, mask1, weight1);
+  const sampledData = explainer.sampledData!;
+
+  // Only the first and their elements are changed from the background
+  for (let i = 0; i < data.length; i++) {
+    const row = math.row(sampledData, i).toArray()[0];
+    const rowExp = [x1[0], data[i][1], x1[2], data[i][3]];
+    expect(row).toEqual(rowExp);
+  }
+
+  // Test if all other repetitions of the background data remain the same
+  for (let i = 1; i < nSamples; i++) {
+    for (let j = 0; j < data.length; j++) {
+      const row = math.row(sampledData, i * data.length + j).toArray()[0];
+      expect(row).toEqual(data[j]);
+    }
+  }
+
+  // Test tracking variables
+  expect(explainer.kernelWeight!.get([0, 0])).toBe(weight1);
+  expect(explainer.nSamplesAdded).toBe(1);
+});
+
+test<LocalTestContext>('addSample() more complex', ({ model, data }) => {
+  const explainer = new KernelSHAP(model, data, 0.20071022);
+  const nSamples = 14;
+
+  // Initialize the sample data
+  explainer.prepareSampling(nSamples);
+
+  // Test adding a sample
+  let x1 = [4.8, 3.8, 2.1, 5.4];
+  let mask1 = [1.0, 0.0, 1.0, 0.0];
+  let weight1 = 0.52;
+  explainer.addSample(x1, mask1, weight1);
+
+  let x2 = [11.2, 11.2, 11.2, 11.2];
+  let mask2 = [1.0, 1.0, 0.0, 1.0];
+  let weight2 = 0.99;
+  explainer.addSample(x2, mask2, weight2);
+
+  const sampledData = explainer.sampledData!;
+
+  // The first repetition should match x_1 and mask_1
+  for (let i = 0; i < data.length; i++) {
+    const row = math.row(sampledData, i).toArray()[0];
+    const rowExp = [x1[0], data[i][1], x1[2], data[i][3]];
+    expect(row).toEqual(rowExp);
+  }
+
+  // The second repetition should match x_2 and mask_2
+  for (let i = 0; i < data.length; i++) {
+    const r = data.length + i;
+    const row = math.row(sampledData, r).toArray()[0];
+    const rowExp = [x2[0], x2[1], data[i][2], x2[3]];
+    expect(row).toEqual(rowExp);
+  }
+
+  // Test if all other repetitions of the background data remain the same
+  for (let i = 2; i < nSamples; i++) {
+    for (let j = 0; j < data.length; j++) {
+      const row = math.row(sampledData, i * data.length + j).toArray()[0];
+      expect(row).toEqual(data[j]);
+    }
+  }
+
+  // Test tracking variables
+  expect(explainer.kernelWeight!.get([1, 0])).toBe(weight2);
+  expect(explainer.nSamplesAdded).toBe(2);
 });
