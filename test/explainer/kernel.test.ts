@@ -38,6 +38,16 @@ test<LocalTestContext>('constructor()', ({ model, data }) => {
 });
 
 test<LocalTestContext>('prepareSampling()', ({ model, data }) => {
-  //
-  const aa = math.matrix(math.zeros(3));
+  const explainer = new KernelSHAP(model, data, 0.20071022);
+  const nSamples = 14;
+  explainer.prepareSampling(nSamples);
+
+  // The sample data should be initialized to repeat x_test
+  const sampledData = explainer.sampledData!;
+  expect(sampledData.size()[0]).toBe(nSamples * data.length);
+  expect(sampledData.subset(math.index(0, 0))).toBe(data[0][0]);
+  expect(sampledData.subset(math.index(data.length, 1))).toBe(data[0][1]);
+  expect(sampledData.subset(math.index(sampledData.size()[0] - 1, 2))).toBe(
+    data[data.length - 1][2]
+  );
 });

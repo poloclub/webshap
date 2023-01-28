@@ -154,9 +154,12 @@ export class KernelSHAP {
 
     // Initialize the sampled data by repeating the background samples
     for (let i = 0; i < nSamples; i++) {
-      const rEnd = i * nBackground;
+      const row = i * nBackground;
       this.sampledData.subset(
-        math.index(math.range(i, rEnd), math.range(0, backgroundMat.size()[1])),
+        math.index(
+          math.range(row, row + nBackground),
+          math.range(0, backgroundMat.size()[1])
+        ),
         backgroundMat
       );
     }
