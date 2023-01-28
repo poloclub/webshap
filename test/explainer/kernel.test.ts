@@ -1,7 +1,8 @@
 import { describe, test, expect, beforeEach } from 'vitest';
 import { KernelSHAP, IrisLinearBinary } from '../../src/index';
-import type { SHAPModel } from '../../src/my-types';
+import { randomLcg, randomUniform } from 'd3-random';
 import math from '../../src/utils/math-import';
+import type { SHAPModel } from '../../src/my-types';
 
 interface LocalTestContext {
   model: SHAPModel;
@@ -62,6 +63,7 @@ test<LocalTestContext>('sampleFeatureCoalitions()', ({ model, data }) => {
   ]);
   // console.log(math.row(result, 1));
   // console.log(result.subset(math.index(1, math.range(0, 3))));
+  // console.log(result);
 });
 
 test<LocalTestContext>('addSample() basic', ({ model, data }) => {
@@ -106,14 +108,14 @@ test<LocalTestContext>('addSample() more complex', ({ model, data }) => {
   explainer.prepareSampling(nSamples);
 
   // Test adding a sample
-  let x1 = [4.8, 3.8, 2.1, 5.4];
-  let mask1 = [1.0, 0.0, 1.0, 0.0];
-  let weight1 = 0.52;
+  const x1 = [4.8, 3.8, 2.1, 5.4];
+  const mask1 = [1.0, 0.0, 1.0, 0.0];
+  const weight1 = 0.52;
   explainer.addSample(x1, mask1, weight1);
 
-  let x2 = [11.2, 11.2, 11.2, 11.2];
-  let mask2 = [1.0, 1.0, 0.0, 1.0];
-  let weight2 = 0.99;
+  const x2 = [11.2, 11.2, 11.2, 11.2];
+  const mask2 = [1.0, 1.0, 0.0, 1.0];
+  const weight2 = 0.99;
   explainer.addSample(x2, mask2, weight2);
 
   const sampledData = explainer.sampledData!;

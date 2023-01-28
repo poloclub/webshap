@@ -3,8 +3,9 @@
  * @author: Jay Wang (jay@zijie.wang)
  */
 
-import { randomLcg, randomUniform } from 'd3-random';
-import type { RandomUniform } from 'd3-random';
+import { randomLcg, randomUniform, randomInt } from 'd3-random';
+import { shuffle } from 'd3-array';
+import type { RandomUniform, RandomInt } from 'd3-random';
 import type { SHAPModel } from '../my-types';
 import { comb } from '../utils/utils';
 import math from '../utils/math-import';
@@ -35,7 +36,10 @@ export class KernelSHAP {
   /** Number of coalition samples added */
   nSamplesAdded: number;
 
-  /** Sampled data in a matrix form. It is initialized after the explain() call. */
+  /**
+   * Sampled data in a matrix form.
+   * It is initialized after the explain() call.
+   */
   sampledData: math.Matrix | null = null;
 
   /** Matrix to store the feature masks */
@@ -53,8 +57,14 @@ export class KernelSHAP {
   /** Mask used in the last run */
   lastMask: math.Matrix | null = null;
 
-  /** */
+  /** Random seed */
+  lcg: () => number;
+
+  /** Uniform random number generator*/
   rng: RandomUniform;
+
+  /** Uniform random integer generator */
+  rngInt: RandomInt;
 
   /**
    * Initialize a new KernelSHAP explainer.
@@ -74,11 +84,12 @@ export class KernelSHAP {
         curSeed = Math.abs(curSeed);
         curSeed = curSeed - Math.floor(curSeed);
       }
-
-      this.rng = randomUniform.source(randomLcg(curSeed));
+      this.lcg = randomLcg(curSeed);
     } else {
-      this.rng = randomUniform.source(randomLcg(0.20230101));
+      this.lcg = randomLcg(0.20230101);
     }
+    this.rng = randomUniform.source(this.lcg);
+    this.rngInt = randomInt.source(this.lcg);
 
     // Initialize the model values
     // Step 1: Compute the base value (expected values), which is the average
@@ -118,7 +129,18 @@ export class KernelSHAP {
     const fractionEvaluated = this.sampleFeatureCoalitions(x, nSamples);
   };
 
+  /**
+   * Enumerate/sample feature coalitions to approximate the shapley values
+   * @param x Instance to explain
+   * @param nSamples Number of coalitions to sample
+   * @returns Sample rate (fraction of sampled feature coalitions)
+   */
   sampleFeatureCoalitions = (x: number[], nSamples: number | null) => {
+    if (this.kernelWeight === null) {
+      console.error('kernelWeight is null');
+      return;
+    }
+
     // Determine the number of feature coalitions to sample
     // If `n_samples` is not given, we use a simple heuristic to
     // determine number of samples to train the linear model
@@ -146,7 +168,7 @@ export class KernelSHAP {
     const maxPairedSampleSize = Math.floor((this.nFeatures - 1) / 2);
 
     // Initialize the weight vector with (M - 1) / (z * (M - z))
-    const sampleWeights = new Array(maxSampleSize).fill(0);
+    const sampleWeights = new Array<number>(maxSampleSize).fill(0);
     for (let i = 1; i < maxSampleSize + 1; i++) {
       sampleWeights[i - 1] = (this.nFeatures - 1) / (i * (this.nFeatures - i));
     }
@@ -167,7 +189,7 @@ export class KernelSHAP {
     // Track the number of sample size we use full samples
     let nFullSubsets = 0;
     let nSamplesLeft = curNSamples;
-    let remainSampleWeights = structuredClone(sampleWeights);
+    let remainSampleWeights = sampleWeights.slice();
 
     for (let curSize = 1; curSize <= maxSampleSize + 1; curSize++) {
       // Compute the number of samples with the current sample size
@@ -208,22 +230,158 @@ export class KernelSHAP {
           rangeArray.slice(i + 1).map(d => [v, d])
         );
         for (const activeIndexes of combinations) {
-          let mask = new Array(this.nFeatures).fill(0.0);
+          const mask = new Array<number>(this.nFeatures).fill(0.0);
           for (const i of activeIndexes) {
             mask[i] = 1.0;
           }
-          // this.addSample(x, mask, curWeight);
+          this.addSample(x, mask, curWeight);
 
-          // // Add the complements combination if it is paired
-          // if (curSize <= maxSampleSize) {
-          //   const compMask = mask.map(x => (x === 0.0 ? 1.0 : 0.0));
-          //   this.addSample(x, compMask, curWeight);
-          // }
+          // Add the complements combination if it is paired
+          if (curSize <= maxSampleSize) {
+            const compMask = mask.map(x => (x === 0.0 ? 1.0 : 0.0));
+            this.addSample(x, compMask, curWeight);
+          }
         }
       } else {
         break;
       }
     }
+
+    // Now there is no budge left to sample all combinations for the current
+    // sample size. We randomly sample combinations until use up all budgets.
+    const nFixedSamples = this.nSamplesAdded;
+    nSamplesLeft = curNSamples - nFixedSamples;
+
+    if (nFullSubsets !== maxSampleSize) {
+      // Reinitialize the running weights from the initial weights
+      remainSampleWeights = sampleWeights.slice();
+
+      // If it has complementary sampling, we sample two combinations in
+      // each iteration
+      for (let i = 0; i < maxPairedSampleSize; i++) {
+        remainSampleWeights[i] /= 2.0;
+      }
+
+      // Make the remaining weights sum to 1
+      remainSampleWeights = remainSampleWeights.slice(nFullSubsets);
+      const weightSum = remainSampleWeights.reduce((a, b) => a + b);
+      for (let i = 0; i < remainSampleWeights.length; i++) {
+        remainSampleWeights[i] /= weightSum;
+      }
+
+      // Randomly choose sample subset's size (*4 is arbitrary, we won't
+      // iterate all of them.)
+      // We use weighted uniform random
+      const randomSubsetSizes: number[] = [];
+      let randomSubsetSizesCursor = 0;
+      const cdf = remainSampleWeights.map(
+        (
+          sum => value =>
+            (sum += value)
+        )(0)
+      );
+      for (let i = 0; i < 4 * nSamplesLeft; i++) {
+        const curRandomNum = this.rng(0, 1)();
+        // We can safely use length here because random's max is exclusive
+        // (smaller than 1)
+        const curSelectedIndex = cdf.filter(d => curRandomNum >= d).length;
+        randomSubsetSizes.push(curSelectedIndex);
+      }
+
+      // Track the mask combinations we have used
+      const usedMasks = new Map<string, number>();
+
+      while (
+        nSamplesLeft > 0 &&
+        randomSubsetSizesCursor < randomSubsetSizes.length
+      ) {
+        // Gte a random sample subset size
+        const curSize =
+          randomSubsetSizes[randomSubsetSizesCursor] + nFullSubsets + 1;
+        randomSubsetSizesCursor += 1;
+
+        // Generate the current mask
+        const mask = new Array<number>(this.nFeatures).fill(0);
+
+        // Randomly sample curSize indexes
+        const activeIndexes: number[] = [];
+        const sampledIndexes = new Set<number>();
+
+        while (activeIndexes.length < curSize) {
+          const curRandomIndex = this.rngInt(this.nFeatures)();
+          if (!sampledIndexes.has(curRandomIndex)) {
+            sampledIndexes.add(curRandomIndex);
+            activeIndexes.push(curRandomIndex);
+          }
+        }
+
+        for (const i of activeIndexes) mask[i] = 1;
+
+        // Add this sample if we have not used this mask yet, otherwise
+        // we just increase the previous occurrence's weight
+        const maskStr = getMaskStr(mask);
+        if (usedMasks.has(maskStr)) {
+          // If this mask has been used, update its weight
+          const weightI = usedMasks.get(maskStr)!;
+          this.kernelWeight.subset(
+            math.index(weightI, 0),
+            (this.kernelWeight.get([weightI, 0]) as number) + 1
+          );
+        } else {
+          // Add a new sample
+          usedMasks.set(maskStr, this.nSamplesAdded);
+          nSamplesLeft -= 1;
+
+          // The weight here is 1.0 because we used `remain_sample_weights`
+          // to sample the subset sizes
+          // https://github.com/slundberg/shap/issues/2615
+          this.addSample(x, mask, 1.0);
+        }
+
+        // Also handle this mask's complementary mask
+        if (nSamplesLeft > 0 && curSize <= maxPairedSampleSize) {
+          const compMask = mask.map(x => (x === 0 ? 1 : 0));
+          const compMaskStr = getMaskStr(compMask);
+
+          if (usedMasks.has(compMaskStr)) {
+            // If this mask has been used, update its weight
+            const weightI = usedMasks.get(compMaskStr)!;
+            this.kernelWeight.subset(
+              math.index(weightI, 0),
+              (this.kernelWeight.get([weightI, 0]) as number) + 1
+            );
+          } else {
+            // Add a new sample
+            usedMasks.set(compMaskStr, this.nSamplesAdded);
+            nSamplesLeft -= 1;
+            this.addSample(x, mask, 1.0);
+          }
+        }
+      }
+
+      // Override the kernel weights for random samples and make sure all
+      // weights sum up to one
+      const leftWeightSum = sampleWeights
+        .slice(nFullSubsets)
+        .reduce((a, b) => a + b);
+
+      const curRandWeightSum = math.sum(
+        this.kernelWeight.subset(
+          math.index(math.range(nFixedSamples, this.kernelWeight.size()[0]), 0)
+        )
+      ) as number;
+      const weightScale = leftWeightSum / curRandWeightSum;
+
+      for (let i = nFixedSamples; i < this.kernelWeight.size()[0]; i++) {
+        this.kernelWeight.subset(
+          math.index(i, 0),
+          this.kernelWeight.get([i, 0]) * weightScale
+        );
+      }
+    }
+
+    // Return the sample rate
+    return curNSamples / nSamplesMax;
   };
 
   // Add a feature coalition sample into `self.sampled_data`
@@ -314,3 +472,12 @@ export class KernelSHAP {
     this.lastMask = math.matrix(math.zeros([nSamples]));
   };
 }
+
+/**
+ * Helper function to convert a mask array into a string
+ * @param mask Binary mask array
+ * @returns String version of the binary mask array
+ */
+const getMaskStr = (mask: number[]) => {
+  return mask.map(x => (x === 1.0 ? '1' : '0')).join('');
+};

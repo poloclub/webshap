@@ -1,6 +1,16 @@
 // We only import a small subset of Math.js functions
 
-import { ones, zeros, matrix, index, range, row, column } from 'mathjs';
+import {
+  ones,
+  zeros,
+  matrix,
+  index,
+  range,
+  row,
+  column,
+  flatten,
+  sum
+} from 'mathjs';
 
 export default {
   ones,
@@ -9,5 +19,7 @@ export default {
   index,
   range,
   row,
-  column
+  column,
+  flatten,
+  sum
 };
