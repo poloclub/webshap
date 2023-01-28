@@ -6,6 +6,7 @@
 import { randomLcg, randomUniform } from 'd3-random';
 import type { RandomUniform } from 'd3-random';
 import type { SHAPModel } from '../my-types';
+import { comb } from '../utils/utils';
 import math from '../utils/math-import';
 
 /**
@@ -135,6 +136,94 @@ export class KernelSHAP {
 
     // Prepare for the feature coalition sampling
     this.prepareSampling(curNSamples);
+
+    // Search for feature coalitions to sample and give them SHAP kernel
+    // weights: (M - 1) / (C(M, z) * z * (M - z)).
+
+    // Sampling i features has the same weight as sampling (M - i) features
+    // Here we sample feature coalitions and their complement at the same time
+    const maxSampleSize = Math.ceil((this.nFeatures - 1) / 2);
+    const maxPairedSampleSize = Math.floor((this.nFeatures - 1) / 2);
+
+    // Initialize the weight vector with (M - 1) / (z * (M - z))
+    const sampleWeights = new Array(maxSampleSize).fill(0);
+    for (let i = 1; i < maxSampleSize + 1; i++) {
+      sampleWeights[i - 1] = (this.nFeatures - 1) / (i * (this.nFeatures - i));
+    }
+
+    // Normalize the weights so that they sum up to 1. Because the weights
+    // for i and (M - i) are stored at the same index, we times 2 for paired
+    // indexes before normalization
+    for (let i = 1; i < maxPairedSampleSize + 1; i++) {
+      sampleWeights[i - 1] *= 2;
+    }
+    const weightSum = sampleWeights.reduce((a, b) => a + b);
+    for (let i = 1; i < maxPairedSampleSize + 1; i++) {
+      sampleWeights[i - 1] /= weightSum;
+    }
+
+    // Sample feature coalitions by iterating the sample size from two tails
+    // (a lot of 1 or a lot of 0 in the mask array) to the middle
+    // Track the number of sample size we use full samples
+    let nFullSubsets = 0;
+    let nSamplesLeft = curNSamples;
+    let remainSampleWeights = structuredClone(sampleWeights);
+
+    for (let curSize = 1; curSize <= maxSampleSize + 1; curSize++) {
+      // Compute the number of samples with the current sample size
+      let nSubsets = comb(this.nFeatures, curSize);
+
+      // We sample from two tails if possible
+      if (curSize <= maxPairedSampleSize) {
+        nSubsets *= 2;
+      }
+
+      // If we have enough budget left to sample all coalitions with the
+      // current subset size
+      if (nSubsets < nSamplesLeft * remainSampleWeights[curSize - 1]) {
+        nFullSubsets += 1;
+        nSamplesLeft -= nSubsets;
+
+        // Rescale the remaining weights to sum to 1
+        if (remainSampleWeights[curSize - 1] < 1.0) {
+          const scale = 1.0 - remainSampleWeights[curSize - 1];
+
+          for (let i = 0; i < remainSampleWeights.length; i++) {
+            remainSampleWeights[i] /= scale;
+          }
+        }
+
+        // Add all coalitions with the current subset size
+        let curWeight =
+          sampleWeights[curSize - 1] / comb(this.nFeatures, curSize);
+
+        // If there is complement pair, split the weight
+        if (curSize <= maxPairedSampleSize) {
+          curWeight /= 2.0;
+        }
+
+        // Add combinations into sampledData
+        const rangeArray = Array.from(new Array(this.nFeatures), (_, i) => i);
+        const combinations = rangeArray.flatMap((v, i) =>
+          rangeArray.slice(i + 1).map(d => [v, d])
+        );
+        for (const activeIndexes of combinations) {
+          let mask = new Array(this.nFeatures).fill(0.0);
+          for (const i of activeIndexes) {
+            mask[i] = 1.0;
+          }
+          // this.addSample(x, mask, curWeight);
+
+          // // Add the complements combination if it is paired
+          // if (curSize <= maxSampleSize) {
+          //   const compMask = mask.map(x => (x === 0.0 ? 1.0 : 0.0));
+          //   this.addSample(x, compMask, curWeight);
+          // }
+        }
+      } else {
+        break;
+      }
+    }
   };
 
   /**

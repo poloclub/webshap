@@ -1,6 +1,5 @@
 import { describe, test, expect, beforeEach } from 'vitest';
-import { KernelSHAP } from '../../src/index';
-import { IrisLinearBinary } from '../../src/index';
+import { KernelSHAP, IrisLinearBinary } from '../../src/index';
 import type { SHAPModel } from '../../src/my-types';
 import math from '../../src/utils/math-import';
 
@@ -50,4 +49,15 @@ test<LocalTestContext>('prepareSampling()', ({ model, data }) => {
   expect(sampledData.subset(math.index(sampledData.size()[0] - 1, 2))).toBe(
     data[data.length - 1][2]
   );
+});
+
+test<LocalTestContext>('sampleFeatureCoalitions()', ({ model, data }) => {
+  const explainer = new KernelSHAP(model, data, 0.20071022);
+  const nSamples = 14;
+
+  const testArray = [1, 2, 3, 4, 5, 6, 7];
+  const result = testArray.flatMap((v, i) =>
+    testArray.slice(i + 1).map(d => [v, d])
+  );
+  console.log(result);
 });
