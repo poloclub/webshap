@@ -5,11 +5,8 @@
 
 import { randomLcg, randomUniform } from 'd3-random';
 import type { RandomUniform } from 'd3-random';
-
-/**
- * A model that outputs a 1D vector (binary classification, regression)
- */
-type SHAPModel = (x: number[][]) => number[];
+import type { SHAPModel } from '../my-types';
+import math from '../utils/math-import';
 
 /**
  * Kernel SHAP method to approximate Shapley attributions by solving s specially
@@ -38,22 +35,22 @@ export class KernelSHAP {
   nSamplesAdded: number;
 
   /** Sampled data in a matrix form. It is initialized after the explain() call. */
-  sampledData: number[][] | null = null;
+  sampledData: math.Matrix | null = null;
 
   /** Matrix to store the feature masks */
-  maskMat: number[][] | null = null;
+  maskMat: math.Matrix | null = null;
 
   /** Kernel weights for each coalition sample */
-  kernelWeight: number[][] | null = null;
+  kernelWeight: math.Matrix | null = null;
 
   /** Model prediction outputs on the sampled data */
-  yMat: number[][] | null = null;
+  yMat: math.Matrix | null = null;
 
   /** Expected model predictions on the sample data */
-  yExpMat: number[][] | null = null;
+  yExpMat: math.Matrix | null = null;
 
   /** Mask used in the last run */
-  lastMask: number[][] | null = null;
+  lastMask: math.Matrix | null = null;
 
   /** */
   rng: RandomUniform;
@@ -94,4 +91,87 @@ export class KernelSHAP {
     this.nTargets = 1;
     this.nSamplesAdded = 0;
   }
+
+  /**
+   * Estimate SHAP values of the given sample x
+   * @param x One data sample
+   * @param nSamples Number of coalitions to samples (default to null which uses
+   * a heuristic to determine a large sample size)
+   */
+  explainOneInstance = (x: number[], nSamples: number | null = null) => {
+    // Validate the input
+    if (x.length !== this.nFeatures) {
+      throw new Error(
+        'x has to have the same number of features as the background dataset.'
+      );
+    }
+
+    // Create a copy of the given 1D x array in a 2D format
+    const curX = structuredClone(x);
+
+    // Find the current prediction f(x)
+    // Return a matrix with only one item (y(x))
+    const yPredProbMat = this.model([x]);
+
+    // Generate sampled data
+    const fractionEvaluated = this.sampleFeatureCoalitions(x, nSamples);
+  };
+
+  sampleFeatureCoalitions = (x: number[], nSamples: number | null) => {
+    // Determine the number of feature coalitions to sample
+    // If `n_samples` is not given, we use a simple heuristic to
+    // determine number of samples to train the linear model
+    // https://github.com/slundberg/shap/issues/97
+    let curNSamples = nSamples ? nSamples : this.nFeatures * 2 + 2048;
+    let nSamplesMax = Math.pow(2, 30);
+
+    // If there are not too many features, we can enumerate all coalitions
+    if (this.nFeatures <= 30) {
+      // We subtract 2 here to discount the cases with all 1 and all 0,
+      // which are not helpful to figure out feature attributions
+      nSamplesMax = Math.pow(2, this.nFeatures) - 2;
+      if (curNSamples > nSamplesMax) curNSamples = nSamplesMax;
+    }
+
+    // Prepare for the feature coalition sampling
+    this.prepareSampling(curNSamples);
+  };
+
+  /**
+   * Initialize data structures to prepare for the feature coalition sampling
+   * @param nSamples Number of coalitions to sample
+   */
+  prepareSampling = (nSamples: number) => {
+    // Store the sampled data
+    // (number of background samples * n_samples, n_features)
+    const nBackground = this.data.length;
+    this.sampledData = math.matrix(
+      math.zeros([nBackground * nSamples, this.nFeatures])
+    );
+
+    // Convert the background data from 2d vector to DMatrix
+    const backgroundMat = math.matrix(this.data);
+
+    // Initialize the sampled data by repeating the background samples
+    for (let i = 0; i < nSamples; i++) {
+      const rEnd = i * nBackground;
+      this.sampledData.subset(
+        math.index(math.range(i, rEnd), math.range(0, backgroundMat.size()[1])),
+        backgroundMat
+      );
+    }
+
+    // Initialize the mask matrix
+    this.maskMat = math.matrix(math.zeros([nSamples, this.nFeatures]));
+
+    // Initialize the kernel weight matrix
+    this.kernelWeight = math.matrix(math.zeros([nSamples, 1]));
+
+    // Matrix to store the model outputs and expected outputs
+    this.yMat = math.matrix(
+      math.zeros([nSamples * nBackground, this.nTargets])
+    );
+    this.yExpMat = math.matrix(math.zeros([nSamples, this.nTargets]));
+    this.lastMask = math.matrix(math.zeros([nSamples]));
+  };
 }
