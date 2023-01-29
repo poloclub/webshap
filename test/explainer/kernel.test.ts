@@ -179,3 +179,43 @@ test<LocalTestContext>('addSample() more complex', ({ model, data }) => {
   expect(explainer.kernelWeight!.get([1, 0])).toBe(weight2);
   expect(explainer.nSamplesAdded).toBe(2);
 });
+
+test<LocalTestContext>('inferenceFeatureCoalitions()', ({ model, data }) => {
+  const explainer = new KernelSHAP(model, data, SEED);
+  const nSamples = 32;
+  const x1 = [4.8, 3.8, 2.1, 5.4];
+
+  // Inference on the sampled feature coalitions
+  explainer.sampleFeatureCoalitions(x1, nSamples);
+  explainer.inferenceFeatureCoalitions();
+
+  // The first 8 masks (40 samples) are deterministic, so we compare the
+  // results of them with SHAP
+  const expectedYMat8 = [
+    0.74428491, 0.62606565, 0.81667565, 0.60624373, 0.19987513, 0.98494403,
+    0.98494403, 0.98019991, 0.98371625, 0.98738284, 0.77062789, 0.66666396,
+    0.74737578, 0.62138006, 0.23736781, 0.98266107, 0.98206758, 0.98676269,
+    0.98266107, 0.9843281, 0.67389612, 0.54311144, 0.69528502, 0.50593722,
+    0.20128136, 0.98926348, 0.98926348, 0.98975948, 0.9891101, 0.98727311,
+    0.98168608, 0.98105986, 0.98244577, 0.9799177, 0.98356063, 0.78032477,
+    0.6789248, 0.79759091, 0.65590315, 0.2462757
+  ];
+  for (let i = 0; i < expectedYMat8.length; i++) {
+    expect(explainer.yMat!.get([i, 0]) as number).toBeCloseTo(
+      expectedYMat8[i],
+      8
+    );
+  }
+
+  // Compare the expected y value
+  const expectedEyMat8 = [
+    0.59862901, 0.98423741, 0.6086831, 0.9836961, 0.52390223, 0.98893393,
+    0.98173401, 0.63180387
+  ];
+  for (let i = 0; i < expectedEyMat8.length; i++) {
+    expect(explainer.yExpMat!.get([i, 0]) as number).toBeCloseTo(
+      expectedEyMat8[i],
+      8
+    );
+  }
+});

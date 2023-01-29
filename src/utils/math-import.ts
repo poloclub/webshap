@@ -9,7 +9,9 @@ import {
   row,
   column,
   flatten,
-  sum
+  sum,
+  mean,
+  transpose
 } from 'mathjs';
 
 export default {
@@ -21,5 +23,7 @@ export default {
   row,
   column,
   flatten,
-  sum
+  sum,
+  mean,
+  transpose
 };

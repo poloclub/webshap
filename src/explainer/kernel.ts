@@ -41,19 +41,34 @@ export class KernelSHAP {
    */
   sampledData: math.Matrix | null = null;
 
-  /** Matrix to store the feature masks */
+  /**
+   * Matrix to store the feature masks
+   * [nSamples, this.nFeatures]
+   */
   maskMat: math.Matrix | null = null;
 
-  /** Kernel weights for each coalition sample */
+  /**
+   * Kernel weights for each coalition sample
+   * [nSamples, 1]
+   */
   kernelWeight: math.Matrix | null = null;
 
-  /** Model prediction outputs on the sampled data */
+  /**
+   * Model prediction outputs on the sampled data
+   * [nSamples * nBackground, this.nTargets]
+   */
   yMat: math.Matrix | null = null;
 
-  /** Expected model predictions on the sample data */
+  /**
+   * Expected model predictions on the sample data
+   * [nSamples, this.nTargets]
+   */
   yExpMat: math.Matrix | null = null;
 
-  /** Mask used in the last run */
+  /**
+   * Mask used in the last run
+   * [nSamples]
+   */
   lastMask: math.Matrix | null = null;
 
   /** Random seed */
@@ -118,14 +133,53 @@ export class KernelSHAP {
     }
 
     // Create a copy of the given 1D x array in a 2D format
-    const curX = structuredClone(x);
+    const curX = [x.slice()];
 
     // Find the current prediction f(x)
     // Return a matrix with only one item (y(x))
-    const yPredProbMat = this.model([x]);
+    const yPredProbMat = math.matrix(this.model(curX));
 
-    // Generate sampled data
+    // Sample feature coalitions
     const fractionEvaluated = this.sampleFeatureCoalitions(x, nSamples);
+
+    // Inference on the sampled feature coli
+    this.inferenceFeatureCoalitions();
+  };
+
+  inferenceFeatureCoalitions = () => {
+    if (this.sampledData === null) {
+      console.error('sampledData is null.');
+      return;
+    }
+
+    if (this.yExpMat === null) {
+      console.error('yExpMat is null.');
+      return;
+    }
+
+    if (this.yMat === null) {
+      console.error('yMat is null.');
+      return;
+    }
+
+    // Convert the sampled data from matrix to a 2D vec
+    const sampledDataVec = this.sampledData.toArray() as number[][];
+
+    // Get the model output on the sampled data and initialize self.y_mat
+    const yPredProb = this.model(sampledDataVec);
+    this.yMat.subset(
+      math.index(math.range(0, this.yMat.size()[0]), 0),
+      yPredProb
+    );
+
+    // Get the mean y value of samples having the same mask
+    const nBackground = this.data.length;
+    for (let i = 0; i < this.nSamplesAdded; i++) {
+      const yMatSlice = this.yMat.subset(
+        math.index(math.range(i * nBackground, (i + 1) * nBackground), 0)
+      );
+      this.yExpMat.subset(math.index(i, 0), math.mean(yMatSlice));
+    }
   };
 
   /**
