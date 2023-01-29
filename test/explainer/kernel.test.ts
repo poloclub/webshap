@@ -1,8 +1,11 @@
 import { describe, test, expect, beforeEach } from 'vitest';
 import { KernelSHAP, IrisLinearBinary } from '../../src/index';
 import { randomLcg, randomUniform } from 'd3-random';
+import { getCombinations } from '../../src/utils/utils';
 import math from '../../src/utils/math-import';
 import type { SHAPModel } from '../../src/my-types';
+
+const SEED = 0.20071022;
 
 interface LocalTestContext {
   model: SHAPModel;
@@ -30,7 +33,7 @@ test<LocalTestContext>('constructor()', ({ model, data }) => {
   const yPredProbaExp = [
     0.7045917, 0.57841617, 0.73422101, 0.53812833, 0.19671004
   ];
-  const explainer = new KernelSHAP(model, data, 0.20071022);
+  const explainer = new KernelSHAP(model, data, SEED);
 
   for (const [i, pred] of explainer.predictions.entries()) {
     expect(pred).toBeCloseTo(yPredProbaExp[i], 6);
@@ -38,7 +41,7 @@ test<LocalTestContext>('constructor()', ({ model, data }) => {
 });
 
 test<LocalTestContext>('prepareSampling()', ({ model, data }) => {
-  const explainer = new KernelSHAP(model, data, 0.20071022);
+  const explainer = new KernelSHAP(model, data, SEED);
   const nSamples = 14;
   explainer.prepareSampling(nSamples);
 
@@ -53,21 +56,50 @@ test<LocalTestContext>('prepareSampling()', ({ model, data }) => {
 });
 
 test<LocalTestContext>('sampleFeatureCoalitions()', ({ model, data }) => {
-  const explainer = new KernelSHAP(model, data, 0.20071022);
-  const nSamples = 14;
+  const explainer = new KernelSHAP(model, data, SEED);
+  const x1 = [4.8, 3.8, 2.1, 5.4];
 
-  const result = math.matrix([
-    [1, 2, 3],
-    [4, 5, 6],
-    [7, 8, 9]
-  ]);
-  // console.log(math.row(result, 1));
-  // console.log(result.subset(math.index(1, math.range(0, 3))));
-  // console.log(result);
+  explainer.sampleFeatureCoalitions(x1, 32);
+
+  // The number of samples should be overridden
+  const sampledData = explainer.sampledData!;
+  expect(sampledData.size()[0]).toBe(14 * data.length);
+
+  // Size = 1 should be fully sampled
+  const maskMat = explainer.maskMat!;
+  const maskStrings = new Set<string>();
+  for (let i = 0; i < maskMat.size()[0]; i++) {
+    const row = math.row(maskMat, i).toArray()[0] as number[];
+    maskStrings.add(KernelSHAP.getMaskStr(row));
+  }
+
+  const size1Comb = ['1000', '0100', '0010', '0001'];
+  const size1CombComp = ['0111', '1011', '1101', '1110'];
+
+  for (const comb of size1Comb) {
+    expect(maskStrings.has(comb)).toBeTruthy();
+  }
+
+  for (const comb of size1CombComp) {
+    expect(maskStrings.has(comb)).toBeTruthy();
+  }
+
+  // Kernel weights should sum up to 1
+  const weightSum = math.sum(explainer.kernelWeight!) as number;
+  expect(weightSum).toBeCloseTo(1, 6);
+
+  // The weights for the enumeration of sample=1 combination should be
+  // 0.09090909
+  for (let i = 0; i < 8; i++) {
+    expect(explainer.kernelWeight!.get([i, 0])).toBeCloseTo(0.09090909, 8);
+  }
+
+  // Verify tracker variables
+  expect(explainer.nSamplesAdded).toBe(14);
 });
 
 test<LocalTestContext>('addSample() basic', ({ model, data }) => {
-  const explainer = new KernelSHAP(model, data, 0.20071022);
+  const explainer = new KernelSHAP(model, data, SEED);
   const nSamples = 14;
 
   // Initialize the sample data
@@ -101,7 +133,7 @@ test<LocalTestContext>('addSample() basic', ({ model, data }) => {
 });
 
 test<LocalTestContext>('addSample() more complex', ({ model, data }) => {
-  const explainer = new KernelSHAP(model, data, 0.20071022);
+  const explainer = new KernelSHAP(model, data, SEED);
   const nSamples = 14;
 
   // Initialize the sample data

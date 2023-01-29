@@ -4,10 +4,9 @@
  */
 
 import { randomLcg, randomUniform, randomInt } from 'd3-random';
-import { shuffle } from 'd3-array';
 import type { RandomUniform, RandomInt } from 'd3-random';
 import type { SHAPModel } from '../my-types';
-import { comb } from '../utils/utils';
+import { comb, getCombinations } from '../utils/utils';
 import math from '../utils/math-import';
 
 /**
@@ -136,11 +135,6 @@ export class KernelSHAP {
    * @returns Sample rate (fraction of sampled feature coalitions)
    */
   sampleFeatureCoalitions = (x: number[], nSamples: number | null) => {
-    if (this.kernelWeight === null) {
-      console.error('kernelWeight is null');
-      return;
-    }
-
     // Determine the number of feature coalitions to sample
     // If `n_samples` is not given, we use a simple heuristic to
     // determine number of samples to train the linear model
@@ -158,6 +152,11 @@ export class KernelSHAP {
 
     // Prepare for the feature coalition sampling
     this.prepareSampling(curNSamples);
+
+    if (this.kernelWeight === null) {
+      console.error('kernelWeight is not initialized.');
+      return;
+    }
 
     // Search for feature coalitions to sample and give them SHAP kernel
     // weights: (M - 1) / (C(M, z) * z * (M - z)).
@@ -180,7 +179,7 @@ export class KernelSHAP {
       sampleWeights[i - 1] *= 2;
     }
     const weightSum = sampleWeights.reduce((a, b) => a + b);
-    for (let i = 1; i < maxPairedSampleSize + 1; i++) {
+    for (let i = 1; i < maxSampleSize + 1; i++) {
       sampleWeights[i - 1] /= weightSum;
     }
 
@@ -191,7 +190,7 @@ export class KernelSHAP {
     let nSamplesLeft = curNSamples;
     let remainSampleWeights = sampleWeights.slice();
 
-    for (let curSize = 1; curSize <= maxSampleSize + 1; curSize++) {
+    for (let curSize = 1; curSize <= maxSampleSize; curSize++) {
       // Compute the number of samples with the current sample size
       let nSubsets = comb(this.nFeatures, curSize);
 
@@ -226,9 +225,8 @@ export class KernelSHAP {
 
         // Add combinations into sampledData
         const rangeArray = Array.from(new Array(this.nFeatures), (_, i) => i);
-        const combinations = rangeArray.flatMap((v, i) =>
-          rangeArray.slice(i + 1).map(d => [v, d])
-        );
+        const combinations = getCombinations(rangeArray, curSize);
+
         for (const activeIndexes of combinations) {
           const mask = new Array<number>(this.nFeatures).fill(0.0);
           for (const i of activeIndexes) {
@@ -237,7 +235,7 @@ export class KernelSHAP {
           this.addSample(x, mask, curWeight);
 
           // Add the complements combination if it is paired
-          if (curSize <= maxSampleSize) {
+          if (curSize <= maxPairedSampleSize) {
             const compMask = mask.map(x => (x === 0.0 ? 1.0 : 0.0));
             this.addSample(x, compMask, curWeight);
           }
@@ -269,7 +267,7 @@ export class KernelSHAP {
         remainSampleWeights[i] /= weightSum;
       }
 
-      // Randomly choose sample subset's size (*4 is arbitrary, we won't
+      // Randomly choose sample subset's size (*10 is arbitrary, we won't
       // iterate all of them.)
       // We use weighted uniform random
       const randomSubsetSizes: number[] = [];
@@ -280,7 +278,8 @@ export class KernelSHAP {
             (sum += value)
         )(0)
       );
-      for (let i = 0; i < 4 * nSamplesLeft; i++) {
+
+      for (let i = 0; i < 10 * nSamplesLeft; i++) {
         const curRandomNum = this.rng(0, 1)();
         // We can safely use length here because random's max is exclusive
         // (smaller than 1)
@@ -319,7 +318,7 @@ export class KernelSHAP {
 
         // Add this sample if we have not used this mask yet, otherwise
         // we just increase the previous occurrence's weight
-        const maskStr = getMaskStr(mask);
+        const maskStr = KernelSHAP.getMaskStr(mask);
         if (usedMasks.has(maskStr)) {
           // If this mask has been used, update its weight
           const weightI = usedMasks.get(maskStr)!;
@@ -341,7 +340,7 @@ export class KernelSHAP {
         // Also handle this mask's complementary mask
         if (nSamplesLeft > 0 && curSize <= maxPairedSampleSize) {
           const compMask = mask.map(x => (x === 0 ? 1 : 0));
-          const compMaskStr = getMaskStr(compMask);
+          const compMaskStr = KernelSHAP.getMaskStr(compMask);
 
           if (usedMasks.has(compMaskStr)) {
             // If this mask has been used, update its weight
@@ -471,13 +470,13 @@ export class KernelSHAP {
     this.yExpMat = math.matrix(math.zeros([nSamples, this.nTargets]));
     this.lastMask = math.matrix(math.zeros([nSamples]));
   };
-}
 
-/**
- * Helper function to convert a mask array into a string
- * @param mask Binary mask array
- * @returns String version of the binary mask array
- */
-const getMaskStr = (mask: number[]) => {
-  return mask.map(x => (x === 1.0 ? '1' : '0')).join('');
-};
+  /**
+   * Helper function to convert a mask array into a string
+   * @param mask Binary mask array
+   * @returns String version of the binary mask array
+   */
+  static getMaskStr = (mask: number[]) => {
+    return mask.map(x => (x === 1.0 ? '1' : '0')).join('');
+  };
+}
