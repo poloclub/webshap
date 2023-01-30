@@ -3,6 +3,7 @@
 import {
   ones,
   zeros,
+  diag,
   matrix,
   index,
   range,
@@ -11,12 +12,20 @@ import {
   flatten,
   sum,
   mean,
-  transpose
+  transpose,
+  add,
+  multiply,
+  inv,
+  pinv,
+  det,
+  reshape,
+  squeeze
 } from 'mathjs';
 
 export default {
   ones,
   zeros,
+  diag,
   matrix,
   index,
   range,
@@ -25,5 +34,12 @@ export default {
   flatten,
   sum,
   mean,
-  transpose
+  transpose,
+  add,
+  multiply,
+  inv,
+  pinv,
+  det,
+  reshape,
+  squeeze
 };
