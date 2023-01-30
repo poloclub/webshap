@@ -1,7 +1,5 @@
 import { describe, test, expect, beforeEach } from 'vitest';
 import { KernelSHAP, IrisLinearBinary } from '../../src/index';
-import { randomLcg, randomUniform } from 'd3-random';
-import { getCombinations } from '../../src/utils/utils';
 import math from '../../src/utils/math-import';
 import type { SHAPModel } from '../../src/my-types';
 
@@ -217,5 +215,18 @@ test<LocalTestContext>('inferenceFeatureCoalitions()', ({ model, data }) => {
       expectedEyMat8[i],
       8
     );
+  }
+});
+
+test<LocalTestContext>('explainOneInstance()', ({ model, data }) => {
+  const explainer = new KernelSHAP(model, data, SEED);
+  const nSamples = 32;
+  const x1 = [4.8, 3.8, 2.1, 5.4];
+
+  const values = explainer.explainOneInstance(x1, nSamples)[0];
+  const valuesExp = [0.02968265, 0.03134839, -0.0162967, 0.39248069];
+
+  for (const [i, value] of values.entries()) {
+    expect(value).toBeCloseTo(valuesExp[i], 6);
   }
 });

@@ -4,10 +4,11 @@
  */
 
 import { randomLcg, randomUniform, randomInt } from 'd3-random';
+import { comb, getCombinations } from '../utils/utils';
+import { lstsq } from './lstsq';
+import math from '../utils/math-import';
 import type { RandomUniform, RandomInt } from 'd3-random';
 import type { SHAPModel } from '../my-types';
-import { comb, getCombinations } from '../utils/utils';
-import math from '../utils/math-import';
 
 /**
  * Kernel SHAP method to approximate Shapley attributions by solving s specially
@@ -137,29 +138,181 @@ export class KernelSHAP {
 
     // Find the current prediction f(x)
     // Return a matrix with only one item (y(x))
-    const yPredProbMat = math.matrix(this.model(curX));
+    const yPredProbMat = math.reshape(math.matrix(this.model(curX)), [1, 1]);
 
     // Sample feature coalitions
     const fractionEvaluated = this.sampleFeatureCoalitions(x, nSamples);
 
     // Inference on the sampled feature coli
     this.inferenceFeatureCoalitions();
+
+    // Formulate the least square problem
+    // y_exp_adj == y_exp_mat (coalition samples) - expected_value (background
+    // data)
+    const yExpMat = this.yExpMat!;
+    const yExpAdj = math.add(yExpMat, -this.expectedValue) as math.Matrix;
+    const yExpAdjSize = yExpAdj.size() as [number, number];
+
+    const kernelWeight = this.kernelWeight!;
+    const kernelWeightSize = kernelWeight.size() as [number, number];
+
+    const maskMat = this.maskMat!;
+    const maskMatSize = maskMat.size() as [number, number];
+
+    const nonZeroIndexes = Array.from(
+      new Array<number>(this.nFeatures),
+      (_, i) => i
+    );
+
+    // If we only sample < 0.2 max samples, use lasso to select features first
+    if (fractionEvaluated < 0.2) {
+      // First, we compute the sum of each row in the mask matrix
+      const maskRowSums: number[] = [];
+      for (let i = 0; i < maskMat.size()[0]; i++) {
+        const rowSum = math.sum(math.row(maskMat, i)) as number;
+        maskRowSums.push(rowSum);
+      }
+
+      // Next, we augment the kernel weight
+      const kernelWeightAug = math.matrix(
+        math.zeros([kernelWeightSize[0] * 2, kernelWeightSize[1]])
+      );
+
+      for (const t of [0, 1]) {
+        for (let i = 0; i < kernelWeightSize[0]; i++) {
+          if (t === 0) {
+            const wAug =
+              kernelWeight.get([i, 0]) * (this.nFeatures - maskRowSums[i]);
+            kernelWeightAug.subset(math.index(i, 0), Math.sqrt(wAug));
+          } else {
+            const wAug = kernelWeight.get([i, 0]) * maskRowSums[i];
+            kernelWeightAug.subset(
+              math.index(kernelWeightSize[0] + i, 0),
+              Math.sqrt(wAug)
+            );
+          }
+        }
+      }
+
+      // Augment the yExpAdj
+      const yExpAdjAug = math.matrix(
+        math.zeros([yExpAdjSize[0] * 2, yExpAdjSize[1]])
+      );
+
+      // The first half of y_exp_adj is just y_exp_adj multiplied with sqrt (
+      // kernel_weight_aug)
+      for (let i = 0; i < yExpAdjSize[0]; i++) {
+        yExpAdjAug.subset(
+          math.index(i, 0),
+          yExpAdj.get([i, 0]) * kernelWeightAug.get([i, 0])
+        );
+      }
+
+      // The second half accounts for the elimination of the last column
+      for (let i = 0; i < yExpAdjSize[0]; i++) {
+        const curI = yExpAdjSize[0] + i;
+        let curValue =
+          yExpAdj.get([i, 0]) - (yPredProbMat.get([0, 0]) - this.expectedValue);
+        curValue *= kernelWeightAug.get([curI, 0]);
+        yExpAdjAug.subset(math.index(curI, 0), curValue);
+      }
+
+      // Augment the mask
+      const maskMatAug = math.matrix(
+        math.zeros([maskMatSize[0] * 2, maskMatSize[1]])
+      );
+
+      // Upper half is the same, and the lower half is mask_mat - 1
+      for (const t of [0, 2]) {
+        for (let i = 0; i < maskMatSize[0]; i++) {
+          for (let j = 0; j < maskMatSize[1]; j++) {
+            if (t === 0) {
+              maskMatAug.subset(
+                math.index(i, j),
+                maskMat.get([i, j]) * kernelWeightAug.get([i, 0])
+              );
+            } else {
+              const curI = maskMatSize[0] + i;
+              const curValue = maskMat.get([i, j]) - 1;
+              maskMatAug.subset(
+                math.index(curI, j),
+                curValue * kernelWeightAug.get([curI, 0])
+              );
+            }
+          }
+        }
+      }
+
+      // TODO: (Enhancement) use LASSO regression to do feature selection.
+    }
+
+    if (nonZeroIndexes.length === 0) {
+      const values = new Array<number>(this.nFeatures).fill(0);
+      return [values];
+    }
+
+    // Eliminate one column so that all shapley values + baseline sum to the
+    // output.
+    // In the mask_mat, subtract all columns by the last column, and drop the
+    // last column.
+    // If LASSO feature selection is used, we only keep all columns before the
+    // last non-zero coefficient column
+    let newMaskMat = maskMat.clone();
+    const lastColJ = nonZeroIndexes[nonZeroIndexes.length - 1];
+    newMaskMat = newMaskMat.subset(
+      math.index(math.range(0, newMaskMat.size()[0]), math.range(0, lastColJ))
+    );
+
+    for (let i = 0; i < newMaskMat.size()[0]; i++) {
+      for (let j = 0; j < newMaskMat.size()[1]; j++) {
+        newMaskMat.subset(
+          math.index(i, j),
+          newMaskMat.get([i, j]) - maskMat.get([i, lastColJ])
+        );
+      }
+    }
+
+    // Remove the last column's effect on the least square y
+    const newYExpAdj = yExpAdj.clone();
+    for (let i = 0; i < newYExpAdj.size()[0]; i++) {
+      newYExpAdj.subset(
+        math.index(i, 0),
+        newYExpAdj.get([i, 0]) -
+          maskMat.get([i, lastColJ]) *
+            (yPredProbMat.get([0, 0]) - this.expectedValue)
+      );
+    }
+
+    // Solve the least square
+    const phiMat = lstsq(newMaskMat, newYExpAdj, kernelWeight);
+
+    // Compute the last shapely value (to make all values add up to prediction)
+    const lastPhi =
+      yPredProbMat.get([0, 0]) -
+      this.expectedValue -
+      (math.sum(phiMat) as number);
+
+    // Return the shap values
+    const shapValues = new Array<number>(this.nFeatures).fill(0);
+    for (let i = 0; i < phiMat.size()[0]; i++) {
+      shapValues[i] = phiMat.get([i, 0]) as number;
+    }
+    shapValues[lastColJ] = lastPhi;
+
+    return [shapValues];
   };
 
   inferenceFeatureCoalitions = () => {
     if (this.sampledData === null) {
-      console.error('sampledData is null.');
-      return;
+      throw Error('sampledData is null.');
     }
 
     if (this.yExpMat === null) {
-      console.error('yExpMat is null.');
-      return;
+      throw Error('yExpMat is null.');
     }
 
     if (this.yMat === null) {
-      console.error('yMat is null.');
-      return;
+      throw Error('yMat is null.');
     }
 
     // Convert the sampled data from matrix to a 2D vec
@@ -188,7 +341,7 @@ export class KernelSHAP {
    * @param nSamples Number of coalitions to sample
    * @returns Sample rate (fraction of sampled feature coalitions)
    */
-  sampleFeatureCoalitions = (x: number[], nSamples: number | null) => {
+  sampleFeatureCoalitions = (x: number[], nSamples: number | null): number => {
     // Determine the number of feature coalitions to sample
     // If `n_samples` is not given, we use a simple heuristic to
     // determine number of samples to train the linear model
@@ -208,8 +361,7 @@ export class KernelSHAP {
     this.prepareSampling(curNSamples);
 
     if (this.kernelWeight === null) {
-      console.error('kernelWeight is not initialized.');
-      return;
+      throw Error('kernelWeight is not initialized.');
     }
 
     // Search for feature coalitions to sample and give them SHAP kernel
@@ -440,18 +592,15 @@ export class KernelSHAP {
   // Add a feature coalition sample into `self.sampled_data`
   addSample(x: number[], mask: number[], weight: number) {
     if (this.sampledData === null) {
-      console.error('this.sampleData is null');
-      return;
+      throw Error('this.sampleData is null');
     }
 
     if (this.maskMat === null) {
-      console.error('this.maskMat is null');
-      return;
+      throw Error('this.maskMat is null');
     }
 
     if (this.kernelWeight === null) {
-      console.error('this.kernelWeight is null');
-      return;
+      throw Error('this.kernelWeight is null');
     }
 
     // (1) Find the current block in self.sampled_data to modify
