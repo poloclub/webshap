@@ -40,7 +40,12 @@
     <div class="feature-content">
       <div class="top-section">
         <span class="section-name">Input Data</span>
-        <span class="section-description">Loan applicant information</span>
+        <span class="section-description"
+          >Loan applicant #{String(myTabular ? myTabular.curIndex : 0).padStart(
+            3,
+            '0'
+          )} information</span
+        >
         <div
           class="svg-icon"
           on:click="{() => {
@@ -62,6 +67,9 @@
                   class="feature-input"
                   type="number"
                   step="{item.requiresInt ? 1 : 0.1}"
+                  on:change="{() => {
+                    if (myTabular) myTabular.inputChanged();
+                  }}"
                   bind:value="{item.value}"
                 />
               </div>
@@ -75,7 +83,13 @@
             {#each [...myTabular.catFeatures.values()] as item}
               <div class="input-wrapper">
                 <span class="name">{item.displayName}</span>
-                <select class="feature-select" bind:value="{item.value}">
+                <select
+                  class="feature-select"
+                  bind:value="{item.value}"
+                  on:change="{() => {
+                    if (myTabular) myTabular.inputChanged();
+                  }}"
+                >
                   {#each item.allLevels as level}
                     <option value="{level.level}">{level.displayName}</option>
                   {/each}

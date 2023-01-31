@@ -38,6 +38,7 @@ export class Tabular {
   catFeatures: Map<string, TabularCatFeature> | null = null;
   curX: number[] | null = null;
   curY: number | null = null;
+  curIndex = 0;
 
   // ONNX data
   message: string;
@@ -60,9 +61,6 @@ export class Tabular {
 
     // Load the training and test dataset
     this.initData();
-
-    // Inference the model
-    this.inference();
   }
 
   /**
@@ -76,9 +74,14 @@ export class Tabular {
     // Load a random sample
     this.loadRandomSample();
 
+    // Inference the model
     const x = this.getCurX();
+    this.inference(x);
   };
 
+  /**
+   * Load a random sample from the test dataset.
+   */
   loadRandomSample = () => {
     if (this.data === null) {
       throw Error('this.data is null');
@@ -88,6 +91,7 @@ export class Tabular {
     const randomIndex = d3.randomInt(this.data.xTest.length)();
     this.curX = this.data.xTest[randomIndex];
     this.curY = this.data.yTest[randomIndex];
+    this.curIndex = randomIndex;
 
     // Convert the data into structured format
     this.contFeatures = new Map();
@@ -143,10 +147,23 @@ export class Tabular {
     this.tabularUpdated();
   };
 
+  /**
+   * Event handler for the sample button clicking.
+   */
   sampleClicked = () => {
-    // this.loadRandomSample();
+    this.loadRandomSample();
+    const curX = this.getCurX();
+    this.inference(curX);
+    console.log(curX);
+  };
+
+  /**
+   * Event handler for the sample button clicking.
+   */
+  inputChanged = () => {
     const curX = this.getCurX();
     console.log(curX);
+    this.inference(curX);
   };
 
   /**
@@ -163,7 +180,7 @@ export class Tabular {
       throw Error('Data or a random sample is not initialized');
     }
 
-    const curX = new Array<number>(this.curX.length).fill(-1);
+    const curX = new Array<number>(this.curX.length).fill(0);
 
     // Iterate through all features to get the current x values
     for (const [i, featureType] of this.data.featureTypes.entries()) {
@@ -191,15 +208,13 @@ export class Tabular {
     return curX;
   };
 
-  inference = async () => {
+  inference = async (x: number[]) => {
     try {
       // Create a new session and load the LightGBM model
       const session = await ort.InferenceSession.create(modelUrl);
 
-      const x = Float32Array.from(new Array(31).fill(0));
-
       // Prepare feeds, use model input names as keys.
-      const xTensor = new ort.Tensor('float32', x, [1, 31]);
+      const xTensor = new ort.Tensor('float32', Float32Array.from(x), [1, 31]);
       const feeds = { float_input: xTensor };
 
       // Feed inputs and run

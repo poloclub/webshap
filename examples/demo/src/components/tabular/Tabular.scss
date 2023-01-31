@@ -71,7 +71,8 @@ $border-radius: 5px;
     }
 
     .section-description {
-      font-size: 1rem;
+      font-size: $font-d1;
+      font-variant-numeric: tabular-nums;
     }
 
     .svg-icon {
