@@ -13,7 +13,7 @@
   @import './WebShap.scss';
 </style>
 
-<div class="diffusiondbvis-page">
+<div class="webshap-page">
   <!-- <Tooltip {tooltipStore} /> -->
 
   <div class="app-wrapper">
@@ -32,51 +32,54 @@
       </div>
     </div>
 
-    <div class="main-app" bind:this={component}>
-      <div class="main-app-container" class:hidden={view !== 'loan-prediction'}>
+    <div class="main-app" bind:this="{component}">
+      <div
+        class="main-app-container"
+        class:hidden="{view !== 'loan-prediction'}"
+      >
         <Tabular />
       </div>
 
       <div
         class="main-app-container"
-        class:hidden={view !== 'image-classification'}
-      />
+        class:hidden="{view !== 'image-classification'}"
+      ></div>
 
       <div
         class="main-app-container"
-        class:hidden={view !== 'text-classification'}
-      />
+        class:hidden="{view !== 'text-classification'}"
+      ></div>
     </div>
 
     <div class="app-tabs">
       <button
         class="tab"
-        class:selected={view === 'loan-prediction'}
-        on:click={() => {
+        class:selected="{view === 'loan-prediction'}"
+        on:click="{() => {
           view = 'loan-prediction';
-        }}
+        }}"
         data-text="Loan Approval Prediction">Loan Approval Prediction</button
       >
 
-      <span class="splitter" />
+      <span class="splitter"></span>
 
       <button
         class="tab"
-        class:selected={view === 'image-classification'}
-        on:click={() => {
+        class:selected="{view === 'image-classification'}"
+        on:click="{() => {
           view = 'image-classification';
-        }}
+        }}"
         data-text="Image Classification">Image Classification</button
       >
 
-      <span class="splitter" />
+      <span class="splitter"></span>
 
       <button
         class="tab"
-        class:selected={view === 'text-classification'}
-        on:click={() => {
+        class:selected="{view === 'text-classification'}"
+        on:click="{() => {
           view = 'text-classification';
-        }}
+        }}"
         data-text="Text Classification">Text Classification</button
       >
     </div>

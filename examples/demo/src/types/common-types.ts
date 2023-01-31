@@ -9,6 +9,8 @@ export interface TabularContFeature {
   displayName: string;
   desc: string;
   value: number;
+  requiresInt: boolean;
+  requiresLog: boolean;
 }
 
 export interface TabularCatFeature {
@@ -34,6 +36,8 @@ export interface TabularData {
       [key: string]: [string, string];
     };
   };
+  featureRequiresLog: string[];
+  featureRequireInt: string[];
 }
 
 export interface Rect {

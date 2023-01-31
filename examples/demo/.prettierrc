@@ -2,5 +2,6 @@
   "singleQuote": true,
   "trailingComma": "none",
   "svelteSortOrder": "options-scripts-styles-markup",
-  "arrowParens": "avoid"
+  "arrowParens": "avoid",
+  "svelteStrictMode": true
 }

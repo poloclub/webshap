@@ -5,6 +5,7 @@ import type {
   TabularContFeature,
   TabularCatFeature
 } from '../../types/common-types';
+import { round } from '../../utils/utils';
 
 import * as ort from 'onnxruntime-web/dist/ort-web.min.js';
 import wasm from 'onnxruntime-web/dist/ort-wasm.wasm?url';
@@ -31,6 +32,12 @@ export class Tabular {
   component: HTMLElement;
   tabularUpdated: () => void;
 
+  // Dataset
+  data: TabularData | null = null;
+  contFeatures: TabularContFeature[] | null = null;
+  catFeatures: TabularCatFeature[] | null = null;
+
+  // ONNX data
   message: string;
 
   /**
@@ -60,40 +67,55 @@ export class Tabular {
    * Load the lending club dataset.
    */
   initData = async () => {
-    const data = (await d3.json(
+    this.data = (await d3.json(
       `${import.meta.env.BASE_URL}data/lending-club.json`
     )) as TabularData;
 
+    // Load a random sample
+    this.loadRandomSample();
+  };
+
+  loadRandomSample = () => {
+    if (this.data === null) {
+      throw Error('this.data is null');
+    }
+
+    const randomIndex = d3.randomInt(this.data.xTest.length)();
+    const x = this.data.xTest[randomIndex];
+    const y = this.data.yTest[randomIndex];
+    console.log(x, y);
+
     // Convert the data into structured format
-    const contFeatures: TabularContFeature[] = [];
-    const catFeatures: TabularCatFeature[] = [];
+    this.contFeatures = [];
+    this.catFeatures = [];
     const addedCatNames = new Set<string>();
 
-    for (const [i, featureType] of data.featureTypes.entries()) {
+    for (const [i, featureType] of this.data.featureTypes.entries()) {
       if (featureType === 'cont') {
-        const curName = data.featureNames[i];
-        contFeatures.push({
+        const curName = this.data.featureNames[i];
+        this.contFeatures.push({
           name: curName,
-          displayName: data.featureInfo[curName][0],
-          desc: data.featureInfo[curName][1],
-          value: 0
+          displayName: this.data.featureInfo[curName][0],
+          desc: this.data.featureInfo[curName][1],
+          value: x[i],
+          requiresInt: this.data.featureRequireInt.includes(curName),
+          requiresLog: this.data.featureRequiresLog.includes(curName)
         });
       } else {
-        const curName = data.featureNames[i].replace(/(.+)-(.+)/, '$1');
+        const curName = this.data.featureNames[i].replace(/(.+)-(.+)/, '$1');
 
         if (!addedCatNames.has(curName)) {
-          catFeatures.push({
+          this.catFeatures.push({
             name: curName,
-            displayName: data.featureInfo[curName][0],
-            desc: data.featureInfo[curName][1],
-            levelInfo: data.featureLevelInfo[curName],
+            displayName: this.data.featureInfo[curName][0],
+            desc: this.data.featureInfo[curName][1],
+            levelInfo: this.data.featureLevelInfo[curName],
             value: '0'
           });
           addedCatNames.add(curName);
         }
       }
     }
-    console.log(contFeatures, catFeatures);
   };
 
   inference = async () => {
@@ -113,7 +135,7 @@ export class Tabular {
       // Read from results
       const probs = results.probabilities.data;
 
-      this.message = `Success: ${probs}`;
+      this.message = `Success: ${round(probs[1], 4)}`;
     } catch (e) {
       this.message = `Failed: ${e}.`;
     }
