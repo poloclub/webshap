@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Tabular from '../tabular/Tabular.svelte';
   import iconGithub from '../../imgs/icon-github.svg?raw';
 
   let component: HTMLElement | null = null;
@@ -32,10 +33,9 @@
     </div>
 
     <div class="main-app" bind:this={component}>
-      <div
-        class="main-app-container"
-        class:hidden={view !== 'loan-prediction'}
-      />
+      <div class="main-app-container" class:hidden={view !== 'loan-prediction'}>
+        <Tabular />
+      </div>
 
       <div
         class="main-app-container"
