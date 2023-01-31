@@ -61,10 +61,9 @@
             <div class="input-wrapper">
               <span class="name">{item.displayName}</span>
               <select class="feature-select" bind:value="{item.value}">
-                <!-- {#each item.allValues as value}
-                  <option value="{value.level}">{value.levelDisplayName}</option
-                  >
-                {/each} -->
+                {#each item.allLevels as level}
+                  <option value="{level.level}">{level.displayName}</option>
+                {/each}
               </select>
             </div>
           {/each}

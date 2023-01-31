@@ -90,6 +90,8 @@ export class Tabular {
     this.catFeatures = [];
     const addedCatNames = new Set<string>();
 
+    console.log(this.data);
+
     for (const [i, featureType] of this.data.featureTypes.entries()) {
       if (featureType === 'cont') {
         const curName = this.data.featureNames[i];
@@ -97,22 +99,45 @@ export class Tabular {
           name: curName,
           displayName: this.data.featureInfo[curName][0],
           desc: this.data.featureInfo[curName][1],
-          value: x[i],
+          value: this.data.featureRequiresLog.includes(curName)
+            ? round(Math.pow(10, x[i]), 0)
+            : x[i],
           requiresInt: this.data.featureRequireInt.includes(curName),
           requiresLog: this.data.featureRequiresLog.includes(curName)
         });
       } else {
         const curName = this.data.featureNames[i].replace(/(.+)-(.+)/, '$1');
+        const curLevel = this.data.featureNames[i].replace(/(.+)-(.+)/, '$2');
 
+        // Initialize this entry
         if (!addedCatNames.has(curName)) {
+          const curLevelInfo = this.data.featureLevelInfo[curName];
+          const allLevels = [];
+          for (const key of Object.keys(curLevelInfo)) {
+            allLevels.push({
+              level: key,
+              displayName: curLevelInfo[key][0]
+            });
+          }
+
           this.catFeatures.push({
             name: curName,
             displayName: this.data.featureInfo[curName][0],
             desc: this.data.featureInfo[curName][1],
             levelInfo: this.data.featureLevelInfo[curName],
+            allLevels: allLevels,
             value: '0'
           });
           addedCatNames.add(curName);
+        }
+
+        // Handle one-hot encoding
+        if (x[i] == 1) {
+          for (const f of this.catFeatures) {
+            if (f.name === curName) {
+              f.value = curLevel;
+            }
+          }
         }
       }
     }

@@ -20,7 +20,13 @@ export interface TabularCatFeature {
   levelInfo: {
     [key: string]: [string, string];
   };
+  allLevels: CatLevel[];
   value: string;
+}
+
+interface CatLevel {
+  level: string;
+  displayName: string;
 }
 
 export interface TabularData {
