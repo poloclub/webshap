@@ -154,7 +154,7 @@
       visibility: hidden;
       pointer-events: none;
       overflow: hidden;
-      font-weight: 700;
+      font-weight: 900;
     }
 
     &:hover {
@@ -166,7 +166,7 @@
     }
 
     &.selected {
-      font-weight: 700;
+      font-weight: 900;
       color: $gray-50;
 
       &::before {

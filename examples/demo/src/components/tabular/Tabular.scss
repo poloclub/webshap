@@ -3,6 +3,31 @@
 $v-padding: 15px;
 $border-radius: 5px;
 
+.svg-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: $gray-500;
+  cursor: pointer;
+  width: 1em;
+  height: 1em;
+  transition: color 100ms;
+
+  :global(svg) {
+    fill: currentColor;
+    width: 100%;
+    height: 100%;
+  }
+
+  &:hover {
+    color: adjust-color($color: $gray-500, $lightness: -10%);
+  }
+
+  &:active {
+    color: adjust-color($color: $gray-500, $lightness: -20%);
+  }
+}
+
 .tabular-wrapper {
   display: flex;
   position: relative;
@@ -26,16 +51,44 @@ $border-radius: 5px;
 
 .feature-content {
   background-color: white;
-  padding: 15px $v-padding;
-  border: 1px solid $gray-light-border;
-  border-radius: $border-radius;
-  overflow-y: auto;
-
   font-size: 0.9rem;
   width: 400px;
 
   display: flex;
   flex-direction: column;
+  align-items: center;
+
+  .top-section {
+    display: flex;
+    align-items: baseline;
+    color: $gray-600;
+    gap: 7px;
+    margin-bottom: 5px;
+
+    .section-name {
+      font-size: $font-u2;
+      font-weight: 800;
+    }
+
+    .section-description {
+      font-size: 1rem;
+    }
+
+    .svg-icon {
+      width: 18px;
+      height: 18px;
+      transform: translateY(3px);
+    }
+  }
+}
+
+.feature-box {
+  display: flex;
+  flex-direction: column;
+
+  padding: 10px $v-padding;
+  border: 1px solid $gray-light-border;
+  border-radius: $border-radius;
 }
 
 .feature-header {
@@ -44,7 +97,7 @@ $border-radius: 5px;
   margin-bottom: 5px;
 
   &.cat {
-    margin-top: 12px;
+    margin-top: 16px;
   }
 }
 
@@ -97,20 +150,3 @@ $border-radius: 5px;
     }
   }
 }
-
-// .svg-icon {
-//   display: flex;
-//   justify-content: center;
-//   align-items: center;
-//   fill: $gray-500;
-//   cursor: pointer;
-
-//   :global(svg) {
-//     width: 1.4rem;
-//     height: 1.4rem;
-//   }
-
-//   &:hover {
-//     fill: adjust-color($color: $gray-500, $lightness: -10%);
-//   }
-// }

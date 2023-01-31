@@ -2,6 +2,7 @@
   import { Tabular } from './Tabular';
   import { onMount } from 'svelte';
   import iconGear from '../../imgs/icon-gear.svg?raw';
+  import iconRefresh from '../../imgs/icon-refresh2.svg?raw';
 
   let component: HTMLElement | null = null;
   let mounted = false;
@@ -37,38 +38,53 @@
 <div class="tabular-wrapper" bind:this="{component}">
   <div class="tabular">
     <div class="feature-content">
-      {#if myTabular && myTabular.contFeatures}
-        <span class="feature-header cont">Continuous Features</span>
-        <div class="content-cont">
-          {#each myTabular.contFeatures as item}
-            <div class="input-wrapper">
-              <span class="name">{item.displayName}</span>
-              <input
-                class="feature-input"
-                type="number"
-                step="{item.requiresInt ? 1 : 0.1}"
-                bind:value="{item.value}"
-              />
-            </div>
-          {/each}
+      <div class="top-section">
+        <span class="section-name">Input Data</span>
+        <span class="section-description">Loan applicant information</span>
+        <div
+          class="svg-icon"
+          on:click="{() => {
+            if (myTabular) myTabular.sampleClicked();
+          }}"
+        >
+          {@html iconRefresh}
         </div>
-      {/if}
+      </div>
 
-      {#if myTabular && myTabular.contFeatures}
-        <span class="feature-header cat">Categorical Features</span>
-        <div class="content-cat">
-          {#each myTabular.catFeatures as item}
-            <div class="input-wrapper">
-              <span class="name">{item.displayName}</span>
-              <select class="feature-select" bind:value="{item.value}">
-                {#each item.allLevels as level}
-                  <option value="{level.level}">{level.displayName}</option>
-                {/each}
-              </select>
-            </div>
-          {/each}
-        </div>
-      {/if}
+      <div class="feature-box">
+        {#if myTabular && myTabular.contFeatures}
+          <span class="feature-header cont">Continuous Features</span>
+          <div class="content-cont">
+            {#each [...myTabular.contFeatures.values()] as item}
+              <div class="input-wrapper">
+                <span class="name">{item.displayName}</span>
+                <input
+                  class="feature-input"
+                  type="number"
+                  step="{item.requiresInt ? 1 : 0.1}"
+                  bind:value="{item.value}"
+                />
+              </div>
+            {/each}
+          </div>
+        {/if}
+
+        {#if myTabular && myTabular.contFeatures}
+          <span class="feature-header cat">Categorical Features</span>
+          <div class="content-cat">
+            {#each [...myTabular.catFeatures.values()] as item}
+              <div class="input-wrapper">
+                <span class="name">{item.displayName}</span>
+                <select class="feature-select" bind:value="{item.value}">
+                  {#each item.allLevels as level}
+                    <option value="{level.level}">{level.displayName}</option>
+                  {/each}
+                </select>
+              </div>
+            {/each}
+          </div>
+        {/if}
+      </div>
     </div>
 
     <span class="message-board">

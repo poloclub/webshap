@@ -34,8 +34,10 @@ export class Tabular {
 
   // Dataset
   data: TabularData | null = null;
-  contFeatures: TabularContFeature[] | null = null;
-  catFeatures: TabularCatFeature[] | null = null;
+  contFeatures: Map<string, TabularContFeature> | null = null;
+  catFeatures: Map<string, TabularCatFeature> | null = null;
+  curX: number[] | null = null;
+  curY: number | null = null;
 
   // ONNX data
   message: string;
@@ -73,6 +75,8 @@ export class Tabular {
 
     // Load a random sample
     this.loadRandomSample();
+
+    const x = this.getCurX();
   };
 
   loadRandomSample = () => {
@@ -80,28 +84,26 @@ export class Tabular {
       throw Error('this.data is null');
     }
 
+    // Get a random instance
     const randomIndex = d3.randomInt(this.data.xTest.length)();
-    const x = this.data.xTest[randomIndex];
-    const y = this.data.yTest[randomIndex];
-    console.log(x, y);
+    this.curX = this.data.xTest[randomIndex];
+    this.curY = this.data.yTest[randomIndex];
 
     // Convert the data into structured format
-    this.contFeatures = [];
-    this.catFeatures = [];
+    this.contFeatures = new Map();
+    this.catFeatures = new Map();
     const addedCatNames = new Set<string>();
-
-    console.log(this.data);
 
     for (const [i, featureType] of this.data.featureTypes.entries()) {
       if (featureType === 'cont') {
         const curName = this.data.featureNames[i];
-        this.contFeatures.push({
+        this.contFeatures.set(curName, {
           name: curName,
           displayName: this.data.featureInfo[curName][0],
           desc: this.data.featureInfo[curName][1],
           value: this.data.featureRequiresLog.includes(curName)
-            ? round(Math.pow(10, x[i]), 0)
-            : x[i],
+            ? round(Math.pow(10, this.curX[i]), 0)
+            : this.curX[i],
           requiresInt: this.data.featureRequireInt.includes(curName),
           requiresLog: this.data.featureRequiresLog.includes(curName)
         });
@@ -120,7 +122,7 @@ export class Tabular {
             });
           }
 
-          this.catFeatures.push({
+          this.catFeatures.set(curName, {
             name: curName,
             displayName: this.data.featureInfo[curName][0],
             desc: this.data.featureInfo[curName][1],
@@ -132,15 +134,61 @@ export class Tabular {
         }
 
         // Handle one-hot encoding
-        if (x[i] == 1) {
-          for (const f of this.catFeatures) {
-            if (f.name === curName) {
-              f.value = curLevel;
-            }
-          }
+        if (this.curX[i] == 1) {
+          this.catFeatures.get(curName)!.value = curLevel;
         }
       }
     }
+
+    this.tabularUpdated();
+  };
+
+  sampleClicked = () => {
+    // this.loadRandomSample();
+    const curX = this.getCurX();
+    console.log(curX);
+  };
+
+  /**
+   * Get the current x values from the user inputs
+   */
+  getCurX = () => {
+    if (
+      this.data === null ||
+      this.catFeatures === null ||
+      this.contFeatures === null ||
+      this.curX === null ||
+      this.curY === null
+    ) {
+      throw Error('Data or a random sample is not initialized');
+    }
+
+    const curX = new Array<number>(this.curX.length).fill(-1);
+
+    // Iterate through all features to get the current x values
+    for (const [i, featureType] of this.data.featureTypes.entries()) {
+      if (featureType === 'cont') {
+        const curName = this.data.featureNames[i];
+        const curContFeature = this.contFeatures.get(curName)!;
+        if (curContFeature.requiresLog) {
+          curX[i] = Math.log10(curContFeature.value);
+        } else {
+          curX[i] = curContFeature.value;
+        }
+      } else {
+        const curName = this.data.featureNames[i].replace(/(.+)-(.+)/, '$1');
+        const curLevel = this.data.featureNames[i].replace(/(.+)-(.+)/, '$2');
+
+        // One-hot encoding: we only need to change the value of the active
+        // one-hot column
+        const curCatFeature = this.catFeatures.get(curName)!;
+        if (curCatFeature.value === curLevel) {
+          curX[i] = 1;
+        }
+      }
+    }
+
+    return curX;
   };
 
   inference = async () => {
@@ -158,7 +206,7 @@ export class Tabular {
       const results = await session.run(feeds);
 
       // Read from results
-      const probs = results.probabilities.data;
+      const probs = results.probabilities.data as Float32Array;
 
       this.message = `Success: ${round(probs[1], 4)}`;
     } catch (e) {
