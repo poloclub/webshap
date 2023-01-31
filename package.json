@@ -21,7 +21,8 @@
     "machine",
     "learning",
     "ai",
-    "metrics"
+    "metrics",
+    "interpretability"
   ],
   "author": "Jay Wang",
   "license": "MIT",
@@ -36,7 +37,8 @@
     "coverage": "vitest run --coverage && c8 report && pnpm run coverage:badge",
     "coverage:badge": "pnpx make-coverage-badge --output-path ./imgs/coverage-badge.svg",
     "build": "pnpm run clean && vite build",
-    "clean": "rimraf ./dist"
+    "clean": "rimraf ./dist",
+    "publish": "pnpm publish --access=public"
   },
   "devDependencies": {
     "@rollup/plugin-typescript": "^11.0.0",

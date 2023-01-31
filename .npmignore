@@ -24,3 +24,5 @@ coverage
 *.sw?
 
 pnpm-lock.yaml
+examples
+test-generation
