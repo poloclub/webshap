@@ -5,7 +5,8 @@ import type {
   TabularContFeature,
   TabularCatFeature
 } from '../../types/common-types';
-import { round } from '../../utils/utils';
+import { KernelSHAP } from 'webshap';
+import { round, timeit } from '../../utils/utils';
 
 import * as ort from 'onnxruntime-web/dist/ort-web.min.js';
 import wasm from 'onnxruntime-web/dist/ort-wasm.wasm?url';
@@ -23,9 +24,12 @@ ort.env.wasm.wasmPaths = {
 };
 
 const DEBUG = config.debug;
+const LCG = d3.randomLcg(0.20230101);
+const RANDOM_INT = d3.randomInt.source(LCG);
+const RANDOM_UNIFORM = d3.randomUniform.source(LCG);
 
 /**
- * Class for the Embedding view
+ * Class for the Tabular WebSHAP demo
  */
 
 export class Tabular {
@@ -43,10 +47,13 @@ export class Tabular {
   // ONNX data
   message: string;
 
+  // WebSHAP data
+  backgroundData: number[][] = [];
+
   /**
-   *
    * @param args Named parameters
    * @param args.component The component
+   * @param args.tabularUpdated A function to trigger updates
    */
   constructor({
     component,
@@ -76,7 +83,40 @@ export class Tabular {
 
     // Inference the model
     const x = this.getCurX();
-    this.inference(x);
+    const result = await this.predict([x]);
+    console.log(result);
+
+    // Explain this instance
+    // Create background data for SHAP
+    this.backgroundData = [];
+
+    // Take 10 random training data
+    // const backgroundSize = 1;
+    // const addedIndexes = new Set<number>();
+    // while (this.backgroundData.length < backgroundSize) {
+    //   const curRandomIndex = RANDOM_INT(this.data.xTrain.length)();
+    //   if (!addedIndexes.has(curRandomIndex)) {
+    //     this.backgroundData.push(this.data.xTrain[curRandomIndex]);
+    //     addedIndexes.add(curRandomIndex);
+    //   }
+    // }
+
+    // Take training data median as background data
+    const curBackgroundData = [];
+    for (let c = 0; c < this.data.xTrain[0].length; c++) {
+      const curColumn: number[] = [];
+      for (let r = 0; r < this.data.xTrain.length; r++) {
+        curColumn.push(this.data.xTrain[r][c]);
+      }
+      const curMedian = d3.median(curColumn) || 0;
+      curBackgroundData.push(curMedian);
+    }
+    this.backgroundData.push(curBackgroundData);
+
+    const shapValues = await this.explain(x);
+    console.log('x', x);
+    console.log('background', this.backgroundData);
+    console.log('shap', shapValues);
   };
 
   /**
@@ -88,7 +128,10 @@ export class Tabular {
     }
 
     // Get a random instance
-    const randomIndex = d3.randomInt(this.data.xTest.length)();
+    // RANDOM_INT is seeded, but d3.randomInt is not
+    // const randomIndex = d3.randomInt(this.data.xTest.length)();
+    const randomIndex = RANDOM_INT(this.data.xTest.length)();
+
     this.curX = this.data.xTest[randomIndex];
     this.curY = this.data.yTest[randomIndex];
     this.curIndex = randomIndex;
@@ -148,25 +191,6 @@ export class Tabular {
   };
 
   /**
-   * Event handler for the sample button clicking.
-   */
-  sampleClicked = () => {
-    this.loadRandomSample();
-    const curX = this.getCurX();
-    this.inference(curX);
-    console.log(curX);
-  };
-
-  /**
-   * Event handler for the sample button clicking.
-   */
-  inputChanged = () => {
-    const curX = this.getCurX();
-    console.log(curX);
-    this.inference(curX);
-  };
-
-  /**
    * Get the current x values from the user inputs
    */
   getCurX = () => {
@@ -208,26 +232,80 @@ export class Tabular {
     return curX;
   };
 
-  inference = async (x: number[]) => {
+  /**
+   * Run XGBoost on the given input data x
+   * @param x Input data instances (n, k)
+   * @returns Predicted positive label probabilities (n)
+   */
+  predict = async (x: number[][]) => {
+    const posProbs = [];
+
     try {
       // Create a new session and load the LightGBM model
       const session = await ort.InferenceSession.create(modelUrl);
 
+      // First need to flatten the x array
+      const xFlat = Float32Array.from(x.flat());
+
       // Prepare feeds, use model input names as keys.
-      const xTensor = new ort.Tensor('float32', Float32Array.from(x), [1, 31]);
+      const xTensor = new ort.Tensor('float32', xFlat, [x.length, 31]);
       const feeds = { float_input: xTensor };
 
       // Feed inputs and run
       const results = await session.run(feeds);
 
-      // Read from results
+      // Read from results, probs has shape (n * 2) => (n, 2)
       const probs = results.probabilities.data as Float32Array;
 
-      this.message = `Success: ${round(probs[1], 4)}`;
+      for (const [i, p] of probs.entries()) {
+        // Positive label prob is always at the odd index
+        if (i % 2 === 1) {
+          posProbs.push(p);
+        }
+      }
+
+      this.message = `Success: ${round(posProbs[0], 4)}`;
     } catch (e) {
       this.message = `Failed: ${e}.`;
     }
 
     this.tabularUpdated();
+    return posProbs;
+  };
+
+  /**
+   * Run WebSHAP to explain the given input data x
+   * @param x Input data instance
+   */
+  explain = async (x: number[]) => {
+    const explainer = new KernelSHAP(
+      (x: number[][]) => this.predict(x),
+      this.backgroundData,
+      0.2022
+    );
+
+    timeit('Explain', DEBUG);
+    // const shapValues = await explainer.explainOneInstance(x, 32);
+    const shapValues = await explainer.explainOneInstance(x);
+    timeit('Explain', DEBUG);
+    return shapValues;
+  };
+
+  /**
+   * Event handler for the sample button clicking.
+   */
+  sampleClicked = () => {
+    this.loadRandomSample();
+    const curX = this.getCurX();
+    this.predict([curX]);
+    console.log(curX);
+  };
+
+  /**
+   * Event handler for the sample button clicking.
+   */
+  inputChanged = () => {
+    const curX = this.getCurX();
+    this.predict([curX]);
   };
 }

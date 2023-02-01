@@ -62,7 +62,7 @@ $border-radius: 5px;
     display: flex;
     align-items: baseline;
     color: $gray-600;
-    gap: 7px;
+    gap: 4px;
     margin-bottom: 5px;
 
     .section-name {
@@ -76,9 +76,10 @@ $border-radius: 5px;
     }
 
     .svg-icon {
-      width: 18px;
-      height: 18px;
-      transform: translateY(3px);
+      margin-left: 4px;
+      width: 16px;
+      height: 16px;
+      transform: translateY(2px);
     }
   }
 }

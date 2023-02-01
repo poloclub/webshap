@@ -41,7 +41,9 @@ import {
   sum,
   bin,
   shuffle,
-  quickselect
+  quickselect,
+  mean,
+  median
 } from 'd3-array';
 
 import { timeout } from 'd3-timer';
@@ -126,6 +128,8 @@ export default {
   bin,
   shuffle,
   quickselect,
+  mean,
+  median,
   timeout,
   transition,
   easeLinear,
