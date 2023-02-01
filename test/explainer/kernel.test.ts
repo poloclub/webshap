@@ -247,7 +247,6 @@ test<LocalTestContext>('explainOneInstance() with one background data should not
 }) => {
   const singleData = [data[0]];
   const explainer = new KernelSHAP(model, singleData, SEED);
-  console.log(singleData);
   const nSamples = 32;
   const x1 = [4.8, 3.8, 2.1, 5.4];
 
@@ -258,4 +257,15 @@ test<LocalTestContext>('explainOneInstance() with one background data should not
   for (const [i, value] of values.entries()) {
     expect(value).toBeCloseTo(valuesExp[i], 6);
   }
+});
+
+test<LocalTestContext>('getVaryingIndexes()', async ({ model }) => {
+  const data = [[4.8, 2.8, 2.1, 3.3]];
+  const explainer = new KernelSHAP(model, data, SEED);
+  const nSamples = 32;
+  const x1 = [4.8, 3.8, 2.1, 5.4];
+  await explainer.explainOneInstance(x1, nSamples);
+
+  expect(explainer.varyingIndexes).toEqual([1, 3]);
+  expect(explainer.nVaryFeatures).toBe(2);
 });

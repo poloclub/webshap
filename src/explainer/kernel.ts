@@ -36,6 +36,13 @@ export class KernelSHAP {
   nSamplesAdded: number;
 
   /**
+   * Column indexes that the explaining x has different column value from at
+   * least ont instance in the background data.
+   */
+  varyingIndexes: number[] | null = null;
+  nVaryFeatures: number | null = null;
+
+  /**
    * Sampled data in a matrix form.
    * It is initialized after the explain() call.
    * [nSamples * nBackground, nFeatures]
@@ -140,6 +147,11 @@ export class KernelSHAP {
         'x has to have the same number of features as the background dataset.'
       );
     }
+
+    // Find varying indexes (if x has columns that are the same for every
+    // background instances, then the shap value is 0 for those columns)
+    this.varyingIndexes = this.getVaryingIndexes(x);
+    this.nVaryFeatures = this.varyingIndexes.length;
 
     // Create a copy of the given 1D x array in a 2D format
     const curX = [x.slice()];
@@ -309,6 +321,30 @@ export class KernelSHAP {
     shapValues[lastColJ] = lastPhi;
 
     return [shapValues];
+  };
+
+  /**
+   * Find varying indexes (if x has columns that are the same for every
+   * background instances, then the shap value is 0 for those columns)
+   * @param x Explaining instance x
+   */
+  getVaryingIndexes = (x: number[]) => {
+    const varyingIndexes: number[] = [];
+
+    for (let c = 0; c < this.data[0].length; c++) {
+      let allEqual = true;
+      for (let r = 0; r < this.data.length; r++) {
+        if (x[c] !== this.data[r][c]) {
+          allEqual = false;
+          break;
+        }
+      }
+      if (!allEqual) {
+        varyingIndexes.push(c);
+      }
+    }
+
+    return varyingIndexes;
   };
 
   inferenceFeatureCoalitions = async () => {
