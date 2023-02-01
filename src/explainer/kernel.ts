@@ -38,12 +38,13 @@ export class KernelSHAP {
   /**
    * Sampled data in a matrix form.
    * It is initialized after the explain() call.
+   * [nSamples * nBackground, nFeatures]
    */
   sampledData: math.Matrix | null = null;
 
   /**
    * Matrix to store the feature masks
-   * [nSamples, this.nFeatures]
+   * [nSamples, nFeatures]
    */
   maskMat: math.Matrix | null = null;
 
@@ -55,13 +56,13 @@ export class KernelSHAP {
 
   /**
    * Model prediction outputs on the sampled data
-   * [nSamples * nBackground, this.nTargets]
+   * [nSamples * nBackground, nTargets]
    */
   yMat: math.Matrix | null = null;
 
   /**
    * Expected model predictions on the sample data
-   * [nSamples, this.nTargets]
+   * [nSamples, nTargets]
    */
   yExpMat: math.Matrix | null = null;
 
@@ -623,7 +624,7 @@ export class KernelSHAP {
         const newColumn = new Array(backgroundDataLength).fill(x[i]);
         this.sampledData.subset(
           math.index(math.range(rStart, rEnd), i),
-          newColumn
+          newColumn.length === 1 ? newColumn[0] : newColumn
         );
       }
     }

@@ -240,3 +240,22 @@ test<LocalTestContext>('explainOneInstance()', async ({ model, data }) => {
     expect(value).toBeCloseTo(valuesExp[i], 6);
   }
 });
+
+test<LocalTestContext>('explainOneInstance() with one background data should not fail', async ({
+  model,
+  data
+}) => {
+  const singleData = [data[0]];
+  const explainer = new KernelSHAP(model, singleData, SEED);
+  console.log(singleData);
+  const nSamples = 32;
+  const x1 = [4.8, 3.8, 2.1, 5.4];
+
+  const results = await explainer.explainOneInstance(x1, nSamples);
+  const values = results[0];
+  const valuesExp = [0.02457882, 0.03561506, -0.01863908, 0.24148199];
+
+  for (const [i, value] of values.entries()) {
+    expect(value).toBeCloseTo(valuesExp[i], 6);
+  }
+});
