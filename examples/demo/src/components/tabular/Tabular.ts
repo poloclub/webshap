@@ -113,10 +113,10 @@ export class Tabular {
     }
     this.backgroundData.push(curBackgroundData);
 
-    const shapValues = await this.explain(x);
     console.log('x', x);
-    console.log('background', this.backgroundData);
-    console.log('shap', shapValues);
+    const shapValues = await this.explain(x);
+    // console.log('background', this.backgroundData);
+    // console.log('shap', shapValues);
   };
 
   /**
@@ -248,7 +248,7 @@ export class Tabular {
       const xFlat = Float32Array.from(x.flat());
 
       // Prepare feeds, use model input names as keys.
-      const xTensor = new ort.Tensor('float32', xFlat, [x.length, 31]);
+      const xTensor = new ort.Tensor('float32', xFlat, [x.length, x[0].length]);
       const feeds = { float_input: xTensor };
 
       // Feed inputs and run

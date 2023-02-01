@@ -1,12 +1,16 @@
 @import '../../define.scss';
 
+body {
+  background-color: adjust-color($color: $blue-900, $lightness: -10%);
+}
+
 .webshap-page {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   height: 100vh;
-  // max-height: 950px;
+  max-height: 950px;
   width: 100vw;
   box-sizing: border-box;
   overflow-x: hidden;
@@ -97,7 +101,7 @@
   align-items: center;
   position: relative;
 
-  width: 900px;
+  width: 960px;
   height: 600px;
   // border: 1px solid $gray-border;
   border-radius: $border-radius;

@@ -13,6 +13,7 @@ body {
   position: relative;
   width: 100%;
   height: 100%;
+  background-color: adjust-color($color: $blue-900, $lightness: -10%);
 }
 
 body {
