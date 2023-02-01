@@ -1,12 +1,11 @@
 import { describe, test, expect, beforeEach } from 'vitest';
 import { KernelSHAP, IrisLinearBinary } from '../../src/index';
 import math from '../../src/utils/math-import';
-import type { SHAPModel } from '../../src/my-types';
 
 const SEED = 0.20071022;
 
 interface LocalTestContext {
-  model: SHAPModel;
+  model: (x: number[][]) => Promise<number[]>;
   data: number[][];
 }
 
@@ -17,7 +16,14 @@ beforeEach<LocalTestContext>(context => {
   const coef = [-0.1991, 0.3426, 0.0478, 1.03745];
   const intercept = -1.6689;
   const model = new IrisLinearBinary(coef, intercept);
-  context.model = (x: number[][]) => model.predictProba(x);
+  context.model = (x: number[][]) => {
+    // Wrap the model in a promise
+    const promise = new Promise<number[]>((resolve, reject) => {
+      const prob = model.predictProba(x);
+      resolve(prob);
+    });
+    return promise;
+  };
   context.data = [
     [5.8, 2.8, 5.1, 2.4],
     [5.8, 2.7, 5.1, 1.9],
@@ -178,14 +184,17 @@ test<LocalTestContext>('addSample() more complex', ({ model, data }) => {
   expect(explainer.nSamplesAdded).toBe(2);
 });
 
-test<LocalTestContext>('inferenceFeatureCoalitions()', ({ model, data }) => {
+test<LocalTestContext>('inferenceFeatureCoalitions()', async ({
+  model,
+  data
+}) => {
   const explainer = new KernelSHAP(model, data, SEED);
   const nSamples = 32;
   const x1 = [4.8, 3.8, 2.1, 5.4];
 
   // Inference on the sampled feature coalitions
   explainer.sampleFeatureCoalitions(x1, nSamples);
-  explainer.inferenceFeatureCoalitions();
+  await explainer.inferenceFeatureCoalitions();
 
   // The first 8 masks (40 samples) are deterministic, so we compare the
   // results of them with SHAP
@@ -218,12 +227,13 @@ test<LocalTestContext>('inferenceFeatureCoalitions()', ({ model, data }) => {
   }
 });
 
-test<LocalTestContext>('explainOneInstance()', ({ model, data }) => {
+test<LocalTestContext>('explainOneInstance()', async ({ model, data }) => {
   const explainer = new KernelSHAP(model, data, SEED);
   const nSamples = 32;
   const x1 = [4.8, 3.8, 2.1, 5.4];
 
-  const values = explainer.explainOneInstance(x1, nSamples)[0];
+  const results = await explainer.explainOneInstance(x1, nSamples);
+  const values = results[0];
   const valuesExp = [0.02968265, 0.03134839, -0.0162967, 0.39248069];
 
   for (const [i, value] of values.entries()) {

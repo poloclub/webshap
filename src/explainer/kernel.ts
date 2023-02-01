@@ -8,7 +8,6 @@ import { comb, getCombinations } from '../utils/utils';
 import { lstsq } from './lstsq';
 import math from '../utils/math-import';
 import type { RandomUniform, RandomInt } from 'd3-random';
-import type { SHAPModel } from '../my-types';
 
 /**
  * Kernel SHAP method to approximate Shapley attributions by solving s specially
@@ -16,7 +15,7 @@ import type { SHAPModel } from '../my-types';
  */
 export class KernelSHAP {
   /** Prediction model */
-  model: SHAPModel;
+  model: (x: number[][]) => Promise<number[]>;
 
   /** Background data */
   data: number[][];
@@ -87,7 +86,11 @@ export class KernelSHAP {
    * @param data The background data
    * @param seed Optional random seed in the range [0, 1)
    */
-  constructor(model: SHAPModel, data: number[][], seed: number | null) {
+  constructor(
+    model: (x: number[][]) => Promise<number[]>,
+    data: number[][],
+    seed: number | null
+  ) {
     this.model = model;
     this.data = data;
 
@@ -109,9 +112,13 @@ export class KernelSHAP {
     // Initialize the model values
     // Step 1: Compute the base value (expected values), which is the average
     // of the predictions on the background dataset
-    this.predictions = this.model(this.data);
-    this.expectedValue =
-      this.predictions.reduce((a, b) => a + b) / this.predictions.length;
+    this.predictions = [];
+    this.expectedValue = 0;
+    this.model(this.data).then(value => {
+      this.predictions = value;
+      this.expectedValue =
+        this.predictions.reduce((a, b) => a + b) / this.predictions.length;
+    });
 
     // Step 2: Initialize data structures
     this.nFeatures = this.data[0].length;
@@ -125,7 +132,7 @@ export class KernelSHAP {
    * @param nSamples Number of coalitions to samples (default to null which uses
    * a heuristic to determine a large sample size)
    */
-  explainOneInstance = (x: number[], nSamples: number | null = null) => {
+  explainOneInstance = async (x: number[], nSamples: number | null = null) => {
     // Validate the input
     if (x.length !== this.nFeatures) {
       throw new Error(
@@ -138,13 +145,14 @@ export class KernelSHAP {
 
     // Find the current prediction f(x)
     // Return a matrix with only one item (y(x))
-    const yPredProbMat = math.reshape(math.matrix(this.model(curX)), [1, 1]);
+    const pred = await this.model(curX);
+    const yPredProbMat = math.reshape(math.matrix(pred), [1, 1]);
 
     // Sample feature coalitions
     const fractionEvaluated = this.sampleFeatureCoalitions(x, nSamples);
 
     // Inference on the sampled feature coli
-    this.inferenceFeatureCoalitions();
+    await this.inferenceFeatureCoalitions();
 
     // Formulate the least square problem
     // y_exp_adj == y_exp_mat (coalition samples) - expected_value (background
@@ -302,7 +310,7 @@ export class KernelSHAP {
     return [shapValues];
   };
 
-  inferenceFeatureCoalitions = () => {
+  inferenceFeatureCoalitions = async () => {
     if (this.sampledData === null) {
       throw Error('sampledData is null.');
     }
@@ -319,7 +327,7 @@ export class KernelSHAP {
     const sampledDataVec = this.sampledData.toArray() as number[][];
 
     // Get the model output on the sampled data and initialize self.y_mat
-    const yPredProb = this.model(sampledDataVec);
+    const yPredProb = await this.model(sampledDataVec);
     this.yMat.subset(
       math.index(math.range(0, this.yMat.size()[0]), 0),
       yPredProb
