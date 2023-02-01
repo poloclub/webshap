@@ -47,6 +47,11 @@ test<LocalTestContext>('constructor()', ({ model, data }) => {
 test<LocalTestContext>('prepareSampling()', ({ model, data }) => {
   const explainer = new KernelSHAP(model, data, SEED);
   const nSamples = 14;
+  const x1 = [4.8, 3.8, 2.1, 5.4];
+
+  // Initialize the sample data
+  explainer.varyingIndexes = explainer.getVaryingIndexes(x1);
+  explainer.nVaryFeatures = explainer.varyingIndexes.length;
   explainer.prepareSampling(nSamples);
 
   // The sample data should be initialized to repeat x_test
@@ -105,12 +110,14 @@ test<LocalTestContext>('sampleFeatureCoalitions()', ({ model, data }) => {
 test<LocalTestContext>('addSample() basic', ({ model, data }) => {
   const explainer = new KernelSHAP(model, data, SEED);
   const nSamples = 14;
+  const x1 = [4.8, 3.8, 2.1, 5.4];
 
   // Initialize the sample data
+  explainer.varyingIndexes = explainer.getVaryingIndexes(x1);
+  explainer.nVaryFeatures = explainer.varyingIndexes.length;
   explainer.prepareSampling(nSamples);
 
   // Test adding a sample
-  const x1 = [4.8, 3.8, 2.1, 5.4];
   const mask1 = [1.0, 0.0, 1.0, 0.0];
   const weight1 = 0.52;
   explainer.addSample(x1, mask1, weight1);
@@ -139,12 +146,14 @@ test<LocalTestContext>('addSample() basic', ({ model, data }) => {
 test<LocalTestContext>('addSample() more complex', ({ model, data }) => {
   const explainer = new KernelSHAP(model, data, SEED);
   const nSamples = 14;
+  const x1 = [4.8, 3.8, 2.1, 5.4];
 
   // Initialize the sample data
+  explainer.varyingIndexes = explainer.getVaryingIndexes(x1);
+  explainer.nVaryFeatures = explainer.varyingIndexes.length;
   explainer.prepareSampling(nSamples);
 
   // Test adding a sample
-  const x1 = [4.8, 3.8, 2.1, 5.4];
   const mask1 = [1.0, 0.0, 1.0, 0.0];
   const weight1 = 0.52;
   explainer.addSample(x1, mask1, weight1);
@@ -262,10 +271,29 @@ test<LocalTestContext>('explainOneInstance() with one background data should not
 test<LocalTestContext>('getVaryingIndexes()', async ({ model }) => {
   const data = [[4.8, 2.8, 2.1, 3.3]];
   const explainer = new KernelSHAP(model, data, SEED);
+
   const nSamples = 32;
   const x1 = [4.8, 3.8, 2.1, 5.4];
   await explainer.explainOneInstance(x1, nSamples);
 
   expect(explainer.varyingIndexes).toEqual([1, 3]);
   expect(explainer.nVaryFeatures).toBe(2);
+});
+
+test<LocalTestContext>('explainOneInstance() with same columns', async ({
+  model
+}) => {
+  const data = [[4.8, 2.8, 2.1, 3.3]];
+  const explainer = new KernelSHAP(model, data, SEED);
+
+  const nSamples = 32;
+  const x1 = [4.8, 3.8, 2.1, 5.4];
+
+  const results = await explainer.explainOneInstance(x1, nSamples);
+  const values = results[0];
+  const valuesExp = [0, 0.0200946, 0, 0.10239262];
+
+  for (const [i, value] of values.entries()) {
+    expect(value).toBeCloseTo(valuesExp[i], 6);
+  }
 });

@@ -51,7 +51,7 @@ export class KernelSHAP {
 
   /**
    * Matrix to store the feature masks
-   * [nSamples, nFeatures]
+   * [nSamples, nVaryFeatures]
    */
   maskMat: math.Matrix | null = null;
 
@@ -148,11 +148,6 @@ export class KernelSHAP {
       );
     }
 
-    // Find varying indexes (if x has columns that are the same for every
-    // background instances, then the shap value is 0 for those columns)
-    this.varyingIndexes = this.getVaryingIndexes(x);
-    this.nVaryFeatures = this.varyingIndexes.length;
-
     // Create a copy of the given 1D x array in a 2D format
     const curX = [x.slice()];
 
@@ -180,8 +175,12 @@ export class KernelSHAP {
     const maskMat = this.maskMat!;
     const maskMatSize = maskMat.size() as [number, number];
 
+    if (this.nVaryFeatures === null || this.varyingIndexes === null) {
+      throw Error('this.nVaryFeatures is null');
+    }
+
     const nonZeroIndexes = Array.from(
-      new Array<number>(this.nFeatures),
+      new Array<number>(this.nVaryFeatures),
       (_, i) => i
     );
 
@@ -203,7 +202,7 @@ export class KernelSHAP {
         for (let i = 0; i < kernelWeightSize[0]; i++) {
           if (t === 0) {
             const wAug =
-              kernelWeight.get([i, 0]) * (this.nFeatures - maskRowSums[i]);
+              kernelWeight.get([i, 0]) * (this.nVaryFeatures - maskRowSums[i]);
             kernelWeightAug.subset(math.index(i, 0), Math.sqrt(wAug));
           } else {
             const wAug = kernelWeight.get([i, 0]) * maskRowSums[i];
@@ -268,7 +267,7 @@ export class KernelSHAP {
     }
 
     if (nonZeroIndexes.length === 0) {
-      const values = new Array<number>(this.nFeatures).fill(0);
+      const values = new Array<number>(this.nVaryFeatures).fill(0);
       return [values];
     }
 
@@ -313,12 +312,13 @@ export class KernelSHAP {
       this.expectedValue -
       (math.sum(phiMat) as number);
 
-    // Return the shap values
+    // Fill the shap values to varying features, others are 0
     const shapValues = new Array<number>(this.nFeatures).fill(0);
     for (let i = 0; i < phiMat.size()[0]; i++) {
-      shapValues[i] = phiMat.get([i, 0]) as number;
+      const c = this.varyingIndexes[i];
+      shapValues[c] = phiMat.get([i, 0]) as number;
     }
-    shapValues[lastColJ] = lastPhi;
+    shapValues[this.varyingIndexes[lastColJ]] = lastPhi;
 
     return [shapValues];
   };
@@ -387,6 +387,11 @@ export class KernelSHAP {
    * @returns Sample rate (fraction of sampled feature coalitions)
    */
   sampleFeatureCoalitions = (x: number[], nSamples: number | null): number => {
+    // Find varying indexes (if x has columns that are the same for every
+    // background instances, then the shap value is 0 for those columns)
+    this.varyingIndexes = this.getVaryingIndexes(x);
+    this.nVaryFeatures = this.varyingIndexes.length;
+
     // Determine the number of feature coalitions to sample
     // If `n_samples` is not given, we use a simple heuristic to
     // determine number of samples to train the linear model
@@ -414,13 +419,14 @@ export class KernelSHAP {
 
     // Sampling i features has the same weight as sampling (M - i) features
     // Here we sample feature coalitions and their complement at the same time
-    const maxSampleSize = Math.ceil((this.nFeatures - 1) / 2);
-    const maxPairedSampleSize = Math.floor((this.nFeatures - 1) / 2);
+    const maxSampleSize = Math.ceil((this.nVaryFeatures - 1) / 2);
+    const maxPairedSampleSize = Math.floor((this.nVaryFeatures - 1) / 2);
 
     // Initialize the weight vector with (M - 1) / (z * (M - z))
     const sampleWeights = new Array<number>(maxSampleSize).fill(0);
     for (let i = 1; i < maxSampleSize + 1; i++) {
-      sampleWeights[i - 1] = (this.nFeatures - 1) / (i * (this.nFeatures - i));
+      sampleWeights[i - 1] =
+        (this.nVaryFeatures - 1) / (i * (this.nVaryFeatures - i));
     }
 
     // Normalize the weights so that they sum up to 1. Because the weights
@@ -443,7 +449,7 @@ export class KernelSHAP {
 
     for (let curSize = 1; curSize <= maxSampleSize; curSize++) {
       // Compute the number of samples with the current sample size
-      let nSubsets = comb(this.nFeatures, curSize);
+      let nSubsets = comb(this.nVaryFeatures, curSize);
 
       // We sample from two tails if possible
       if (curSize <= maxPairedSampleSize) {
@@ -467,7 +473,7 @@ export class KernelSHAP {
 
         // Add all coalitions with the current subset size
         let curWeight =
-          sampleWeights[curSize - 1] / comb(this.nFeatures, curSize);
+          sampleWeights[curSize - 1] / comb(this.nVaryFeatures, curSize);
 
         // If there is complement pair, split the weight
         if (curSize <= maxPairedSampleSize) {
@@ -475,11 +481,14 @@ export class KernelSHAP {
         }
 
         // Add combinations into sampledData
-        const rangeArray = Array.from(new Array(this.nFeatures), (_, i) => i);
+        const rangeArray = Array.from(
+          new Array(this.nVaryFeatures),
+          (_, i) => i
+        );
         const combinations = getCombinations(rangeArray, curSize);
 
         for (const activeIndexes of combinations) {
-          const mask = new Array<number>(this.nFeatures).fill(0.0);
+          const mask = new Array<number>(this.nVaryFeatures).fill(0.0);
           for (const i of activeIndexes) {
             mask[i] = 1.0;
           }
@@ -551,14 +560,14 @@ export class KernelSHAP {
         randomSubsetSizesCursor += 1;
 
         // Generate the current mask
-        const mask = new Array<number>(this.nFeatures).fill(0);
+        const mask = new Array<number>(this.nVaryFeatures).fill(0);
 
         // Randomly sample curSize indexes
         const activeIndexes: number[] = [];
         const sampledIndexes = new Set<number>();
 
         while (activeIndexes.length < curSize) {
-          const curRandomIndex = this.rngInt(this.nFeatures)();
+          const curRandomIndex = this.rngInt(this.nVaryFeatures)();
           if (!sampledIndexes.has(curRandomIndex)) {
             sampledIndexes.add(curRandomIndex);
             activeIndexes.push(curRandomIndex);
@@ -648,6 +657,10 @@ export class KernelSHAP {
       throw Error('this.kernelWeight is null');
     }
 
+    if (this.varyingIndexes === null) {
+      throw Error('this.varyingIndexes is null');
+    }
+
     // (1) Find the current block in self.sampled_data to modify
     const backgroundDataLength = this.data.length;
     const rStart = this.nSamplesAdded * backgroundDataLength;
@@ -656,10 +669,12 @@ export class KernelSHAP {
     // (2) Fill columns with mask=1 to be corresponding value from the
     // explaining instance x
     for (let i = 0; i < mask.length; i++) {
+      // Note that mask might have fewer columns due to this.nVaryFeatures
       if (mask[i] === 1) {
-        const newColumn = new Array(backgroundDataLength).fill(x[i]);
+        const c = this.varyingIndexes[i];
+        const newColumn = new Array(backgroundDataLength).fill(x[c]);
         this.sampledData.subset(
-          math.index(math.range(rStart, rEnd), i),
+          math.index(math.range(rStart, rEnd), c),
           newColumn.length === 1 ? newColumn[0] : newColumn
         );
       }
@@ -683,6 +698,10 @@ export class KernelSHAP {
    * @param nSamples Number of coalitions to sample
    */
   prepareSampling = (nSamples: number) => {
+    if (this.nVaryFeatures === null) {
+      throw Error('nVaryFeatures is not initialized.');
+    }
+
     // Store the sampled data
     // (number of background samples * n_samples, n_features)
     const nBackground = this.data.length;
@@ -706,7 +725,7 @@ export class KernelSHAP {
     }
 
     // Initialize the mask matrix
-    this.maskMat = math.matrix(math.zeros([nSamples, this.nFeatures]));
+    this.maskMat = math.matrix(math.zeros([nSamples, this.nVaryFeatures]));
 
     // Initialize the kernel weight matrix
     this.kernelWeight = math.matrix(math.zeros([nSamples, 1]));
