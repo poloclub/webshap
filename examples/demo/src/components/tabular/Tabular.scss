@@ -91,6 +91,7 @@ $border-radius: 5px;
   height: 100%;
   justify-content: space-between;
   gap: 15px;
+  overflow-y: auto;
 
   padding: 10px 20px;
   border: 1px solid $gray-light-border;
@@ -169,6 +170,7 @@ $border-radius: 5px;
   height: 100%;
   flex-grow: 1;
   gap: 10px;
+  overflow-y: auto;
 }
 
 .output-content {
