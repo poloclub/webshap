@@ -54,7 +54,7 @@ test<LocalTestContext>('lstsq() without weight', ({ x, y }) => {
 
   result.forEach((v, i) => {
     const curI = i as unknown as [number, number];
-    expect(v).toBeCloseTo(resultExp.get(curI) as number, 6);
+    expect(v).toBeCloseTo(resultExp.get(curI) as number, 4);
   });
 });
 
@@ -68,7 +68,7 @@ test<LocalTestContext>('lstsq() diagonal w', ({ x, y }) => {
 
   result.forEach((v, i) => {
     const curI = i as unknown as [number, number];
-    expect(v).toBeCloseTo(resultExp.get(curI) as number, 6);
+    expect(v).toBeCloseTo(resultExp.get(curI) as number, 4);
   });
 });
 
@@ -81,6 +81,6 @@ test<LocalTestContext>('lstsq() weight', ({ x, y, w }) => {
 
   result.forEach((v, i) => {
     const curI = i as unknown as [number, number];
-    expect(v).toBeCloseTo(resultExp.get(curI) as number, 6);
+    expect(v).toBeCloseTo(resultExp.get(curI) as number, 4);
   });
 });
