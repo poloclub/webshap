@@ -46,6 +46,7 @@ export class Tabular {
 
   // ONNX data
   message: string;
+  curPred: number | null = null;
 
   // WebSHAP data
   backgroundData: number[][] = [];
@@ -84,7 +85,7 @@ export class Tabular {
     // Inference the model
     const x = this.getCurX();
     const result = await this.predict([x]);
-    console.log(result);
+    this.curPred = result[0];
 
     // Explain this instance
     // Create background data for SHAP
@@ -293,18 +294,21 @@ export class Tabular {
   /**
    * Event handler for the sample button clicking.
    */
-  sampleClicked = () => {
+  sampleClicked = async () => {
     this.loadRandomSample();
     const curX = this.getCurX();
-    this.predict([curX]);
-    console.log(curX);
+    const result = await this.predict([curX]);
+    this.curPred = result[0];
+    this.tabularUpdated();
   };
 
   /**
    * Event handler for the sample button clicking.
    */
-  inputChanged = () => {
+  inputChanged = async () => {
     const curX = this.getCurX();
-    this.predict([curX]);
+    const result = await this.predict([curX]);
+    this.curPred = result[0];
+    this.tabularUpdated();
   };
 }

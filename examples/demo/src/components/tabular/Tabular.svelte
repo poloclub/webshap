@@ -1,8 +1,10 @@
 <script lang="ts">
+  import d3 from '../../utils/d3-import';
   import { Tabular } from './Tabular';
   import { onMount } from 'svelte';
-  import iconGear from '../../imgs/icon-gear.svg?raw';
   import iconRefresh from '../../imgs/icon-refresh2.svg?raw';
+  import iconCheck from '../../imgs/icon-check.svg?raw';
+  import iconCross from '../../imgs/icon-cross.svg?raw';
 
   let component: HTMLElement | null = null;
   let mounted = false;
@@ -16,6 +18,8 @@
   const tabularUpdated = () => {
     myTabular = myTabular;
   };
+
+  const predFormatter = d3.format('.2%');
 
   /**
    * Initialize the embedding view.
@@ -112,15 +116,38 @@
     </div>
 
     <div class="output-box">
-      <span class="message-board">
-        {myTabular ? myTabular.message : ''}
-      </span>
+      <div class="label-container">
+        <div
+          class="label approval"
+          class:hidden="{myTabular ? myTabular.curPred < 0.5 : true}"
+        >
+          <span class="label-icon svg-icon">
+            {@html iconCheck}
+          </span>
+          <span class="label-name"> Approval </span>
+        </div>
+
+        <div
+          class="label rejection"
+          class:hidden="{myTabular ? myTabular.curPred >= 0.5 : true}"
+        >
+          <span class="label-icon svg-icon">
+            {@html iconCross}
+          </span>
+          <span class="label-name"> Rejection </span>
+        </div>
+      </div>
+
+      <div class="pred-bar"></div>
+      <div class="pred-number">
+        {myTabular ? predFormatter(myTabular.curPred) : ''}
+      </div>
     </div>
 
     <div class="top-section explain">
-      <span class="section-name">Model Explanation</span>
+      <span class="section-name">Prediction Explanation</span>
       <span class="section-description"
-        >Features' contribution to this prediction
+        >Features' contribution to prediction
       </span>
     </div>
 
