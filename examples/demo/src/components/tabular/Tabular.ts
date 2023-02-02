@@ -113,7 +113,6 @@ export class Tabular {
     }
     this.backgroundData.push(curBackgroundData);
 
-    console.log('x', x);
     const shapValues = await this.explain(x);
     // console.log('background', this.backgroundData);
     // console.log('shap', shapValues);
@@ -285,8 +284,8 @@ export class Tabular {
     );
 
     timeit('Explain', DEBUG);
-    // const shapValues = await explainer.explainOneInstance(x, 32);
-    const shapValues = await explainer.explainOneInstance(x);
+    const shapValues = await explainer.explainOneInstance(x, 32);
+    // const shapValues = await explainer.explainOneInstance(x);
     timeit('Explain', DEBUG);
     return shapValues;
   };
