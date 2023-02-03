@@ -7,6 +7,7 @@
   import iconCheck from '../../imgs/icon-check.svg?raw';
   import iconCross from '../../imgs/icon-cross.svg?raw';
   import iconWebshap from '../../imgs/icon-webshap.svg?raw';
+  import iconOpen from '../../imgs/icon-open.svg?raw';
 
   let component: HTMLElement | null = null;
   let mounted = false;
@@ -49,10 +50,10 @@
         >Loan applicant #{String(myTabular ? myTabular.curIndex : 0).padStart(
           3,
           '0'
-        )} information</span
-      >
+        )} info
+      </span>
       <div
-        class="svg-icon"
+        class="svg-icon rect-button"
         on:click="{() => {
           if (myTabular) myTabular.sampleClicked();
         }}"
@@ -113,10 +114,16 @@
       <div class="background">
         <div class="start-rectangle">
           <div class="content-box">
-            <span class="svg-icon no-pointer">
-              {@html iconBox}
-            </span>
-            <span class="name"> XGBoost </span>
+            <div class="line">
+              <span class="svg-icon no-pointer">
+                {@html iconBox}
+              </span>
+              <span class="name"> ML Model </span>
+            </div>
+
+            <div class="line">
+              <span class="model"> XGBoost </span>
+            </div>
           </div>
         </div>
         <div class="end-triangle"></div>
@@ -189,21 +196,27 @@
       </div>
     </div>
 
-    <div class="top-section explain">
-      <span class="section-name">Prediction Explanation</span>
-      <span class="section-description"
-        >Features' contribution to the prediction
-      </span>
-    </div>
-
     <div class="explain-content">
       <div class="arrow"></div>
-      <div class="explain-box">
-        <div class="header">
-          <span>Top 10 Important Features and</span>
-          <span class="shap-label">Their SHAP Values</span>
+
+      <div class="explain-component">
+        <div class="top-section explain">
+          <span class="svg-icon">
+            {@html iconOpen}
+          </span>
+          <span class="section-name"> Model Explanation</span>
+          <span class="section-description"
+            >Each feature' contribution to model's prediction
+          </span>
         </div>
-        <svg class="shap-svg"></svg>
+
+        <div class="explain-box">
+          <div class="header">
+            <span>Top 10 Important Features and</span>
+            <span class="shap-label">Their SHAP Values</span>
+          </div>
+          <svg class="shap-svg"></svg>
+        </div>
       </div>
     </div>
   </div>

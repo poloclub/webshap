@@ -3,7 +3,7 @@
 $v-padding: 15px;
 $border-radius: 5px;
 $block-shadow: 0px 0px 5px hsla(0, 0%, 0%, 0.05);
-$right-content-left-margin: 20px;
+$right-content-left-margin: 25px;
 $arrow-color: $gray-300;
 
 .svg-icon {
@@ -51,7 +51,7 @@ $arrow-color: $gray-300;
   display: grid;
   grid-template-rows: min-content min-content min-content min-content 1fr;
   grid-template-columns:
-    [col1-start] min-content [col2-start] minmax(180px, 0.5fr)
+    [col1-start] minmax(min-content, 340px) [col2-start] minmax(200px, 0.5fr)
     [col3-start] 1fr [col3-end];
 
   align-items: center;
@@ -91,8 +91,6 @@ $arrow-color: $gray-300;
 
       .name {
         flex: 0 0 auto;
-        text-decoration: underline;
-        text-decoration-style: dotted;
       }
 
       .feature-input {
@@ -117,8 +115,6 @@ $arrow-color: $gray-300;
 
       .name {
         flex: 0 0 auto;
-        text-decoration: underline;
-        text-decoration-style: dotted;
       }
 
       .feature-select {
@@ -173,19 +169,36 @@ $arrow-color: $gray-300;
       .content-box {
         position: relative;
         display: flex;
+        flex-direction: column;
         align-items: center;
-        gap: 4px;
+        gap: 2px;
 
-        padding: 3px 10px;
+        padding: 5px 10px;
         border: 1px solid $gray-light-border;
         border-radius: $border-radius;
         box-shadow: $block-shadow;
         background: white;
         color: $gray-600;
 
-        .name {
-          font-size: $font-u2;
-          font-weight: 800;
+        .line {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          line-height: 1;
+
+          .name {
+            font-size: $font-u2;
+            font-weight: 800;
+          }
+
+          .model {
+            font-size: $font-u2;
+          }
+
+          .svg-icon {
+            width: 18px;
+            height: 18px;
+          }
         }
       }
     }
@@ -239,12 +252,13 @@ $arrow-color: $gray-300;
         gap: 5px;
         position: relative;
 
-        padding: 3px 10px;
+        padding: 4px 10px;
         border: 1px solid $gray-light-border;
         border-radius: $border-radius;
         box-shadow: 0px 0px 5px hsla(0, 0%, 0%, 0.05);
-        background: white;
-        color: $gray-600;
+
+        background-color: $gray-900;
+        color: white;
 
         .name {
           font-size: $font-u2;
@@ -324,12 +338,6 @@ $arrow-color: $gray-300;
   &.output {
     grid-row: 1 / 2;
     grid-column: 3 / 4;
-  }
-
-  &.explain {
-    grid-row: 4 / 5;
-    grid-column: 2 / 4;
-    margin-left: $right-content-left-margin;
   }
 }
 
@@ -433,20 +441,27 @@ $arrow-color: $gray-300;
   width: 100%;
   height: 100%;
   display: flex;
-  // padding-left: $right-content-left-margin;
 
   .arrow {
     width: $right-content-left-margin;
     position: relative;
+  }
 
-    &::after {
-      content: '';
-      position: absolute;
-      left: 0px;
-      top: 50%;
-      height: 10px;
-      width: 100%;
-      background-color: $arrow-color;
+  .explain-component {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    align-items: center;
+
+    .top-section {
+      transform: translateY(-4px);
+      line-height: 1;
+      margin-bottom: 1px;
+
+      .svg-icon {
+        width: 22px;
+        height: 22px;
+      }
     }
   }
 
@@ -509,8 +524,8 @@ $arrow-color: $gray-300;
       }
 
       :global(.grid-line) {
-        stroke: hsla(0, 0%, 0%, 0.2);
-        stroke-dasharray: 4 4;
+        stroke: hsla(0, 0%, 0%, 0.1);
+        stroke-dasharray: 4;
       }
 
       :global(.shap-number) {
