@@ -50,7 +50,9 @@ $arrow-color: $gray-300;
 
   display: grid;
   grid-template-rows: min-content min-content min-content min-content 1fr;
-  grid-template-columns: [col1-start] min-content [col2-start] min-content [col3-start] auto [col3-end];
+  grid-template-columns:
+    [col1-start] minmax(300px, 400px) [col2-start] minmax(180px, 0.5fr)
+    [col3-start] 1fr [col3-end];
 
   align-items: center;
   justify-items: center;
@@ -66,7 +68,7 @@ $arrow-color: $gray-300;
   grid-column: 1 / 2;
 
   height: 100%;
-  width: 400px;
+  width: 100%;
   font-size: 0.9rem;
   overflow-y: auto;
 
@@ -148,7 +150,7 @@ $arrow-color: $gray-300;
   grid-row: 2 / 3;
   grid-column: 2 / 3;
 
-  width: 180px;
+  width: 100%;
 
   .background {
     position: relative;
@@ -274,11 +276,17 @@ $arrow-color: $gray-300;
   .section-name {
     font-size: $font-u2;
     font-weight: 800;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .section-description {
     font-size: $font-d1;
     font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .svg-icon {
@@ -426,6 +434,7 @@ $arrow-color: $gray-300;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    align-items: center;
     width: 100%;
     height: 100%;
 
@@ -433,5 +442,11 @@ $arrow-color: $gray-300;
     border: 1px solid $gray-light-border;
     border-radius: $border-radius;
     box-shadow: 0px 0px 5px hsla(0, 0%, 0%, 0.05);
+
+    .shap-svg {
+      width: 100%;
+      height: 100%;
+      background-color: $pink-50;
+    }
   }
 }

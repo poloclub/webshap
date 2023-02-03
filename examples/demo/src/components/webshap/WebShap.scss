@@ -99,11 +99,12 @@
   align-items: center;
   position: relative;
 
-  width: 1000px;
+  // width: max(min(1000px, calc(100vw - 50px)), calc(100vw - 400px));
+  width: min(1000px, calc(100vw - 50px));
   height: 600px;
-  // border: 1px solid $gray-border;
   border-radius: $border-radius;
   background-color: white;
+  overflow: hidden;
 }
 
 .main-app-container {
