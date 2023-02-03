@@ -28,7 +28,7 @@ export default defineConfig(({ command, mode }) => {
       case 'github': {
         // Production: github page
         return {
-          base: '/webshap',
+          base: '/webshap/',
           build: {
             outDir: '../../gh-pages'
           },
