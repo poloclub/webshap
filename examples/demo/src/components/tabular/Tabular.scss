@@ -489,6 +489,11 @@ $arrow-color: $gray-300;
         fill: $gray-900;
       }
 
+      :global(.grid-line) {
+        stroke: hsla(0, 0%, 0%, 0.2);
+        stroke-dasharray: 4 4;
+      }
+
       :global(.shap-number) {
         text-anchor: end;
         dominant-baseline: middle;

@@ -192,7 +192,7 @@
       <div class="explain-box">
         <div class="header">
           <span>Top 10 Important Features and</span>
-          <span class="shap-label">SHAP Values</span>
+          <span class="shap-label">Their SHAP Values</span>
         </div>
         <svg class="shap-svg"></svg>
       </div>

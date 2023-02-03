@@ -38,6 +38,7 @@ const GAP = 20;
 const K = 10;
 const ROW_HEIGHT = 28;
 const FORMAT_2 = d3.format('.4f');
+const BAR_HEIGHT = ROW_HEIGHT - 8;
 
 /**
  * Class for the Tabular WebSHAP demo
@@ -57,6 +58,8 @@ export class Tabular {
   shapSVGSize: Size;
   shapSVGPadding: Padding;
   shapScale: d3.ScaleLinear<number, number, never>;
+  maxTextWidth = 200;
+  maxBarWidth = 200;
 
   // Dataset
   data: TabularData | null = null;
@@ -208,6 +211,9 @@ export class Tabular {
       maxTextWidth = this.shapSVGSize.width - GAP - maxBarWidth;
     }
 
+    this.maxTextWidth = maxTextWidth;
+    this.maxBarWidth = maxBarWidth;
+
     // Create scales
     const absValues = this.curShapValues.map(x => Math.abs(x));
     const maxAbs = d3.max(absValues)!;
@@ -272,24 +278,36 @@ export class Tabular {
       .attr('class', 'row-content')
       .attr('transform', 'translate(0, 20)');
 
-    const barHeight = ROW_HEIGHT - 8;
-
     // Draw the background grid
     rowContent
       .append('rect')
       .attr('class', 'grid-rect')
       .attr('x', maxTextWidth + GAP + maxBarWidth / 2)
-      .attr('y', -barHeight / 2)
+      .attr('y', -BAR_HEIGHT / 2)
       .attr('width', 0.2)
       .attr('height', 10 * ROW_HEIGHT + 5);
 
-    // Add the top K in a list
-    for (let i = 0; i < K; i++) {
-      const shap = allShaps[i];
+    /**
+     * Helper function to add a SHAP row
+     * @param shap SHAP value
+     * @param y Y of this row
+     * @param opacity The initial opacity value
+     */
+    const addShapRow = (shap: SHAPRow, y: number, opacity: number) => {
       const row = rowContent
         .append('g')
         .attr('class', `row row-${shap.index}`)
-        .attr('transform', `translate(0, ${i * ROW_HEIGHT})`);
+        .attr('transform', `translate(0, ${y})`)
+        .style('opacity', opacity);
+
+      // Add background grid
+      row
+        .append('line')
+        .attr('class', 'grid-line')
+        .attr('x1', maxTextWidth + GAP / 2)
+        .attr('y1', 0)
+        .attr('x2', maxTextWidth + GAP + maxBarWidth + GAP / 2)
+        .attr('y2', 0);
 
       row
         .append('text')
@@ -306,19 +324,19 @@ export class Tabular {
         rect
           .classed('negative', true)
           .attr('x', maxTextWidth + GAP + maxBarWidth / 2 - curRectWidth)
-          .attr('y', -barHeight / 2)
+          .attr('y', -BAR_HEIGHT / 2)
           .attr('width', curRectWidth)
-          .attr('height', barHeight);
+          .attr('height', BAR_HEIGHT);
       } else {
         rect
           .attr('x', maxTextWidth + GAP + maxBarWidth / 2)
-          .attr('y', -barHeight / 2)
+          .attr('y', -BAR_HEIGHT / 2)
           .attr('width', curRectWidth)
-          .attr('height', barHeight);
+          .attr('height', BAR_HEIGHT);
       }
 
       // Add the shap number
-      const shapNumber = row
+      row
         .append('text')
         .attr('class', 'shap-number')
         .classed('negative', shap.shap < 0)
@@ -329,6 +347,18 @@ export class Tabular {
             ? maxTextWidth + GAP + maxBarWidth / 2 + 5
             : maxTextWidth + GAP + maxBarWidth / 2 - 5
         );
+    };
+
+    // Add the top K in a list
+    for (let i = 0; i < K; i++) {
+      const shap = allShaps[i];
+      addShapRow(shap, i * ROW_HEIGHT, 1);
+    }
+
+    // Draw the rest shap values off the screen
+    for (let i = K; i < this.data.featureNames.length; i++) {
+      const shap = allShaps[i];
+      addShapRow(shap, this.shapSVGSize.height + 5, 0);
     }
 
     // Draw the axis
@@ -341,8 +371,149 @@ export class Tabular {
       );
     const axis = d3.axisBottom(shapValueScale).tickValues([-maxAbs, 0, maxAbs]);
     axisGroup.call(axis);
+  };
 
-    console.log(allShaps);
+  updateShapPlot = () => {
+    if (this.shapSVG === null) throw Error('shapSVG is null.');
+    if (this.curShapValues === null) throw Error('curShapValues is null.');
+    if (this.data === null) throw Error('data is null.');
+    if (this.contFeatures === null) throw Error('contFeatures is null.');
+    if (this.catFeatures === null) throw Error('catFeatures is null.');
+
+    const curX = this.getCurX();
+
+    // Create scales
+    const absValues = this.curShapValues.map(x => Math.abs(x));
+    const maxAbs = d3.max(absValues)!;
+    this.shapScale = d3
+      .scaleLinear()
+      .domain([0, maxAbs])
+      .range([0, this.maxBarWidth / 2]);
+
+    const shapValueScale = d3
+      .scaleLinear()
+      .domain([-maxAbs, maxAbs])
+      .range([0, this.maxBarWidth]);
+
+    // Organize all shap values
+    const allShaps: SHAPRow[] = [];
+
+    for (let i = 0; i < this.data.featureNames.length; i++) {
+      const curFeatureType = this.data.featureTypes[i];
+      const curFeatureName = this.data.featureNames[i];
+
+      // Get the display name
+      let displayName = '';
+      let fullName = '';
+
+      if (curFeatureType === 'cont') {
+        displayName = this.contFeatures.get(curFeatureName)!.displayName;
+        fullName = displayName;
+      } else {
+        const curName = curFeatureName.replace(/(.+)-(.+)/, '$1');
+        const curLevel = curFeatureName.replace(/(.+)-(.+)/, '$2');
+        const catInfo = this.catFeatures.get(curName)!;
+        const dummy = curX[i] === 1 ? 'T' : 'F';
+        const dummyFull = curX[i] === 1 ? 'True' : 'False';
+        displayName = `${catInfo.displayName} (${catInfo.levelInfo[curLevel][0]}=${dummy})`;
+        fullName = `${catInfo.displayName} (${catInfo.levelInfo[curLevel][0]}=${dummyFull})`;
+      }
+
+      // Truncate displayName until it fits the limit
+      let nameWidth = getLatoTextWidth(displayName, 15);
+
+      while (nameWidth > this.maxTextWidth) {
+        displayName = displayName.replace('...', '');
+        displayName = displayName
+          .slice(0, displayName.length - 1)
+          .concat('...');
+        nameWidth = getLatoTextWidth(displayName, 15);
+      }
+
+      allShaps.push({
+        index: i,
+        shap: this.curShapValues[i],
+        name: displayName,
+        fullName: fullName
+      });
+    }
+
+    // Sort all shaps based on their absolute shap values
+    allShaps.sort((a, b) => Math.abs(b.shap) - Math.abs(a.shap));
+
+    const content = this.shapSVG.select('g.content');
+    const rowContent = this.shapSVG.select('g.row-content');
+
+    const trans = d3.transition('update').duration(300).ease(d3.easeCubicInOut);
+
+    const updateShapRow = (shap: SHAPRow, y: number, opacity: number) => {
+      const row = rowContent.select(`g.row-${shap.index}`);
+
+      row
+        .transition(trans)
+        .attr('transform', `translate(0, ${y})`)
+        .style('opacity', opacity);
+
+      // Update the feature name
+      row
+        .select('text.feature-name')
+        .attr('x', this.maxTextWidth)
+        .text(shap.name)
+        .select('title')
+        .text(shap.fullName);
+
+      // Update the rectangle
+      const rect = row.select('rect.shap-bar');
+      const curRectWidth = this.shapScale(Math.abs(shap.shap));
+      if (shap.shap < 0) {
+        rect
+          .classed('negative', true)
+          .transition(trans)
+          .attr(
+            'x',
+            this.maxTextWidth + GAP + this.maxBarWidth / 2 - curRectWidth
+          )
+          .attr('y', -BAR_HEIGHT / 2)
+          .attr('width', curRectWidth);
+      } else {
+        rect
+          .classed('negative', false)
+          .transition(trans)
+          .attr('x', this.maxTextWidth + GAP + this.maxBarWidth / 2)
+          .attr('y', -BAR_HEIGHT / 2)
+          .attr('width', curRectWidth);
+      }
+
+      // Update the shap number
+      row
+        .select('text.shap-number')
+        .classed('negative', shap.shap < 0)
+        .text(FORMAT_2(shap.shap))
+        .transition(trans)
+        .attr(
+          'x',
+          shap.shap < 0
+            ? this.maxTextWidth + GAP + this.maxBarWidth / 2 + 5
+            : this.maxTextWidth + GAP + this.maxBarWidth / 2 - 5
+        );
+    };
+
+    // Update the top 10 features first
+    for (let i = 0; i < K; i++) {
+      const shap = allShaps[i];
+      updateShapRow(shap, i * ROW_HEIGHT, 1);
+    }
+
+    // Draw the rest shap values off the screen
+    for (let i = K; i < this.data.featureNames.length; i++) {
+      const shap = allShaps[i];
+      updateShapRow(shap, this.shapSVGSize.height + 5, 0);
+    }
+
+    // Update the axis
+    const axisGroup = content.select<SVGGElement>('g.axis-group');
+    const axis = d3.axisBottom(shapValueScale).tickValues([-maxAbs, 0, maxAbs]);
+    axisGroup.call(axis);
   };
 
   /**
@@ -366,7 +537,7 @@ export class Tabular {
     this.backgroundData = [];
 
     // Take 10 random training data
-    // const backgroundSize = 1;
+    // const backgroundSize = 10;
     // const addedIndexes = new Set<number>();
     // while (this.backgroundData.length < backgroundSize) {
     //   const curRandomIndex = RANDOM_INT(this.data.xTrain.length)();
@@ -558,7 +729,7 @@ export class Tabular {
     );
 
     timeit('Explain', DEBUG);
-    const shapValues = await explainer.explainOneInstance(x, 32);
+    const shapValues = await explainer.explainOneInstance(x, 512);
     // const shapValues = await explainer.explainOneInstance(x);
     timeit('Explain', DEBUG);
     return shapValues;
@@ -570,10 +741,23 @@ export class Tabular {
   sampleClicked = async () => {
     this.loadRandomSample();
     const curX = this.getCurX();
+
+    // Predict this example
     const result = await this.predict([curX]);
+    if (result.length == 0) {
+      console.error('ONNX returns empty result.');
+      return;
+    }
+
     this.curPred = result[0];
     this.updatePred();
+    this.updateShapPlot();
+
+    // Explain the prediction
+    const shapValues = await this.explain(curX);
+    this.curShapValues = shapValues[0];
     this.tabularUpdated();
+    this.updateShapPlot();
   };
 
   /**
@@ -582,9 +766,20 @@ export class Tabular {
   inputChanged = async () => {
     const curX = this.getCurX();
     const result = await this.predict([curX]);
+    if (result.length == 0) {
+      console.error('ONNX returns empty result.');
+      return;
+    }
+
     this.curPred = result[0];
     this.updatePred();
     this.tabularUpdated();
+
+    // Explain the prediction
+    const shapValues = await this.explain(curX);
+    this.curShapValues = shapValues[0];
+    this.tabularUpdated();
+    this.updateShapPlot();
   };
 
   /**
