@@ -112,11 +112,28 @@
 
     <div class="top-section output">
       <span class="section-name">Model Output</span>
-      <span class="section-description">Predicted likelihood of approval </span>
+      <span class="section-description"
+        >Likelihood of timely loan repayment
+      </span>
     </div>
 
     <div class="output-box">
+      <div class="pred-number">
+        {myTabular ? predFormatter(myTabular.curPred) : ''}
+      </div>
+
+      <div class="pred-bar">
+        <svg class="pred-bar-svg"></svg>
+      </div>
+
       <div class="label-container">
+        <div class="label placeholder hidden">
+          <span class="label-icon svg-icon">
+            {@html iconCross}
+          </span>
+          <span class="label-name"> Rejection </span>
+        </div>
+
         <div
           class="label approval"
           class:hidden="{myTabular ? myTabular.curPred < 0.5 : true}"
@@ -136,11 +153,6 @@
           </span>
           <span class="label-name"> Rejection </span>
         </div>
-      </div>
-
-      <div class="pred-bar"></div>
-      <div class="pred-number">
-        {myTabular ? predFormatter(myTabular.curPred) : ''}
       </div>
     </div>
 

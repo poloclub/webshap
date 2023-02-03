@@ -1,9 +1,12 @@
 import d3 from '../../utils/d3-import';
 import { config } from '../../config/config';
+import { tick } from 'svelte';
 import type {
   TabularData,
   TabularContFeature,
-  TabularCatFeature
+  TabularCatFeature,
+  Size,
+  Padding
 } from '../../types/common-types';
 import { KernelSHAP } from 'webshap';
 import { round, timeit } from '../../utils/utils';
@@ -36,6 +39,12 @@ export class Tabular {
   component: HTMLElement;
   tabularUpdated: () => void;
 
+  // SVGs
+  predBarSVG: d3.Selection<HTMLElement, unknown, null, undefined>;
+  predBarSVGSize: Size;
+  predBarSVGPadding: Padding;
+  predBarScale: d3.ScaleLinear<number, number, never>;
+
   // Dataset
   data: TabularData | null = null;
   contFeatures: Map<string, TabularContFeature> | null = null;
@@ -67,9 +76,78 @@ export class Tabular {
     this.tabularUpdated = tabularUpdated;
     this.message = 'initialized';
 
+    this.predBarSVG = d3
+      .select<HTMLElement, unknown>(this.component)
+      .select('svg.pred-bar-svg');
+    this.predBarSVGSize = { width: 0, height: 0 };
+    this.predBarSVGPadding = { top: 3, bottom: 3, left: 10, right: 10 };
+    this.predBarScale = d3.scaleLinear();
+
     // Load the training and test dataset
-    this.initData();
+    this.initData().then(() => {
+      // Initialize the SVGs
+      tick().then(() => {
+        this.initPredBar();
+      });
+    });
   }
+
+  initPredBar = () => {
+    if (this.predBarSVG === null) throw Error('predBarSVG is null.');
+
+    // Get the SVG size
+    const svgBBox = this.predBarSVG.node()?.getBoundingClientRect();
+    if (svgBBox !== undefined) {
+      this.predBarSVGSize.width =
+        svgBBox.width -
+        this.predBarSVGPadding.left -
+        this.predBarSVGPadding.right;
+      this.predBarSVGSize.height =
+        svgBBox.height -
+        this.predBarSVGPadding.top -
+        this.predBarSVGPadding.bottom;
+    }
+
+    const content = this.predBarSVG
+      .append('g')
+      .attr('class', 'content')
+      .attr(
+        'transform',
+        `translate(${this.predBarSVGPadding.left}, ${this.predBarSVGPadding.top})`
+      );
+
+    // Create scales
+    this.predBarScale = d3
+      .scaleLinear()
+      .domain([0, 1])
+      .range([0, this.predBarSVGSize.width]);
+
+    // Init rectangles
+    content
+      .append('rect')
+      .attr('class', 'back-rect')
+      .attr('rx', this.predBarSVGSize.height / 2)
+      .attr('ry', this.predBarSVGSize.height / 2)
+      .attr('width', this.predBarScale(1))
+      .attr('height', this.predBarSVGSize.height);
+
+    content
+      .append('rect')
+      .attr('class', 'top-rect')
+      .classed('approval', this.curPred ? this.curPred >= 0.5 : true)
+      .attr('rx', this.predBarSVGSize.height / 2)
+      .attr('ry', this.predBarSVGSize.height / 2)
+      .attr('width', this.predBarScale(this.curPred || 0))
+      .attr('height', this.predBarSVGSize.height);
+
+    // Add a threshold bar
+    content
+      .append('rect')
+      .attr('class', 'threshold')
+      .attr('x', this.predBarScale(0.5) - 0.5)
+      .attr('width', 1)
+      .attr('height', this.predBarSVGSize.height);
+  };
 
   /**
    * Load the lending club dataset.
@@ -299,6 +377,7 @@ export class Tabular {
     const curX = this.getCurX();
     const result = await this.predict([curX]);
     this.curPred = result[0];
+    this.updatePred();
     this.tabularUpdated();
   };
 
@@ -309,6 +388,21 @@ export class Tabular {
     const curX = this.getCurX();
     const result = await this.predict([curX]);
     this.curPred = result[0];
+    this.updatePred();
     this.tabularUpdated();
+  };
+
+  /**
+   * Helper function to update the view with the new prediction result
+   */
+  updatePred = () => {
+    if (this.curPred === null) return;
+
+    // Update the bar
+    const content = this.predBarSVG.select('g.content');
+    content
+      .select('rect.top-rect')
+      .classed('approval', this.curPred >= 0.5)
+      .attr('width', this.predBarScale(this.curPred));
   };
 }
