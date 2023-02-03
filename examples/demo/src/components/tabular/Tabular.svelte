@@ -1,5 +1,6 @@
 <script lang="ts">
   import d3 from '../../utils/d3-import';
+  import { fade, blur, fly, slide, scale } from 'svelte/transition';
   import { Tabular } from './Tabular';
   import { onMount } from 'svelte';
   import iconBox from '../../imgs/icon-box.svg?raw';
@@ -14,8 +15,19 @@
   let initialized = false;
   let myTabular: Tabular | null = null;
 
+  const benefits = ['Privacy', 'Ubiquity', 'Interactivity'];
+  let shownBenefits: string[] = [];
+
   onMount(() => {
     mounted = true;
+
+    const timeGap = 420;
+    for (let i = 0; i < benefits.length; i++) {
+      setTimeout(() => {
+        shownBenefits.push(benefits[i]);
+        shownBenefits = shownBenefits;
+      }, 500 + timeGap * i);
+    }
   });
 
   const tabularUpdated = () => {
@@ -150,11 +162,20 @@
         </div>
         <div class="end-triangle"></div>
       </div>
+
+      <div class="benefit-panel">
+        {#each benefits as benefit}
+          <div class="line" class:hidden="{!shownBenefits.includes(benefit)}">
+            <span class="svg-icon">{@html iconCheck}</span>
+            <span>{benefit}</span>
+          </div>
+        {/each}
+      </div>
     </div>
 
     <div class="top-section output">
       <span class="section-name">Model Output</span>
-      <span class="section-description">Timely repayment likelihood </span>
+      <span class="section-description">Likelihood of timely repayment </span>
     </div>
 
     <div class="output-box">
@@ -206,7 +227,7 @@
           </span>
           <span class="section-name"> Model Explanation</span>
           <span class="section-description"
-            >Each feature' contribution to model's prediction
+            >Each feature's contribution to model's prediction
           </span>
         </div>
 

@@ -2,7 +2,8 @@
 
 $v-padding: 15px;
 $border-radius: 5px;
-$block-shadow: 0px 0px 5px hsla(0, 0%, 0%, 0.05);
+$block-shadow: 0px 0px 2px hsla(0, 0%, 0%, 0.1),
+  0px 0px 6px hsla(0, 0%, 0%, 0.05);
 $right-content-left-margin: 25px;
 $arrow-color: $gray-300;
 
@@ -120,8 +121,8 @@ $arrow-color: $gray-300;
       .feature-select {
         width: 100%;
         min-width: 30px;
-
         box-sizing: border-box;
+        background-color: white;
       }
     }
   }
@@ -223,6 +224,7 @@ $arrow-color: $gray-300;
   display: flex;
   justify-content: center;
   align-items: center;
+  position: relative;
 
   grid-row: 3 / 4;
   grid-column: 3 / 4;
@@ -255,7 +257,7 @@ $arrow-color: $gray-300;
         padding: 4px 10px;
         border: 1px solid $gray-light-border;
         border-radius: $border-radius;
-        box-shadow: 0px 0px 5px hsla(0, 0%, 0%, 0.05);
+        box-shadow: $block-shadow;
 
         background-color: $gray-900;
         color: white;
@@ -296,6 +298,34 @@ $arrow-color: $gray-300;
       border-left: 15px solid transparent;
       border-right: 15px solid transparent;
       border-top: 20px solid $arrow-color;
+    }
+  }
+
+  .benefit-panel {
+    position: absolute;
+    z-index: 1;
+    right: 0px;
+    top: 50%;
+    transform: translateX(calc(100% + 80px)) translateY(-50%);
+
+    font-size: $font-d1;
+    display: flex;
+    flex-direction: column;
+
+    .line {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: opacity 400ms ease-in-out;
+      color: $gray-500;
+
+      &.hidden {
+        opacity: 0;
+      }
+
+      .svg-icon {
+        color: $gray-400;
+      }
     }
   }
 }
@@ -476,7 +506,7 @@ $arrow-color: $gray-300;
     padding: 10px 0px;
     border: 1px solid $gray-light-border;
     border-radius: $border-radius;
-    box-shadow: 0px 0px 5px hsla(0, 0%, 0%, 0.05);
+    box-shadow: $block-shadow;
 
     .header {
       font-size: $font-u1;
