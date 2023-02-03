@@ -51,7 +51,7 @@ $arrow-color: $gray-300;
   display: grid;
   grid-template-rows: min-content min-content min-content min-content 1fr;
   grid-template-columns:
-    [col1-start] minmax(300px, 400px) [col2-start] minmax(180px, 0.5fr)
+    [col1-start] min-content [col2-start] minmax(180px, 0.5fr)
     [col3-start] 1fr [col3-end];
 
   align-items: center;
@@ -82,6 +82,7 @@ $arrow-color: $gray-300;
     flex-direction: column;
     justify-content: space-between;
     flex-grow: 1;
+    font-family: 'lato';
 
     .input-wrapper {
       display: flex;
@@ -290,7 +291,7 @@ $arrow-color: $gray-300;
   }
 
   .svg-icon {
-    margin-left: 4px;
+    margin-left: 1px;
     width: 16px;
     height: 16px;
     transform: translateY(2px);
@@ -359,11 +360,11 @@ $arrow-color: $gray-300;
       }
 
       &.approval {
-        color: $green-600;
+        color: $blue-500;
       }
 
       &.rejection {
-        color: $red-600;
+        color: $pink-300;
       }
 
       &.hidden {
@@ -388,12 +389,12 @@ $arrow-color: $gray-300;
       }
 
       :global(.top-rect) {
-        fill: $red-600;
+        fill: $pink-200;
         transition: width 200ms ease-in-out, fill 200ms linear;
       }
 
       :global(.top-rect.approval) {
-        fill: $green-500;
+        fill: $blue-400;
       }
 
       :global(.threshold) {
@@ -438,15 +439,67 @@ $arrow-color: $gray-300;
     width: 100%;
     height: 100%;
 
-    padding: 10px 20px;
+    padding: 10px 0px;
     border: 1px solid $gray-light-border;
     border-radius: $border-radius;
     box-shadow: 0px 0px 5px hsla(0, 0%, 0%, 0.05);
 
+    .header {
+      font-size: $font-u1;
+      font-weight: 600;
+      margin-bottom: 5px;
+
+      .shap-label {
+        padding: 1px 4px;
+        border-radius: 4px;
+        background: linear-gradient(
+          135deg,
+          change-color($pink-100, $alpha: 0.8) 0%,
+          change-color($blue-100, $alpha: 0.8) 100%
+        );
+      }
+    }
+
     .shap-svg {
       width: 100%;
       height: 100%;
-      background-color: $pink-50;
+      // background-color: $blue-gray-50;
+      font-family: 'lato';
+
+      :global(.row .feature-name) {
+        text-anchor: end;
+        dominant-baseline: middle;
+        font-size: 15px;
+        cursor: default;
+      }
+
+      :global(.row .shap-bar) {
+        fill: $blue-400;
+      }
+
+      :global(.row .shap-bar.negative) {
+        fill: $pink-200;
+      }
+
+      :global(.axis-group .tick) {
+        font-size: 14px;
+      }
+
+      :global(.grid-rect) {
+        fill: $gray-900;
+      }
+
+      :global(.shap-number) {
+        text-anchor: end;
+        dominant-baseline: middle;
+        fill: $blue-400;
+      }
+
+      :global(.shap-number.negative) {
+        text-anchor: start;
+        dominant-baseline: middle;
+        fill: $pink-400;
+      }
     }
   }
 }

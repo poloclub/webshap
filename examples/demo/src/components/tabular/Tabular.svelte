@@ -190,7 +190,10 @@
     <div class="explain-content">
       <div class="arrow"></div>
       <div class="explain-box">
-        <div class="header">Top 10 Important Features</div>
+        <div class="header">
+          <span>Top 10 Important Features and</span>
+          <span class="shap-label">SHAP Values</span>
+        </div>
         <svg class="shap-svg"></svg>
       </div>
     </div>

@@ -4,6 +4,13 @@
 
 type FeatureType = 'cont' | 'cat';
 
+export interface SHAPRow {
+  index: number;
+  shap: number;
+  name: string;
+  fullName: string;
+}
+
 export interface TabularContFeature {
   name: string;
   displayName: string;

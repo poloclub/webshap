@@ -6,10 +6,12 @@ import type {
   TabularContFeature,
   TabularCatFeature,
   Size,
-  Padding
+  Padding,
+  SHAPRow
 } from '../../types/common-types';
 import { KernelSHAP } from 'webshap';
 import { round, timeit } from '../../utils/utils';
+import { getLatoTextWidth } from '../../utils/text-width';
 
 import * as ort from 'onnxruntime-web/dist/ort-web.min.js';
 import wasm from 'onnxruntime-web/dist/ort-wasm.wasm?url';
@@ -31,6 +33,12 @@ const LCG = d3.randomLcg(0.20230101);
 const RANDOM_INT = d3.randomInt.source(LCG);
 const RANDOM_UNIFORM = d3.randomUniform.source(LCG);
 
+// SVG constants
+const GAP = 20;
+const K = 10;
+const ROW_HEIGHT = 28;
+const FORMAT_2 = d3.format('.4f');
+
 /**
  * Class for the Tabular WebSHAP demo
  */
@@ -44,6 +52,11 @@ export class Tabular {
   predBarSVGSize: Size;
   predBarSVGPadding: Padding;
   predBarScale: d3.ScaleLinear<number, number, never>;
+
+  shapSVG: d3.Selection<HTMLElement, unknown, null, undefined>;
+  shapSVGSize: Size;
+  shapSVGPadding: Padding;
+  shapScale: d3.ScaleLinear<number, number, never>;
 
   // Dataset
   data: TabularData | null = null;
@@ -59,6 +72,7 @@ export class Tabular {
 
   // WebSHAP data
   backgroundData: number[][] = [];
+  curShapValues: number[] | null = null;
 
   /**
    * @param args Named parameters
@@ -83,11 +97,19 @@ export class Tabular {
     this.predBarSVGPadding = { top: 4, bottom: 4, left: 10, right: 10 };
     this.predBarScale = d3.scaleLinear();
 
+    this.shapSVG = d3
+      .select<HTMLElement, unknown>(this.component)
+      .select('svg.shap-svg');
+    this.shapSVGSize = { width: 0, height: 0 };
+    this.shapSVGPadding = { top: 1, bottom: 1, left: 10, right: 25 };
+    this.shapScale = d3.scaleLinear();
+
     // Load the training and test dataset
     this.initData().then(() => {
       // Initialize the SVGs
       tick().then(() => {
         this.initPredBar();
+        this.initShapPlot();
       });
     });
   }
@@ -149,6 +171,180 @@ export class Tabular {
       .attr('height', this.predBarSVGSize.height);
   };
 
+  initShapPlot = () => {
+    if (this.shapSVG === null) throw Error('shapSVG is null.');
+    if (this.curShapValues === null) throw Error('curShapValues is null.');
+    if (this.data === null) throw Error('data is null.');
+    if (this.contFeatures === null) throw Error('contFeatures is null.');
+    if (this.catFeatures === null) throw Error('catFeatures is null.');
+    if (this.curX === null) throw Error('curX is null.');
+
+    // Get the SVG size
+    const svgBBox = this.shapSVG.node()?.getBoundingClientRect();
+    if (svgBBox !== undefined) {
+      this.shapSVGSize.width =
+        svgBBox.width - this.shapSVGPadding.left - this.shapSVGPadding.right;
+      this.shapSVGSize.height =
+        svgBBox.height - this.shapSVGPadding.top - this.shapSVGPadding.bottom;
+    }
+
+    const content = this.shapSVG
+      .append('g')
+      .attr('class', 'content')
+      .attr(
+        'transform',
+        `translate(${this.shapSVGPadding.left}, ${this.shapSVGPadding.top})`
+      );
+
+    // Decide the text and bar widths
+    let maxTextWidth = 200;
+    let maxBarWidth = 200;
+
+    if (this.shapSVGSize.width - 260 - GAP > 200) {
+      maxTextWidth = 260;
+      maxBarWidth = this.shapSVGSize.width - GAP - maxTextWidth;
+    } else {
+      maxBarWidth = 220;
+      maxTextWidth = this.shapSVGSize.width - GAP - maxBarWidth;
+    }
+
+    // Create scales
+    const absValues = this.curShapValues.map(x => Math.abs(x));
+    const maxAbs = d3.max(absValues)!;
+    this.shapScale = d3
+      .scaleLinear()
+      .domain([0, maxAbs])
+      .range([0, maxBarWidth / 2]);
+
+    const shapValueScale = d3
+      .scaleLinear()
+      .domain([-maxAbs, maxAbs])
+      .range([0, maxBarWidth]);
+
+    // Organize all shap values
+    const allShaps: SHAPRow[] = [];
+
+    for (let i = 0; i < this.data.featureNames.length; i++) {
+      const curFeatureType = this.data.featureTypes[i];
+      const curFeatureName = this.data.featureNames[i];
+
+      // Get the display name
+      let displayName = '';
+      let fullName = '';
+
+      if (curFeatureType === 'cont') {
+        displayName = this.contFeatures.get(curFeatureName)!.displayName;
+        fullName = displayName;
+      } else {
+        const curName = curFeatureName.replace(/(.+)-(.+)/, '$1');
+        const curLevel = curFeatureName.replace(/(.+)-(.+)/, '$2');
+        const catInfo = this.catFeatures.get(curName)!;
+        const dummy = this.curX[i] === 1 ? 'T' : 'F';
+        const dummyFull = this.curX[i] === 1 ? 'True' : 'False';
+        displayName = `${catInfo.displayName} (${catInfo.levelInfo[curLevel][0]}=${dummy})`;
+        fullName = `${catInfo.displayName} (${catInfo.levelInfo[curLevel][0]}=${dummyFull})`;
+      }
+
+      // Truncate displayName until it fits the limit
+      let nameWidth = getLatoTextWidth(displayName, 15);
+
+      while (nameWidth > maxTextWidth) {
+        displayName = displayName.replace('...', '');
+        displayName = displayName
+          .slice(0, displayName.length - 1)
+          .concat('...');
+        nameWidth = getLatoTextWidth(displayName, 15);
+      }
+
+      allShaps.push({
+        index: i,
+        shap: this.curShapValues[i],
+        name: displayName,
+        fullName: fullName
+      });
+    }
+
+    // Sort all shaps based on their absolute shap values
+    allShaps.sort((a, b) => Math.abs(b.shap) - Math.abs(a.shap));
+
+    const rowContent = content
+      .append('g')
+      .attr('class', 'row-content')
+      .attr('transform', 'translate(0, 20)');
+
+    const barHeight = ROW_HEIGHT - 8;
+
+    // Draw the background grid
+    rowContent
+      .append('rect')
+      .attr('class', 'grid-rect')
+      .attr('x', maxTextWidth + GAP + maxBarWidth / 2)
+      .attr('y', -barHeight / 2)
+      .attr('width', 0.2)
+      .attr('height', 10 * ROW_HEIGHT + 5);
+
+    // Add the top K in a list
+    for (let i = 0; i < K; i++) {
+      const shap = allShaps[i];
+      const row = rowContent
+        .append('g')
+        .attr('class', `row row-${shap.index}`)
+        .attr('transform', `translate(0, ${i * ROW_HEIGHT})`);
+
+      row
+        .append('text')
+        .attr('class', 'feature-name')
+        .attr('x', maxTextWidth)
+        .text(shap.name)
+        .append('title')
+        .text(shap.fullName);
+
+      // Add the rectangle
+      const rect = row.append('rect').attr('class', 'shap-bar');
+      const curRectWidth = this.shapScale(Math.abs(shap.shap));
+      if (shap.shap < 0) {
+        rect
+          .classed('negative', true)
+          .attr('x', maxTextWidth + GAP + maxBarWidth / 2 - curRectWidth)
+          .attr('y', -barHeight / 2)
+          .attr('width', curRectWidth)
+          .attr('height', barHeight);
+      } else {
+        rect
+          .attr('x', maxTextWidth + GAP + maxBarWidth / 2)
+          .attr('y', -barHeight / 2)
+          .attr('width', curRectWidth)
+          .attr('height', barHeight);
+      }
+
+      // Add the shap number
+      const shapNumber = row
+        .append('text')
+        .attr('class', 'shap-number')
+        .classed('negative', shap.shap < 0)
+        .text(FORMAT_2(shap.shap))
+        .attr(
+          'x',
+          shap.shap < 0
+            ? maxTextWidth + GAP + maxBarWidth / 2 + 5
+            : maxTextWidth + GAP + maxBarWidth / 2 - 5
+        );
+    }
+
+    // Draw the axis
+    const axisGroup = content
+      .append('g')
+      .attr('class', 'axis-group')
+      .attr(
+        'transform',
+        `translate(${maxTextWidth + GAP}, ${this.shapSVGSize.height - 20})`
+      );
+    const axis = d3.axisBottom(shapValueScale).tickValues([-maxAbs, 0, maxAbs]);
+    axisGroup.call(axis);
+
+    console.log(allShaps);
+  };
+
   /**
    * Load the lending club dataset.
    */
@@ -193,8 +389,7 @@ export class Tabular {
     this.backgroundData.push(curBackgroundData);
 
     const shapValues = await this.explain(x);
-    // console.log('background', this.backgroundData);
-    // console.log('shap', shapValues);
+    this.curShapValues = shapValues[0];
   };
 
   /**
