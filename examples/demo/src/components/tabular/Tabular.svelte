@@ -2,6 +2,7 @@
   import d3 from '../../utils/d3-import';
   import { Tabular } from './Tabular';
   import { onMount } from 'svelte';
+  import iconBox from '../../imgs/icon-box.svg?raw';
   import iconRefresh from '../../imgs/icon-refresh2.svg?raw';
   import iconCheck from '../../imgs/icon-check.svg?raw';
   import iconCross from '../../imgs/icon-cross.svg?raw';
@@ -107,14 +108,25 @@
       </div>
     </div>
 
-    <div class="data-model-arrow">XGBoost</div>
+    <div class="data-model-arrow">
+      <div class="background">
+        <div class="start-rectangle">
+          <div class="content-box">
+            <span class="svg-icon no-pointer">
+              {@html iconBox}
+            </span>
+            <span class="name"> XGBoost </span>
+          </div>
+        </div>
+        <div class="end-triangle"></div>
+      </div>
+    </div>
+
     <div class="model-explain-arrow">WebSHAP</div>
 
     <div class="top-section output">
       <span class="section-name">Model Output</span>
-      <span class="section-description"
-        >Likelihood of timely loan repayment
-      </span>
+      <span class="section-description">Timely repayment likelihood </span>
     </div>
 
     <div class="output-box">
@@ -128,7 +140,7 @@
 
       <div class="label-container">
         <div class="label placeholder hidden">
-          <span class="label-icon svg-icon">
+          <span class="label-icon svg-icon no-pointer">
             {@html iconCross}
           </span>
           <span class="label-name"> Rejection </span>
@@ -138,7 +150,7 @@
           class="label approval"
           class:hidden="{myTabular ? myTabular.curPred < 0.5 : true}"
         >
-          <span class="label-icon svg-icon">
+          <span class="label-icon svg-icon no-pointer">
             {@html iconCheck}
           </span>
           <span class="label-name"> Approval </span>
@@ -148,7 +160,7 @@
           class="label rejection"
           class:hidden="{myTabular ? myTabular.curPred >= 0.5 : true}"
         >
-          <span class="label-icon svg-icon">
+          <span class="label-icon svg-icon no-pointer">
             {@html iconCross}
           </span>
           <span class="label-name"> Rejection </span>

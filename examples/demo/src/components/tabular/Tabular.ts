@@ -80,7 +80,7 @@ export class Tabular {
       .select<HTMLElement, unknown>(this.component)
       .select('svg.pred-bar-svg');
     this.predBarSVGSize = { width: 0, height: 0 };
-    this.predBarSVGPadding = { top: 3, bottom: 3, left: 10, right: 10 };
+    this.predBarSVGPadding = { top: 4, bottom: 4, left: 10, right: 10 };
     this.predBarScale = d3.scaleLinear();
 
     // Load the training and test dataset
@@ -144,8 +144,8 @@ export class Tabular {
     content
       .append('rect')
       .attr('class', 'threshold')
-      .attr('x', this.predBarScale(0.5) - 0.5)
-      .attr('width', 1)
+      .attr('x', this.predBarScale(0.5) - 1)
+      .attr('width', 2)
       .attr('height', this.predBarSVGSize.height);
   };
 

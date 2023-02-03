@@ -36,12 +36,12 @@ module.exports = {
     quotes: ['error', 'single'],
     'prefer-const': ['error'],
     semi: ['error', 'always'],
-    'max-len': [
-      'warn',
-      {
-        code: 80
-      }
-    ],
+    // 'max-len': [
+    //   'warn',
+    //   {
+    //     code: 80
+    //   }
+    // ],
     'no-constant-condition': ['error', { checkLoops: false }],
     'prettier/prettier': 2,
     '@typescript-eslint/no-floating-promises': 'off',
