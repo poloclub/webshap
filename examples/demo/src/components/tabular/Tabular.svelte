@@ -126,6 +126,14 @@
       <div class="background">
         <div class="start-rectangle">
           <div class="content-box">
+            <!-- <div class="control-panel">
+              <select>
+                <option>Background (median)</option>
+              </select>
+              <select>
+                <option>Samples (auto)</option>
+              </select>
+            </div> -->
             <span class="svg-icon no-pointer">
               {@html iconBox}
             </span>

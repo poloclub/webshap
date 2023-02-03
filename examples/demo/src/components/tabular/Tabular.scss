@@ -171,6 +171,7 @@ $arrow-color: $gray-300;
       justify-content: center;
 
       .content-box {
+        position: relative;
         display: flex;
         align-items: center;
         gap: 4px;
@@ -236,6 +237,7 @@ $arrow-color: $gray-300;
         display: flex;
         align-items: center;
         gap: 4px;
+        position: relative;
 
         padding: 3px 10px;
         border: 1px solid $gray-light-border;
@@ -248,6 +250,18 @@ $arrow-color: $gray-300;
           font-size: $font-u2;
           font-weight: 800;
         }
+
+        // .control-panel {
+        //   position: absolute;
+        //   z-index: -1;
+        //   left: 0px;
+        //   top: 50%;
+        //   transform: translateX(-110%) translateY(-50%);
+        //   background-color: $red-50;
+
+        //   display: flex;
+        //   flex-direction: column;
+        // }
       }
     }
 

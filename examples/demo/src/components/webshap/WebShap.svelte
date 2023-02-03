@@ -26,7 +26,7 @@
       </div>
 
       <div class="title-right">
-        <a class="title-link" href="https://github.com/anonacl/diffusiondb">
+        <a class="title-link" href="https://github.com/poloclub/webshap">
           {@html iconGithub}
         </a>
       </div>
