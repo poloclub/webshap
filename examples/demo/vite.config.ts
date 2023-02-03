@@ -28,9 +28,9 @@ export default defineConfig(({ command, mode }) => {
       case 'github': {
         // Production: github page
         return {
-          base: '/diffusiondb/explorer',
+          base: '/webshap',
           build: {
-            outDir: 'explorer'
+            outDir: '../../gh-pages'
           },
           plugins: [svelte()]
         };
