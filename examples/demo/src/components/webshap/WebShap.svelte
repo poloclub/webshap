@@ -1,6 +1,7 @@
 <script lang="ts">
   import Tabular from '../tabular/Tabular.svelte';
   import iconGithub from '../../imgs/icon-github.svg?raw';
+  import iconWebshap from '../../imgs/icon-webshap.svg?raw';
 
   let component: HTMLElement | null = null;
   let view = 'loan-prediction';
@@ -19,10 +20,15 @@
   <div class="app-wrapper">
     <div class="app-title">
       <div class="title-left">
-        <!-- <div class="app-icon">
-          {@html logoDiffusionDB}
-        </div> -->
-        <span class="app-name"> WebSHAP Demo </span>
+        <div class="app-icon">
+          {@html iconWebshap}
+        </div>
+        <div class="app-info">
+          <span class="app-name"> WebSHAP </span>
+          <span class="app-tagline"
+            >Explain any machine learning models in your browser!</span
+          >
+        </div>
       </div>
 
       <div class="title-right">

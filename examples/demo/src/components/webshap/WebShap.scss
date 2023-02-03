@@ -11,7 +11,7 @@
   overflow-x: hidden;
 
   position: relative;
-  background-color: adjust-color($color: $blue-900, $lightness: -10%);
+  background-color: adjust-color($color: $blue-900, $lightness: -15%);
 }
 
 .app-wrapper {
@@ -57,11 +57,21 @@
       }
     }
 
-    .app-name {
-      font-size: 32px;
-      font-variant: small-caps;
-      font-weight: 600;
-      color: white;
+    .app-info {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+
+      .app-name {
+        font-size: 32px;
+        font-weight: 600;
+      }
+
+      .app-tagline {
+        font-size: 26px;
+        font-weight: 200;
+        color: white;
+      }
     }
   }
 

@@ -6,6 +6,7 @@
   import iconRefresh from '../../imgs/icon-refresh2.svg?raw';
   import iconCheck from '../../imgs/icon-check.svg?raw';
   import iconCross from '../../imgs/icon-cross.svg?raw';
+  import iconWebshap from '../../imgs/icon-webshap.svg?raw';
 
   let component: HTMLElement | null = null;
   let mounted = false;
@@ -135,7 +136,7 @@
               </select>
             </div> -->
             <span class="svg-icon no-pointer">
-              {@html iconBox}
+              {@html iconWebshap}
             </span>
             <span class="name"> WebSHAP </span>
           </div>
