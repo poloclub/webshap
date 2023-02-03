@@ -122,7 +122,19 @@
       </div>
     </div>
 
-    <div class="model-explain-arrow">WebSHAP</div>
+    <div class="model-explain-arrow">
+      <div class="background">
+        <div class="start-rectangle">
+          <div class="content-box">
+            <span class="svg-icon no-pointer">
+              {@html iconBox}
+            </span>
+            <span class="name"> WebSHAP </span>
+          </div>
+        </div>
+        <div class="end-triangle"></div>
+      </div>
+    </div>
 
     <div class="top-section output">
       <span class="section-name">Model Output</span>
@@ -171,11 +183,12 @@
     <div class="top-section explain">
       <span class="section-name">Prediction Explanation</span>
       <span class="section-description"
-        >Features' contribution to prediction
+        >Features' contribution to the prediction
       </span>
     </div>
 
     <div class="explain-content">
+      <div class="arrow"></div>
       <div class="explain-box">SHAP</div>
     </div>
   </div>

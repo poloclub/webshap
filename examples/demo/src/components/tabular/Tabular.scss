@@ -2,6 +2,9 @@
 
 $v-padding: 15px;
 $border-radius: 5px;
+$block-shadow: 0px 0px 5px hsla(0, 0%, 0%, 0.05);
+$right-content-left-margin: 20px;
+$arrow-color: $gray-300;
 
 .svg-icon {
   display: flex;
@@ -70,6 +73,7 @@ $border-radius: 5px;
   padding: 10px 20px;
   border: 1px solid $gray-light-border;
   border-radius: $border-radius;
+  box-shadow: $block-shadow;
 
   .content-cont {
     display: flex;
@@ -156,7 +160,7 @@ $border-radius: 5px;
       left: 0px;
       height: 100%;
       width: calc(100% - 20px);
-      background-color: $gray-200;
+      background-color: $arrow-color;
       z-index: 1;
 
       display: flex;
@@ -171,6 +175,7 @@ $border-radius: 5px;
         padding: 3px 10px;
         border: 1px solid $gray-light-border;
         border-radius: $border-radius;
+        box-shadow: $block-shadow;
         background: white;
         color: $gray-600;
 
@@ -192,23 +197,71 @@ $border-radius: 5px;
       height: 0;
       border-top: 15px solid transparent;
       border-bottom: 15px solid transparent;
-      border-left: 20px solid $gray-200;
+      border-left: 20px solid $arrow-color;
     }
   }
 }
-
-$right-content-left-margin: 20px;
 
 .model-explain-arrow {
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: $amber-100;
 
   grid-row: 3 / 4;
   grid-column: 3 / 4;
 
-  height: 100px;
+  height: 90px;
+
+  .background {
+    position: relative;
+    width: 10px;
+    height: 100%;
+
+    .start-rectangle {
+      position: absolute;
+      top: 0px;
+      width: 100%;
+      height: calc(100% - 20px);
+      background-color: $arrow-color;
+      z-index: 1;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      .content-box {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+
+        padding: 3px 10px;
+        border: 1px solid $gray-light-border;
+        border-radius: $border-radius;
+        box-shadow: 0px 0px 5px hsla(0, 0%, 0%, 0.05);
+        background: white;
+        color: $gray-600;
+
+        .name {
+          font-size: $font-u2;
+          font-weight: 800;
+        }
+      }
+    }
+
+    .end-triangle {
+      position: absolute;
+      right: 50%;
+      bottom: 0px;
+      transform: translateX(50%);
+      z-index: 1;
+
+      width: 0;
+      height: 0;
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-top: 20px solid $arrow-color;
+    }
+  }
 }
 
 .top-section {
@@ -274,6 +327,7 @@ $right-content-left-margin: 20px;
   padding: 10px 15px;
   border: 1px solid $gray-light-border;
   border-radius: $border-radius;
+  box-shadow: $block-shadow;
 
   .label-container {
     position: relative;
@@ -322,7 +376,7 @@ $right-content-left-margin: 20px;
       height: 20px;
 
       :global(.back-rect) {
-        fill: $gray-200;
+        fill: $gray-300;
       }
 
       :global(.top-rect) {
@@ -350,7 +404,23 @@ $right-content-left-margin: 20px;
   grid-column: 2 / 4;
   width: 100%;
   height: 100%;
-  padding-left: $right-content-left-margin;
+  display: flex;
+  // padding-left: $right-content-left-margin;
+
+  .arrow {
+    width: $right-content-left-margin;
+    position: relative;
+
+    &::after {
+      content: '';
+      position: absolute;
+      left: 0px;
+      top: 50%;
+      height: 10px;
+      width: 100%;
+      background-color: $arrow-color;
+    }
+  }
 
   .explain-box {
     display: flex;
@@ -362,5 +432,6 @@ $right-content-left-margin: 20px;
     padding: 10px 20px;
     border: 1px solid $gray-light-border;
     border-radius: $border-radius;
+    box-shadow: 0px 0px 5px hsla(0, 0%, 0%, 0.05);
   }
 }
