@@ -1,8 +1,8 @@
 # WebSHAP <a href="https://poloclub.github.io/webshap/"><img align="right" src="examples/demo/src/imgs/icon-webshap.svg" height="38"></img></a>
 
 [![build](https://github.com/xiaohk/webshap/actions/workflows/build.yml/badge.svg)](https://github.com/xiaohk/webshap/actions/workflows/build.yml)
-![npm](https://img.shields.io/npm/v/webshap?color=red)
-[![license](https://img.shields.io/badge/License-MIT-blue)](https://github.com/poloclub/webshap/blob/master/LICENSE)
+[![npm](https://img.shields.io/npm/v/webshap?color=red)](https://www.npmjs.com/package/webshap)
+[![license](https://img.shields.io/badge/License-MIT-blue)](https://github.com/poloclub/webshap/blob/main/LICENSE)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7604420.svg)](https://doi.org/10.5281/zenodo.7604420)
 <!-- [![arxiv badge](https://img.shields.io/badge/arXiv-2209.09227-red)](https://arxiv.org/abs/2209.09227) -->
 <!-- [![DOI:10.1145/3491101.3519653](https://img.shields.io/badge/DOI-10.1145/3491101.3519653-blue)](https://doi.org/10.1145/3491101.3519653) -->
@@ -148,7 +148,7 @@ WebSHAP is created by <a href='https://zijie.wang/' target='_blank'>Jay Wang</a>
 
 ## License
 
-The software is available under the [MIT License](https://github.com/poloclub/webshap/blob/master/LICENSE).
+The software is available under the [MIT License](https://github.com/poloclub/webshap/blob/main/LICENSE).
 
 ## Contact
 
