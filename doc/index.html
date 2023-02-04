@@ -1,0 +1,196 @@
+<!DOCTYPE html><html class="default" lang="en"><head><meta charSet="utf-8"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>WebSHAP</title><meta name="description" content="Documentation for WebSHAP"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><script async src="assets/search.js" id="search-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os"</script><header class="tsd-page-toolbar">
+<div class="tsd-toolbar-contents container">
+<div class="table-cell" id="tsd-search" data-base=".">
+<div class="field"><label for="tsd-search-field" class="tsd-widget tsd-toolbar-icon search no-caption"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M15.7824 13.833L12.6666 10.7177C12.5259 10.5771 12.3353 10.499 12.1353 10.499H11.6259C12.4884 9.39596 13.001 8.00859 13.001 6.49937C13.001 2.90909 10.0914 0 6.50048 0C2.90959 0 0 2.90909 0 6.49937C0 10.0896 2.90959 12.9987 6.50048 12.9987C8.00996 12.9987 9.39756 12.4863 10.5008 11.6239V12.1332C10.5008 12.3332 10.5789 12.5238 10.7195 12.6644L13.8354 15.7797C14.1292 16.0734 14.6042 16.0734 14.8948 15.7797L15.7793 14.8954C16.0731 14.6017 16.0731 14.1267 15.7824 13.833ZM6.50048 10.499C4.29094 10.499 2.50018 8.71165 2.50018 6.49937C2.50018 4.29021 4.28781 2.49976 6.50048 2.49976C8.71001 2.49976 10.5008 4.28708 10.5008 6.49937C10.5008 8.70852 8.71314 10.499 6.50048 10.499Z" fill="var(--color-text)"></path></svg></label><input type="text" id="tsd-search-field" aria-label="Search"/></div>
+<div class="field">
+<div id="tsd-toolbar-links"></div></div>
+<ul class="results">
+<li class="state loading">Preparing search index...</li>
+<li class="state failure">The search index is not available</li></ul><a href="index.html" class="title">WebSHAP</a></div>
+<div class="table-cell" id="tsd-widgets"><a href="#" class="tsd-widget tsd-toolbar-icon menu no-caption" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="2" fill="var(--color-text)"></rect><rect x="1" y="7" width="14" height="2" fill="var(--color-text)"></rect><rect x="1" y="11" width="14" height="2" fill="var(--color-text)"></rect></svg></a></div></div></header>
+<div class="container container-main">
+<div class="col-8 col-content">
+<div class="tsd-page-title">
+<h2>WebSHAP</h2></div>
+<div class="tsd-panel tsd-typography">
+<a href="#webshap-" id="webshap-" style="color: inherit; text-decoration: none;">
+  <h1>WebSHAP <a href="https://poloclub.github.io/webshap/"><img align="right" src="examples/demo/src/imgs/icon-webshap.svg" height="38"></img></a></h1>
+</a>
+<p><a href="https://github.com/xiaohk/webshap/actions/workflows/build.yml"><img src="https://github.com/xiaohk/webshap/actions/workflows/build.yml/badge.svg" alt="build"></a>
+<img src="https://img.shields.io/npm/v/webshap" alt="npm">
+<a href="https://github.com/poloclub/webshap/blob/master/LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue" alt="license"></a>
+<a href="https://doi.org/10.5281/zenodo.7604420"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.7604420.svg" alt="DOI"></a></p>
+<!-- [![arxiv badge](https://img.shields.io/badge/arXiv-2209.09227-red)](https://arxiv.org/abs/2209.09227) -->
+<!-- [![DOI:10.1145/3491101.3519653](https://img.shields.io/badge/DOI-10.1145/3491101.3519653-blue)](https://doi.org/10.1145/3491101.3519653) -->
+
+<p>Explaining any machine learning models directly in your browser!</p>
+<!-- <table>
+  <tr>
+    <td colspan="4"><a href="https://poloclub.github.io/timbertrek"><img src='https://i.imgur.com/t4qtPPX.png'></a></td>
+  </tr>
+  <tr></tr>
+  <tr>
+    <td><a href="https://poloclub.github.io/timbertrek">🚀 Live Demo</a></td>
+    <td><a href="https://youtu.be/3eGqTmsStJM">📺 Demo Video</a></td>
+    <td><a href="https://youtu.be/l1mr9z1TuAk">👨🏻‍🏫 Conference Talk</a></td>
+    <td><a href="https://arxiv.org/abs/2209.09227">📖 Research Paper</a></td>
+  </tr>
+</table> -->
+
+
+<table>
+<thead>
+<tr>
+<th align="center"><img src="https://i.imgur.com/IaYAGex.png"></th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><img src='https://user-images.githubusercontent.com/15007159/216748746-9cc9eb56-e456-454b-b448-52d400801610.gif'></td>
+</tr>
+<tr>
+<td align="center"><a href="https://poloclub.github.io/webshap/">🔎 Example Web application applying WebSHAP to explain loan approval decisions</td>
+</tr>
+</tbody></table>
+
+<a href="#what-is-webshap" id="what-is-webshap" style="color: inherit; text-decoration: none;">
+  <h2>What is WebSHAP?</h2>
+</a>
+<p>WebSHAP is a TypeScript library that adapts Kernel SHAP for the Web environments. You can use it to explain any machine learning models available on the Web directly in your browser. Given a model&#39;s prediction on a data point, WebSHAP can compute the importance score for each input feature. WebSHAP leverages modern Web technologies such as WebGL to accelerate computations. With a moderate model size and number of input features, WebSHAP can generate explanations in real time.✨</p>
+
+<a href="#getting-started" id="getting-started" style="color: inherit; text-decoration: none;">
+  <h2>Getting Started</h2>
+</a>
+
+<a href="#installation" id="installation" style="color: inherit; text-decoration: none;">
+  <h3>Installation</h3>
+</a>
+<p>WebSHAP supports both browser and Node.js environments. To install WebSHAP, you can use <code>npm</code>:</p>
+<pre><code class="language-bash"><span class="hl-0">npm </span><span class="hl-1">install</span><span class="hl-0"> </span><span class="hl-1">webshap</span>
+</code></pre>
+
+<a href="#explain-machine-learning-models" id="explain-machine-learning-models" style="color: inherit; text-decoration: none;">
+  <h3>Explain Machine Learning Models</h3>
+</a>
+<p>WebSHAP uses the Kernel SHAP algorithm to interpret machine learning (ML) models. This algorithm uses a game theoretic approach to approximate the importance of each input feature. You can learn more about Kernel SHAP from <a href="https://arxiv.org/abs/1705.07874">the original paper</a> or <a href="https://christophm.github.io/interpretable-ml-book/shap.html">this nice tutorial</a>.</p>
+<p>To run WebSHAP on your model, you need to prepare the following three arguments.</p>
+<table>
+<thead>
+<tr>
+<th align="left">Name</th>
+<th align="left">Description</th>
+<th align="left">Type</th>
+<th align="left">Details</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">ML Model</td>
+<td align="left">A function that transforms input data into predicted probabilities</td>
+<td align="left"><code>(x: number[][]) =&gt; Promise&lt;number[]&gt;</code></td>
+<td align="left">This function wraps your ML model inference code. WebSHAP is model-agnostic, so any model can be used (e.g. random forest, CNNs, transformers).</td>
+</tr>
+<tr>
+<td align="left">Data Point</td>
+<td align="left">The input data for a prediction.</td>
+<td align="left"><code>number[][]</code></td>
+<td align="left">WebSHAP generates local explanations by computing the feature importance for individual predictions.</td>
+</tr>
+<tr>
+<td align="left">Background Data</td>
+<td align="left">A 2D array that represents feature &quot;missingness&quot;</td>
+<td align="left"><code>number[][]</code></td>
+<td align="left">WebSHAP approximates the contribution of a feature by comparing it to its missing value (also known as the base value). Using all zeros is the simplest option, but using the median or a subset of your data can improve accuracy.</td>
+</tr>
+</tbody></table>
+<p>Then, you can generate explanations with WebSHAP through two functions:</p>
+<pre><code class="language-typescript"><span class="hl-2">// Import the class KernelSHAP from the webshap module</span><br/><span class="hl-3">import</span><span class="hl-0"> { </span><span class="hl-4">KernelSHAP</span><span class="hl-0"> } </span><span class="hl-3">from</span><span class="hl-0"> </span><span class="hl-1">&#39;webshap&#39;</span><span class="hl-0">;</span><br/><br/><span class="hl-2">// Create an explainer object by feeding it with background data</span><br/><span class="hl-5">const</span><span class="hl-0"> </span><span class="hl-6">explainer</span><span class="hl-0"> = </span><span class="hl-5">new</span><span class="hl-0"> </span><span class="hl-7">KernelSHAP</span><span class="hl-0">(</span><br/><span class="hl-0">  (</span><span class="hl-4">x</span><span class="hl-0">: </span><span class="hl-8">number</span><span class="hl-0">[][]) </span><span class="hl-5">=&gt;</span><span class="hl-0"> </span><span class="hl-7">myModel</span><span class="hl-0">(</span><span class="hl-4">x</span><span class="hl-0">),  </span><span class="hl-2">// ML Model function wrapper</span><br/><span class="hl-0">  </span><span class="hl-4">backgroundData</span><span class="hl-0">,                 </span><span class="hl-2">// Background data</span><br/><span class="hl-0">  </span><span class="hl-9">0.2022</span><span class="hl-0">                          </span><span class="hl-2">// Random seed</span><br/><span class="hl-0">);</span><br/><br/><span class="hl-2">// Explain one prediction</span><br/><span class="hl-5">let</span><span class="hl-0"> </span><span class="hl-4">shapValues</span><span class="hl-0"> = </span><span class="hl-3">await</span><span class="hl-0"> </span><span class="hl-4">explainer</span><span class="hl-0">.</span><span class="hl-7">explainOneInstance</span><span class="hl-0">(</span><span class="hl-4">x</span><span class="hl-0">);</span><br/><br/><span class="hl-2">// By default, WebSHAP automatically chooses the number of feature</span><br/><span class="hl-2">// permutations. You can also pass it as an argument here.</span><br/><span class="hl-5">const</span><span class="hl-0"> </span><span class="hl-6">nSamples</span><span class="hl-0"> = </span><span class="hl-9">512</span><span class="hl-0">;</span><br/><span class="hl-4">shapValues</span><span class="hl-0"> = </span><span class="hl-3">await</span><span class="hl-0"> </span><span class="hl-4">explainer</span><span class="hl-0">.</span><span class="hl-7">explainOneInstance</span><span class="hl-0">(</span><span class="hl-4">x</span><span class="hl-0">, </span><span class="hl-4">nSamples</span><span class="hl-0">);</span><br/><br/><span class="hl-2">// Finally, `shapValues` contains the importance score for each feature in `x`</span><br/><span class="hl-4">console</span><span class="hl-0">.</span><span class="hl-7">log</span><span class="hl-0">(</span><span class="hl-4">shapValue</span><span class="hl-0">);</span>
+</code></pre>
+
+<a href="#application-example" id="application-example" style="color: inherit; text-decoration: none;">
+  <h2>Application Example</h2>
+</a>
+<table>
+<thead>
+<tr>
+<th align="center"><img src='https://i.imgur.com/42IGD2Y.png'></th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center"><a href="https://poloclub.github.io/webshap">🔎 WebSHAP explaining an XGBoost-based loan approval model</a></td>
+</tr>
+</tbody></table>
+<p>We present <code>Loan Explainer</code> as an example of applying WebSHAP to explain a financial ML model in browsers. For a live demo of Loan Explainer, visit: <a href="https://poloclub.github.io/webshap">https://poloclub.github.io/webshap</a>.</p>
+<p>This example showcases a bank using an <a href="https://github.com/dmlc/xgboost">XGBoost classifier</a> on the <a href="https://www.kaggle.com/datasets/wordsforthewise/lending-club">LendingClub dataset</a> to predict if a loan applicant will be able to repay the loan on time. With this model, the bank can make automatic loan approval decisions. It&#39;s important to understand how these high-stakes decisions are being made, and that&#39;s where WebSHAP comes in. It provides <em>private</em>, <em>ubiquitous</em>, and <em>interactive</em> ML explanations.</p>
+<p>This demo runs entirely on the client side, making it accessible from desktops, tablets, and phones. The model inference is powered by <a href="https://github.com/microsoft/onnxruntime">ONNX Runtime</a>. The UI is implemented using <a href="https://github.com/sveltejs/svelte">Svelte</a>. With Loan Explainer, users can experiment with different feature inputs and instantly see the model&#39;s predictions, along with clear explanations for those predictions.</p>
+
+<a href="#developing-webshap" id="developing-webshap" style="color: inherit; text-decoration: none;">
+  <h2>Developing WebSHAP</h2>
+</a>
+<p>Clone or download this repository:</p>
+<pre><code class="language-bash"><span class="hl-0">git </span><span class="hl-1">clone</span><span class="hl-0"> </span><span class="hl-1">git@github.com:poloclub/webshap.git</span>
+</code></pre>
+<p>Install the dependencies:</p>
+<pre><code class="language-bash"><span class="hl-0">npm </span><span class="hl-1">install</span>
+</code></pre>
+<p>Use Vitest for unit testing:</p>
+<pre><code><span class="hl-4">npm</span><span class="hl-0"> </span><span class="hl-4">run</span><span class="hl-0"> </span><span class="hl-4">test</span>
+</code></pre>
+
+<a href="#developing-the-loan-explainer-example" id="developing-the-loan-explainer-example" style="color: inherit; text-decoration: none;">
+  <h2>Developing the Loan Explainer Example</h2>
+</a>
+<p>Clone or download this repository:</p>
+<pre><code class="language-bash"><span class="hl-0">git </span><span class="hl-1">clone</span><span class="hl-0"> </span><span class="hl-1">git@github.com:poloclub/webshap.git</span>
+</code></pre>
+<p>Navigate to the example folder:</p>
+<pre><code class="language-bash"><span class="hl-7">cd</span><span class="hl-0"> </span><span class="hl-1">./examples/demo</span>
+</code></pre>
+<p>Install the dependencies:</p>
+<pre><code class="language-bash"><span class="hl-0">npm </span><span class="hl-1">install</span>
+</code></pre>
+<p>Then run Loan Explainer:</p>
+<pre><code><span class="hl-4">npm</span><span class="hl-0"> </span><span class="hl-4">run</span><span class="hl-0"> </span><span class="hl-4">dev</span>
+</code></pre>
+<p>Navigate to localhost:3000. You should see Loan Explainer running in your browser :)</p>
+
+<a href="#credits" id="credits" style="color: inherit; text-decoration: none;">
+  <h2>Credits</h2>
+</a>
+<p>WebSHAP is created by <a href='https://zijie.wang/' target='_blank'>Jay Wang</a> and <a href='' target='_blank'>Polo Chau</a>.</p>
+
+<a href="#license" id="license" style="color: inherit; text-decoration: none;">
+  <h2>License</h2>
+</a>
+<p>The software is available under the <a href="https://github.com/poloclub/webshap/blob/master/LICENSE">MIT License</a>.</p>
+
+<a href="#contact" id="contact" style="color: inherit; text-decoration: none;">
+  <h2>Contact</h2>
+</a>
+<p>If you have any questions, feel free to <a href="https://github.com/poloclub/webshap/issues/new">open an issue</a> or contact <a href="https://zijie.wang">Jay Wang</a>.</p>
+</div></div>
+<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+<div class="tsd-navigation settings">
+<details class="tsd-index-accordion"><summary class="tsd-accordion-summary">
+<h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4.93896 8.531L12 15.591L19.061 8.531L16.939 6.409L12 11.349L7.06098 6.409L4.93896 8.531Z" fill="var(--color-text)"></path></svg> Settings</h3></summary>
+<div class="tsd-accordion-details">
+<div class="tsd-filter-visibility">
+<h4 class="uppercase">Member Visibility</h4><form>
+<ul id="tsd-filter-options">
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-private" name="private"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Private</span></label></li>
+<li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li></ul></form></div>
+<div class="tsd-theme-toggle">
+<h4 class="uppercase">Theme</h4><select id="theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div>
+<nav class="tsd-navigation primary">
+<details class="tsd-index-accordion" open><summary class="tsd-accordion-summary">
+<h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4.93896 8.531L12 15.591L19.061 8.531L16.939 6.409L12 11.349L7.06098 6.409L4.93896 8.531Z" fill="var(--color-text)"></path></svg> Modules</h3></summary>
+<div class="tsd-accordion-details">
+<ul>
+<li class="current selected"><a href="modules.html">WebSHAP</a>
+<ul></ul></li></ul></div></details></nav>
+<nav class="tsd-navigation secondary menu-sticky">
+<ul>
+<li class="tsd-kind-class"><a href="classes/IrisLinearBinary.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-class)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6" id="icon-128-path"></rect><path d="M11.898 16.1201C11.098 16.1201 10.466 15.8961 10.002 15.4481C9.53803 15.0001 9.30603 14.3841 9.30603 13.6001V9.64012C9.30603 8.85612 9.53803 8.24012 10.002 7.79212C10.466 7.34412 11.098 7.12012 11.898 7.12012C12.682 7.12012 13.306 7.34812 13.77 7.80412C14.234 8.25212 14.466 8.86412 14.466 9.64012H13.386C13.386 9.14412 13.254 8.76412 12.99 8.50012C12.734 8.22812 12.37 8.09212 11.898 8.09212C11.426 8.09212 11.054 8.22412 10.782 8.48812C10.518 8.75212 10.386 9.13212 10.386 9.62812V13.6001C10.386 14.0961 10.518 14.4801 10.782 14.7521C11.054 15.0161 11.426 15.1481 11.898 15.1481C12.37 15.1481 12.734 15.0161 12.99 14.7521C13.254 14.4801 13.386 14.0961 13.386 13.6001H14.466C14.466 14.3761 14.234 14.9921 13.77 15.4481C13.306 15.8961 12.682 16.1201 11.898 16.1201Z" fill="var(--color-text)" id="icon-128-text"></path></svg>Iris<wbr/>Linear<wbr/>Binary</a></li>
+<li class="tsd-kind-class"><a href="classes/KernelSHAP.html" class="tsd-index-link"><svg class="tsd-kind-icon" width="24" height="24" viewBox="0 0 24 24"><use href="#icon-128-path"></use><use href="#icon-128-text"></use></svg>KernelSHAP</a></li></ul></nav></div></div>
+<div class="container tsd-generator">
+<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></div>
+<div class="overlay"></div><script src="assets/main.js"></script></body></html>
