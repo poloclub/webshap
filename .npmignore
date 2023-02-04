@@ -27,3 +27,4 @@ coverage
 pnpm-lock.yaml
 examples
 test-generation
+gh-pages
