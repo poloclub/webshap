@@ -10,7 +10,7 @@ import type {
   SHAPRow
 } from '../../types/common-types';
 import { KernelSHAP } from 'webshap';
-import { round, timeit } from '../../utils/utils';
+import { round, timeit, downloadJSON } from '../../utils/utils';
 import { getLatoTextWidth } from '../../utils/text-width';
 
 import * as ort from 'onnxruntime-web/dist/ort-web.min.js';
@@ -537,7 +537,7 @@ export class Tabular {
     this.backgroundData = [];
 
     // Take 10 random training data
-    // const backgroundSize = 10;
+    // const backgroundSize = 50;
     // const addedIndexes = new Set<number>();
     // while (this.backgroundData.length < backgroundSize) {
     //   const curRandomIndex = RANDOM_INT(this.data.xTrain.length)();
@@ -563,6 +563,23 @@ export class Tabular {
     this.curShapValues = shapValues[0];
   };
 
+  profileWebshap = async () => {
+    const times = [];
+    for (let i = 0; i < 50; i++) {
+      try {
+        const randomIndex = d3.randomInt(this.data!.xTest.length)();
+        const start = performance.now();
+        const result = await this.explain(this.data!.xTest[randomIndex]);
+        const end = performance.now();
+        times.push([end - start, randomIndex, result[0][0]]);
+      } catch (e) {
+        console.log(i);
+        break;
+      }
+    }
+    downloadJSON(times, null, 'js-profile-100.json');
+  };
+
   /**
    * Load a random sample from the test dataset.
    */
@@ -573,8 +590,8 @@ export class Tabular {
 
     // Get a random instance
     // RANDOM_INT is seeded, but d3.randomInt is not
-    // const randomIndex = d3.randomInt(this.data.xTest.length)();
-    const randomIndex = RANDOM_INT(this.data.xTest.length)();
+    const randomIndex = d3.randomInt(this.data.xTest.length)();
+    // const randomIndex = RANDOM_INT(this.data.xTest.length)();
 
     this.curX = this.data.xTest[randomIndex];
     this.curY = this.data.yTest[randomIndex];

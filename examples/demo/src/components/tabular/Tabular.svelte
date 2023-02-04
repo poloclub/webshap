@@ -81,7 +81,7 @@
           <div class="content-cont">
             {#each [...myTabular.contFeatures.values()] as item}
               <div class="input-wrapper">
-                <span class="name">{item.displayName}</span>
+                <span class="name" title="{item.desc}">{item.displayName}</span>
                 <input
                   class="feature-input"
                   type="number"
@@ -103,7 +103,7 @@
           <div class="content-cat">
             {#each [...myTabular.catFeatures.values()] as item}
               <div class="input-wrapper">
-                <span class="name">{item.displayName}</span>
+                <span class="name" title="{item.desc}">{item.displayName}</span>
                 <select
                   class="feature-select"
                   bind:value="{item.value}"
@@ -222,7 +222,7 @@
 
       <div class="explain-component">
         <div class="top-section explain">
-          <span class="svg-icon">
+          <span class="svg-icon no-pointer">
             {@html iconOpen}
           </span>
           <span class="section-name"> Model Explanation</span>

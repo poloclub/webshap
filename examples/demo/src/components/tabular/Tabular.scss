@@ -48,6 +48,7 @@ $arrow-color: $gray-300;
   width: 100%;
   height: 100%;
   padding: 20px 23px;
+  cursor: default;
 
   display: grid;
   grid-template-rows: min-content min-content min-content min-content 1fr;
@@ -159,7 +160,7 @@ $arrow-color: $gray-300;
       position: absolute;
       left: 0px;
       height: 100%;
-      width: calc(100% - 20px);
+      width: calc(100% - 18px);
       background-color: $arrow-color;
       z-index: 1;
 
@@ -317,14 +318,14 @@ $arrow-color: $gray-300;
       align-items: center;
       gap: 5px;
       transition: opacity 400ms ease-in-out;
-      color: $gray-500;
+      color: $gray-600;
 
       &.hidden {
         opacity: 0;
       }
 
       .svg-icon {
-        color: $gray-400;
+        color: $gray-500;
       }
     }
   }

@@ -29,3 +29,4 @@ pnpm-lock.yaml
 test-generation
 *.npz
 gh-pages
+examples/models/benchmark

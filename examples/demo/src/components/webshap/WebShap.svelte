@@ -57,7 +57,7 @@
       ></div>
     </div>
 
-    <div class="app-tabs">
+    <!-- <div class="app-tabs">
       <button
         class="tab"
         class:selected="{view === 'loan-prediction'}"
@@ -88,6 +88,6 @@
         }}"
         data-text="Text Classification">Text Classification</button
       >
-    </div>
+    </div> -->
   </div>
 </div>
