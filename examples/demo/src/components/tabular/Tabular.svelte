@@ -166,7 +166,7 @@
       <div class="benefit-panel">
         {#each benefits as benefit}
           <div class="line" class:hidden="{!shownBenefits.includes(benefit)}">
-            <span class="svg-icon">{@html iconCheck}</span>
+            <span class="svg-icon no-pointer">{@html iconCheck}</span>
             <span>{benefit}</span>
           </div>
         {/each}
