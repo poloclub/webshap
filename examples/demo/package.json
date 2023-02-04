@@ -10,7 +10,8 @@
     "deploy:vercel": "sh ./publish-vercel.sh",
     "deploy": "pnpm run deploy:vercel",
     "preview": "vite preview",
-    "check": "svelte-check --tsconfig ./tsconfig.json"
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "publish": "zsh ./publish.sh"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^24.0.1",

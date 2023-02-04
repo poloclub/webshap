@@ -79,6 +79,8 @@ shapValues = await explainer.explainOneInstance(x, nSamples);
 console.log(shapValue);
 ```
 
+See the [WebSHAP Documentation](http://poloclub.github.io/webshap/doc/) for more details.
+
 ## Application Example
 |<img src='https://i.imgur.com/42IGD2Y.png'>|
 |:---:|
