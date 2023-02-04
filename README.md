@@ -2,7 +2,7 @@
 
 [![build](https://github.com/xiaohk/webshap/actions/workflows/build.yml/badge.svg)](https://github.com/xiaohk/webshap/actions/workflows/build.yml)
 ![npm](https://img.shields.io/npm/v/webshap)
-[![license](https://img.shields.io/badge/License-MIT-brightgreen)](https://github.com/poloclub/webshap/blob/master/LICENSE)
+[![license](https://img.shields.io/badge/License-MIT-blue)](https://github.com/poloclub/webshap/blob/master/LICENSE)
 <!-- [![arxiv badge](https://img.shields.io/badge/arXiv-2209.09227-red)](https://arxiv.org/abs/2209.09227) -->
 <!-- [![DOI:10.1145/3491101.3519653](https://img.shields.io/badge/DOI-10.1145/3491101.3519653-blue)](https://doi.org/10.1145/3491101.3519653) -->
 
