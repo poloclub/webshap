@@ -17,6 +17,36 @@
 <div class="webshap-page">
   <!-- <Tooltip {tooltipStore} /> -->
 
+  <div class="description-panel">
+    <div class="text-blocks">
+      <p>
+        <a href="https://github.com/poloclub/webshap">WebSHAP</a> is an open-source
+        library that can explain any machine learning models on the Web.
+      </p>
+
+      <p>
+        ✨There is no backend server for this demo. Everything is running in
+        your browser. ✨
+      </p>
+
+      <ul>
+        <li>
+          Explainability by <a href="https://github.com/poloclub/webshap"
+            >WebSHAP</a
+          >
+        </li>
+        <li>
+          Inference by <a href="https://onnxruntime.ai/">ONNX Runtime</a>
+        </li>
+        <li>
+          Acceleration by <a href="https://www.tensorflow.org/js"
+            >TensorFlow.js</a
+          >
+        </li>
+      </ul>
+    </div>
+  </div>
+
   <div class="app-wrapper">
     <div class="app-title">
       <div class="title-left">
@@ -56,38 +86,5 @@
         class:hidden="{view !== 'text-classification'}"
       ></div>
     </div>
-
-    <!-- <div class="app-tabs">
-      <button
-        class="tab"
-        class:selected="{view === 'loan-prediction'}"
-        on:click="{() => {
-          view = 'loan-prediction';
-        }}"
-        data-text="Loan Approval Prediction">Loan Approval Prediction</button
-      >
-
-      <span class="splitter"></span>
-
-      <button
-        class="tab"
-        class:selected="{view === 'image-classification'}"
-        on:click="{() => {
-          view = 'image-classification';
-        }}"
-        data-text="Image Classification">Image Classification</button
-      >
-
-      <span class="splitter"></span>
-
-      <button
-        class="tab"
-        class:selected="{view === 'text-classification'}"
-        on:click="{() => {
-          view = 'text-classification';
-        }}"
-        data-text="Text Classification">Text Classification</button
-      >
-    </div> -->
   </div>
 </div>

@@ -1,20 +1,23 @@
 @import '../../define.scss';
 
 .webshap-page {
-  display: flex;
-  flex-direction: column;
-  // justify-content: center;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 1fr min-content 1fr;
+  grid-template-rows: 1fr min-content 1fr;
+
   height: 100vh;
   width: 100vw;
   box-sizing: border-box;
   overflow-x: hidden;
 
   position: relative;
-  background-color: adjust-color($color: $blue-900, $lightness: -15%);
+  background-color: adjust-color($color: $blue-900, $lightness: -20%);
 }
 
 .app-wrapper {
+  grid-row: 2 / 3;
+  grid-column: 2 / 3;
+
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -134,64 +137,38 @@
   }
 }
 
-.app-tabs {
+.description-panel {
+  grid-row: 2 / 3;
+  grid-column: 1 / 2;
   display: flex;
-  flex-direction: row;
-  padding: 10px 0 0 0;
+  justify-content: flex-end;
+  margin-top: 50px;
+  padding-right: 12px;
 
-  .splitter {
-    border-right: 1px solid $gray-50;
-    margin: 0 12px;
-    width: 0px;
-  }
+  color: $gray-300;
 
-  .tab {
-    position: relative;
-    display: inline-flex;
+  .text-blocks {
+    display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
+    align-items: flex-end;
+    max-width: 23ch;
 
-    padding: 0;
-    margin: 0;
-    border: none;
-    background: none;
-    cursor: pointer;
-    color: $gray-50;
-
-    transition: font-weight 100ms linear;
-
-    &::after {
-      content: attr(data-text);
-      height: 0;
-      visibility: hidden;
-      pointer-events: none;
-      overflow: hidden;
-      font-weight: 900;
+    p {
+      text-align: right;
     }
 
-    &:hover {
-      // font-weight: 800;
+    ul {
+      text-align: right;
+      list-style-position: inside;
     }
 
-    &:active {
-      color: $gray-200;
-    }
+    a {
+      color: currentColor;
+      text-decoration: underline;
+      text-decoration-color: $gray-500;
 
-    &.selected {
-      font-weight: 900;
-      color: $gray-50;
-
-      &::before {
-        content: '';
-        z-index: -1;
-        width: 108%;
-        position: absolute;
-        bottom: -4px;
-        left: 50%;
-        transform: translate(-50%, 0);
-
-        border-radius: 5px;
+      &:hover {
+        color: white;
       }
     }
   }
