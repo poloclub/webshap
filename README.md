@@ -1,7 +1,7 @@
 # WebSHAP <a href="https://poloclub.github.io/webshap/"><img align="right" src="examples/demo/src/imgs/icon-webshap.svg" height="38"></img></a>
 
 [![build](https://github.com/xiaohk/webshap/actions/workflows/build.yml/badge.svg)](https://github.com/xiaohk/webshap/actions/workflows/build.yml)
-![npm](https://img.shields.io/npm/v/webshap)
+![npm](https://img.shields.io/npm/v/webshap?color=red)
 [![license](https://img.shields.io/badge/License-MIT-blue)](https://github.com/poloclub/webshap/blob/master/LICENSE)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7604420.svg)](https://doi.org/10.5281/zenodo.7604420)
 <!-- [![arxiv badge](https://img.shields.io/badge/arXiv-2209.09227-red)](https://arxiv.org/abs/2209.09227) -->
