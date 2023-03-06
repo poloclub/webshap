@@ -5,7 +5,7 @@ import math from '../../src/utils/math-import';
 const SEED = 0.20071022;
 
 interface LocalTestContext {
-  model: (x: number[][]) => Promise<number[]>;
+  model: (x: number[][]) => Promise<number[][]>;
   data: number[][];
 }
 
@@ -18,7 +18,7 @@ beforeEach<LocalTestContext>(context => {
   const model = new IrisLinearBinary(coef, intercept);
   context.model = (x: number[][]) => {
     // Wrap the model in a promise
-    const promise = new Promise<number[]>((resolve, reject) => {
+    const promise = new Promise<number[][]>((resolve, reject) => {
       const prob = model.predictProba(x);
       resolve(prob);
     });
@@ -33,19 +33,21 @@ beforeEach<LocalTestContext>(context => {
   ];
 });
 
-test<LocalTestContext>('constructor()', ({ model, data }) => {
+test<LocalTestContext>('constructor()', async ({ model, data }) => {
   const yPredProbaExp = [
     0.7045917, 0.57841617, 0.73422101, 0.53812833, 0.19671004
   ];
   const explainer = new KernelSHAP(model, data, SEED);
+  await explainer.initializeModel();
 
   for (const [i, pred] of explainer.predictions.entries()) {
-    expect(pred).toBeCloseTo(yPredProbaExp[i], 6);
+    expect(pred[0]).toBeCloseTo(yPredProbaExp[i], 6);
   }
 });
 
-test<LocalTestContext>('prepareSampling()', ({ model, data }) => {
+test<LocalTestContext>('prepareSampling()', async ({ model, data }) => {
   const explainer = new KernelSHAP(model, data, SEED);
+  await explainer.initializeModel();
   const nSamples = 14;
   const x1 = [4.8, 3.8, 2.1, 5.4];
 
@@ -64,8 +66,9 @@ test<LocalTestContext>('prepareSampling()', ({ model, data }) => {
   );
 });
 
-test<LocalTestContext>('sampleFeatureCoalitions()', ({ model, data }) => {
+test<LocalTestContext>('sampleFeatureCoalitions()', async ({ model, data }) => {
   const explainer = new KernelSHAP(model, data, SEED);
+  await explainer.initializeModel();
   const x1 = [4.8, 3.8, 2.1, 5.4];
 
   explainer.sampleFeatureCoalitions(x1, 32);
@@ -107,8 +110,10 @@ test<LocalTestContext>('sampleFeatureCoalitions()', ({ model, data }) => {
   expect(explainer.nSamplesAdded).toBe(14);
 });
 
-test<LocalTestContext>('addSample() basic', ({ model, data }) => {
+test<LocalTestContext>('addSample() basic', async ({ model, data }) => {
   const explainer = new KernelSHAP(model, data, SEED);
+  await explainer.initializeModel();
+
   const nSamples = 14;
   const x1 = [4.8, 3.8, 2.1, 5.4];
 
@@ -143,8 +148,10 @@ test<LocalTestContext>('addSample() basic', ({ model, data }) => {
   expect(explainer.nSamplesAdded).toBe(1);
 });
 
-test<LocalTestContext>('addSample() more complex', ({ model, data }) => {
+test<LocalTestContext>('addSample() more complex', async ({ model, data }) => {
   const explainer = new KernelSHAP(model, data, SEED);
+  await explainer.initializeModel();
+
   const nSamples = 14;
   const x1 = [4.8, 3.8, 2.1, 5.4];
 
@@ -198,6 +205,8 @@ test<LocalTestContext>('inferenceFeatureCoalitions()', async ({
   data
 }) => {
   const explainer = new KernelSHAP(model, data, SEED);
+  await explainer.initializeModel();
+
   const nSamples = 32;
   const x1 = [4.8, 3.8, 2.1, 5.4];
 
@@ -250,7 +259,7 @@ test<LocalTestContext>('explainOneInstance()', async ({ model, data }) => {
   }
 });
 
-test<LocalTestContext>('explainOneInstance() with one background data should not fail', async ({
+test<LocalTestContext>('explainOneInstance() with only one background data should not fail', async ({
   model,
   data
 }) => {
