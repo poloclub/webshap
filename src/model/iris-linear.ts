@@ -19,7 +19,7 @@ export class IrisLinearBinary {
    */
   predict = (xs: number[][]) => {
     const yProbs = this.predictProba(xs);
-    return yProbs.map(d => (d >= 0.5 ? 1 : 0));
+    return yProbs.map(d => (d[0] >= 0.5 ? 1 : 0));
   };
 
   /**
@@ -28,7 +28,7 @@ export class IrisLinearBinary {
    * @returns Predicted probabilities
    */
   predictProba = (xs: number[][]) => {
-    const yProbs: number[] = [];
+    const yProbs: number[][] = [];
 
     for (const x of xs) {
       // Compute the logit score
@@ -38,7 +38,7 @@ export class IrisLinearBinary {
       }
 
       // Convert logit to a probability through sigmoid
-      yProbs.push(sigmoid(logit));
+      yProbs.push([sigmoid(logit)]);
     }
 
     return yProbs;
