@@ -126,8 +126,9 @@ test<LocalTestContext>('inferenceFeatureCoalitions()', async ({
     }
   }
 
-  // Compare the expected y value
-  const expectedEyMat8 = [
+  // Compare the expected y value for all rows (we get the ground truth by
+  // forcing Python SHAP to use the same kernel weight and mask as TS)
+  const expectedEyMat = [
     [1.94007995e-1, 8.46534147e-2, 7.21338591e-1],
     [1.14613507e-1, 3.64241759e-2, 8.48962317e-1],
     [1.98500626e-1, 1.88654015e-1, 6.12845359e-1],
@@ -135,15 +136,40 @@ test<LocalTestContext>('inferenceFeatureCoalitions()', async ({
     [6.460505e-1, 3.52580672e-1, 1.36882818e-3],
     [1.43481427e-1, 3.64842564e-3, 8.52870148e-1],
     [9.48376805e-2, 5.76654166e-3, 8.99395778e-1],
-    [9.35961699e-1, 6.35065542e-2, 5.3174648e-4]
+    [9.35961699e-1, 6.35065542e-2, 5.3174648e-4],
+    [8.02304166e-1, 1.97105432e-1, 5.90401403e-4],
+    [8.51963512e-1, 1.46633558e-1, 1.4029291e-3],
+    [2.00730838e-1, 1.05309211e-1, 6.93959951e-1],
+    [9.61558252e-2, 5.30870748e-3, 8.98535467e-1],
+    [1.42363153e-1, 3.9925927e-3, 8.53644254e-1],
+    [4.1333106e-2, 3.11771136e-2, 9.2748978e-1]
   ];
 
-  for (let i = 0; i < expectedEyMat8.length; i++) {
-    for (let j = 0; j < expectedEyMat8[i].length; j++) {
+  for (let i = 0; i < expectedEyMat.length; i++) {
+    for (let j = 0; j < expectedEyMat[i].length; j++) {
       expect(explainer.yExpMat!.get([i, j]) as number).toBeCloseTo(
-        expectedEyMat8[i][j],
+        expectedEyMat[i][j],
         8
       );
+    }
+  }
+});
+
+test<LocalTestContext>('explainOneInstance()', async ({ model, data }) => {
+  const explainer = new KernelSHAP(model, data, SEED);
+  const nSamples = 32;
+  const x1 = [4.8, 3.8, 2.1, 5.4];
+
+  const results = await explainer.explainOneInstance(x1, nSamples);
+  const resultsExp = [
+    [0.0745104, 0.02126633, 0.26081878, -0.4033925],
+    [-0.06244084, -0.01309725, 0.05957105, -0.12841866],
+    [-0.01206957, -0.00816908, -0.32038983, 0.53181117]
+  ];
+
+  for (let i = 0; i < resultsExp.length; i++) {
+    for (let j = 0; j < resultsExp[i].length; j++) {
+      expect(results[i][j]).toBeCloseTo(resultsExp[i][j], 6);
     }
   }
 });
