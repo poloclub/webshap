@@ -173,3 +173,49 @@ test<LocalTestContext>('explainOneInstance()', async ({ model, data }) => {
     }
   }
 });
+
+test<LocalTestContext>('explainOneInstance() with only one background data', async ({
+  model,
+  data
+}) => {
+  const singleData = [data[0]];
+  const explainer = new KernelSHAP(model, singleData, SEED);
+  const nSamples = 32;
+  const x1 = [4.8, 3.8, 2.1, 5.4];
+
+  const results = await explainer.explainOneInstance(x1, nSamples);
+  const resultsExp = [
+    [0.07189579, 0.01691412, 0.41379546, -0.35669521],
+    [-0.03435395, -0.02590338, 0.10440986, -0.08952941],
+    [-0.03754184, 0.00898926, -0.51820532, 0.44622462]
+  ];
+
+  for (let i = 0; i < resultsExp.length; i++) {
+    for (let j = 0; j < resultsExp[i].length; j++) {
+      expect(results[i][j]).toBeCloseTo(resultsExp[i][j], 6);
+    }
+  }
+});
+
+test<LocalTestContext>('explainOneInstance() with same columns', async ({
+  model
+}) => {
+  const data = [[4.8, 2.8, 2.1, 3.3]];
+  const explainer = new KernelSHAP(model, data, SEED);
+
+  const nSamples = 32;
+  const x1 = [4.8, 3.8, 2.1, 5.4];
+
+  const results = await explainer.explainOneInstance(x1, nSamples);
+  const resultsExp = [
+    [0, 0.12533161, 0, -0.75341627],
+    [0, -0.05344868, 0, -0.11320362],
+    [0, -0.07188292, 0, 0.86661989]
+  ];
+
+  for (let i = 0; i < resultsExp.length; i++) {
+    for (let j = 0; j < resultsExp[i].length; j++) {
+      expect(results[i][j]).toBeCloseTo(resultsExp[i][j], 6);
+    }
+  }
+});
