@@ -44,5 +44,11 @@
 </style>
 
 <div class="image-classifier-wrapper" bind:this="{component}">
-  <div class="image-classifier">Image</div>
+  <canvas class="hidden-canvas"></canvas>
+
+  <div class="image-classifier">
+    <div class="input-image-wrapper image-wrapper">
+      <canvas class="input-image image-canvas"></canvas>
+    </div>
+  </div>
 </div>
