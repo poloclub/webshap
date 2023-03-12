@@ -17,8 +17,11 @@ import type { Tensor3D, LayersModel, Tensor, Rank } from '@tensorflow/tfjs';
 
 const DEBUG = config.debug;
 const LCG = d3.randomLcg(0.20230101);
+// const NUM_SAMPLES = 512;
+const NUM_SAMPLES = 128;
 const RANDOM_INT = d3.randomInt.source(LCG);
 const RANDOM_UNIFORM = d3.randomUniform.source(LCG);
+const DIVERGE_COLORS = [config.colors['pink-600'], config.colors['blue-700']];
 
 const IMG_SRC_LENGTH = 64;
 const IMG_LENGTH = 200;
@@ -34,6 +37,15 @@ export class ImageClassifier {
   // Canvas elements
   inputCanvas: HTMLCanvasElement;
   segCanvas: HTMLCanvasElement;
+
+  // SVG selections
+  colorScaleSVG: d3.Selection<HTMLElement, unknown, null, undefined>;
+
+  // Visualizations
+  colorScale: (t: number) => string;
+  shapScale: d3.ScaleLinear<number, number, never>;
+  shapLengthScale: d3.ScaleLinear<number, number, never>;
+  colorLegendAxis: d3.Axis<d3.NumberValue>;
 
   // ML inference
   inputImage: LoadedImage | null = null;
@@ -63,15 +75,169 @@ export class ImageClassifier {
     );
     this.segCanvas = initCanvasElement(this.component, 'seg-image', IMG_LENGTH);
 
-    // Initialize the classifier
+    // Initialize SVG elements
+    this.colorScale = d3.piecewise(d3.interpolateHsl, [
+      DIVERGE_COLORS[0],
+      'white',
+      DIVERGE_COLORS[1]
+    ]) as (t: number) => string;
+
+    this.shapScale = d3.scaleLinear().domain([-0.5, 0.5]);
+    this.shapLengthScale = d3.scaleLinear().domain([-0.5555, 0.5555]);
+    this.colorLegendAxis = d3.axisBottom(this.shapLengthScale);
+
+    this.colorScaleSVG = d3
+      .select(this.component)
+      .select<HTMLElement>('svg.color-scale-svg');
+    this.initSVGs();
+
+    // Initialize the classifier and input image
     const modelPromise = this.initModel();
     const imagePromise = this.loadInputImage();
 
     Promise.all([modelPromise, imagePromise]).then(() => {
-      this.modelInference();
-      this.explain();
+      this.updateVisualizations();
     });
   }
+
+  /**
+   * Update visualizations for the model prediction and explanations
+   */
+  updateVisualizations = async () => {
+    // Get the model prediction
+    this.modelInference();
+
+    // Explain the model prediction
+    const shapValues = await this.explainInputImage();
+
+    // Show the explanations
+    // Need to get the min and max of shap values across all classes
+    const shapRange: [number, number] = [Infinity, -Infinity];
+    for (const row of shapValues) {
+      for (const value of row) {
+        if (value < shapRange[0]) {
+          shapRange[0] = value;
+        }
+        if (value > shapRange[1]) {
+          shapRange[1] = value;
+        }
+      }
+    }
+
+    // Make the shap range symmetric around 0
+    if (Math.abs(shapRange[1]) > Math.abs(shapRange[0])) {
+      if (shapRange[1] > 0) {
+        shapRange[0] = -shapRange[1];
+      } else {
+        shapRange[0] = shapRange[1];
+        shapRange[1] = -shapRange[1];
+      }
+    } else {
+      if (shapRange[0] < 0) {
+        shapRange[1] = -shapRange[0];
+      } else {
+        shapRange[1] = shapRange[0];
+        shapRange[0] = -shapRange[0];
+      }
+    }
+
+    // Update the shap scales
+    this.shapScale.domain(shapRange);
+    this.shapLengthScale.domain(shapRange);
+
+    // Update the color legend scale
+    const scaleAxisGroup =
+      this.colorScaleSVG.select<SVGGElement>('g.axis-group');
+    this.colorLegendAxis = d3
+      .axisBottom(this.shapLengthScale)
+      .tickValues([
+        this.shapLengthScale.domain()[0],
+        0,
+        this.shapLengthScale.domain()[1]
+      ])
+      .tickFormat(d3.format('.2f'));
+    scaleAxisGroup.call(this.colorLegendAxis);
+    scaleAxisGroup.attr('font-size', null);
+
+    // Update explanation images
+    this.getExplanationImage(shapValues[0]);
+  };
+
+  /**
+   * Initialize SVG elements
+   */
+  initSVGs = () => {
+    // Initialize the color scale svg
+    const bbox = this.colorScaleSVG.node()!.getBoundingClientRect();
+    const svgSize: Size = {
+      width: bbox.width,
+      height: bbox.height
+    };
+
+    const svgPadding: Padding = {
+      top: 0,
+      left: 15,
+      right: 15,
+      bottom: 10
+    };
+
+    const rectHeight = 15;
+
+    const contentGroup = this.colorScaleSVG
+      .append('g')
+      .attr('class', 'content');
+
+    const axisGroup = contentGroup
+      .append('g')
+      .attr('class', 'axis-group')
+      .attr(
+        'transform',
+        `translate(${svgPadding.left + 1}, ${rectHeight - 1})`
+      );
+
+    contentGroup
+      .append('rect')
+      .attr('class', 'scale-rect')
+      .attr('x', svgPadding.left)
+      .attr('width', svgSize.width - svgPadding.left - svgPadding.right)
+      .attr('height', rectHeight)
+      .attr('fill', 'url(#scale-gradient)');
+
+    // Fill the rect with a diverging color gradient
+    const gradients = this.colorScaleSVG
+      .append('defs')
+      .append('linearGradient')
+      .attr('id', 'scale-gradient');
+
+    const splits = 10;
+    for (let i = 0; i < splits; i++) {
+      const curStep = i / (splits - 1);
+      gradients
+        .append('stop')
+        .attr('offset', `${curStep * 100}%`)
+        .attr(
+          'stop-color',
+          `${d3.color(this.colorScale(curStep))!.formatHsl()}`
+        );
+    }
+
+    // Add a legend below the color scale
+    this.shapLengthScale.range([
+      0,
+      svgSize.width - svgPadding.left - svgPadding.right - 2
+    ]);
+
+    this.colorLegendAxis = d3
+      .axisBottom(this.shapLengthScale)
+      .tickValues([
+        this.shapLengthScale.domain()[0],
+        0,
+        this.shapLengthScale.domain()[1]
+      ])
+      .tickFormat(d3.format('.2f'));
+    axisGroup.call(this.colorLegendAxis);
+    axisGroup.attr('font-size', null);
+  };
 
   /**
    * Initialize the trained Tiny VGG model.
@@ -103,7 +269,10 @@ export class ImageClassifier {
     return predictedProb;
   };
 
-  explain = async () => {
+  /**
+   * Explain the current input image
+   */
+  explainInputImage = async () => {
     if (
       this.model === null ||
       this.imageSeg === null ||
@@ -162,9 +331,27 @@ export class ImageClassifier {
     // showing all segments
     timeit('Explain image', DEBUG);
     const allSegData = new Array<number>(this.imageSeg.segSize).fill(1);
-    const shapValues = await explainer.explainOneInstance(allSegData, 512);
+    const shapValues = await explainer.explainOneInstance(
+      allSegData,
+      NUM_SAMPLES
+    );
     timeit('Explain image', DEBUG);
-    console.log(shapValues);
+
+    return shapValues;
+  };
+
+  getExplanationImage = (shapValues: number[]) => {
+    if (this.imageSeg === null || this.inputImage === null) {
+      throw Error('Image is not initialized');
+    }
+
+    if (shapValues.length !== this.imageSeg.segSize) {
+      throw Error('SHAP value length differs from segment count.');
+    }
+
+    // Create a diverging color scale
+    const result = this.colorScale(this.shapScale(-0.3));
+    console.log(result);
   };
 
   /**
