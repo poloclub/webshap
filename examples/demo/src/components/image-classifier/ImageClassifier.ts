@@ -232,7 +232,7 @@ export class ImageClassifier {
       bottom: 10
     };
 
-    const rectHeight = 15;
+    const rectHeight = 10;
 
     const contentGroup = this.colorScaleSVG
       .append('g')
