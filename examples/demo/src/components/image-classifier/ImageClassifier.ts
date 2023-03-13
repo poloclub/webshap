@@ -17,14 +17,14 @@ import type { Tensor3D, LayersModel, Tensor, Rank } from '@tensorflow/tfjs';
 
 const DEBUG = config.debug;
 const LCG = d3.randomLcg(0.20230101);
+
 // const NUM_SAMPLES = 512;
 const NUM_SAMPLES = 128;
-const RANDOM_INT = d3.randomInt.source(LCG);
-const RANDOM_UNIFORM = d3.randomUniform.source(LCG);
+const NUM_CLASS = 4;
 const DIVERGE_COLORS = [config.colors['pink-600'], config.colors['blue-700']];
 
 const IMG_SRC_LENGTH = 64;
-const IMG_LENGTH = 200;
+const IMG_LENGTH = 150;
 
 /**
  * Class for the Image Classifier WebSHAP demo
@@ -37,6 +37,8 @@ export class ImageClassifier {
   // Canvas elements
   inputCanvas: HTMLCanvasElement;
   segCanvas: HTMLCanvasElement;
+  explainCanvases: HTMLCanvasElement[];
+  inputBackCanvases: HTMLCanvasElement[];
 
   // SVG selections
   colorScaleSVG: d3.Selection<HTMLElement, unknown, null, undefined>;
@@ -70,10 +72,33 @@ export class ImageClassifier {
     // Initialize canvas elements
     this.inputCanvas = initCanvasElement(
       this.component,
-      'input-image',
+      '.input-image',
       IMG_LENGTH
     );
-    this.segCanvas = initCanvasElement(this.component, 'seg-image', IMG_LENGTH);
+    this.segCanvas = initCanvasElement(
+      this.component,
+      '.seg-image',
+      IMG_LENGTH
+    );
+
+    this.explainCanvases = [];
+    this.inputBackCanvases = [];
+
+    for (let i = 0; i < NUM_CLASS; i++) {
+      const explainCanvas = initCanvasElement(
+        this.component,
+        `.explain-wrapper-${i} .explain-image`,
+        IMG_LENGTH
+      );
+      this.explainCanvases.push(explainCanvas);
+
+      const inputCanvas = initCanvasElement(
+        this.component,
+        `.explain-wrapper-${i} .input-image-back`,
+        IMG_LENGTH
+      );
+      this.inputBackCanvases.push(inputCanvas);
+    }
 
     // Initialize SVG elements
     this.colorScale = d3.piecewise(d3.interpolateHsl, [
@@ -105,7 +130,8 @@ export class ImageClassifier {
    */
   updateVisualizations = async () => {
     // Get the model prediction
-    this.modelInference();
+    const predictedProb = this.modelInference();
+    console.log(predictedProb);
 
     // Explain the model prediction
     const shapValues = await this.explainInputImage();
@@ -159,8 +185,33 @@ export class ImageClassifier {
     scaleAxisGroup.call(this.colorLegendAxis);
     scaleAxisGroup.attr('font-size', null);
 
+    // Create a buffer context to resize image
+    const hiddenCanvas = createBufferCanvas(IMG_SRC_LENGTH);
+    const hiddenCtx = hiddenCanvas.getContext('2d')!;
+
     // Update explanation images
-    this.getExplanationImage(shapValues[0]);
+    for (let c = 0; c < NUM_CLASS; c++) {
+      const shapImage = this.getExplanationImage(shapValues[c]);
+      const explainCtx = this.explainCanvases[c].getContext('2d')!;
+
+      // Draw the input image on screen
+      hiddenCtx.clearRect(0, 0, IMG_SRC_LENGTH, IMG_SRC_LENGTH);
+      hiddenCtx.putImageData(shapImage, 0, 0);
+
+      explainCtx.drawImage(
+        hiddenCanvas,
+        0,
+        0,
+        IMG_SRC_LENGTH,
+        IMG_SRC_LENGTH,
+        0,
+        0,
+        IMG_LENGTH,
+        IMG_LENGTH
+      );
+    }
+
+    hiddenCanvas.remove();
   };
 
   /**
@@ -350,8 +401,25 @@ export class ImageClassifier {
     }
 
     // Create a diverging color scale
-    const result = this.colorScale(this.shapScale(-0.3));
-    console.log(result);
+    const output: number[] = [];
+
+    for (let i = 0; i < this.imageSeg.segData.data.length; i += 4) {
+      const segIndex = this.imageSeg.segData.data[i];
+      const segColorStr = this.colorScale(this.shapScale(shapValues[segIndex]));
+      const segColor = d3.color(segColorStr)!.rgb();
+      output.push(segColor.rgb().r);
+      output.push(segColor.rgb().g);
+      output.push(segColor.rgb().b);
+      output.push(255);
+    }
+
+    const outputImage = new ImageData(
+      new Uint8ClampedArray(output),
+      IMG_SRC_LENGTH,
+      IMG_SRC_LENGTH
+    );
+
+    return outputImage;
   };
 
   /**
@@ -373,6 +441,7 @@ export class ImageClassifier {
     hiddenCtx.clearRect(0, 0, IMG_SRC_LENGTH, IMG_SRC_LENGTH);
     hiddenCtx.putImageData(this.inputImage.imageData, 0, 0);
 
+    inputCtx.clearRect(0, 0, IMG_LENGTH, IMG_LENGTH);
     inputCtx.drawImage(
       hiddenCanvas,
       0,
@@ -384,6 +453,23 @@ export class ImageClassifier {
       IMG_LENGTH,
       IMG_LENGTH
     );
+
+    // Also put the image in explain wrappers as a background
+    for (let c = 0; c < NUM_CLASS; c++) {
+      const curInputCtx = this.inputBackCanvases[c].getContext('2d')!;
+      curInputCtx.clearRect(0, 0, IMG_LENGTH, IMG_LENGTH);
+      curInputCtx.drawImage(
+        hiddenCanvas,
+        0,
+        0,
+        IMG_SRC_LENGTH,
+        IMG_SRC_LENGTH,
+        0,
+        0,
+        IMG_LENGTH,
+        IMG_LENGTH
+      );
+    }
 
     // Get the segmentation
     this.createSegmentation(this.inputImage.imageData);
@@ -489,7 +575,7 @@ const initCanvasElement = (
   canvasName: string,
   canvasLength: number
 ) => {
-  const canvas = component.querySelector(`.${canvasName}`) as HTMLCanvasElement;
+  const canvas = component.querySelector(`${canvasName}`) as HTMLCanvasElement;
   canvas.width = canvasLength;
   canvas.height = canvasLength;
   return canvas;
