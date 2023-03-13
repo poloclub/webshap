@@ -53,10 +53,10 @@ $arrow-color: $gray-300;
   cursor: default;
 
   display: grid;
-  grid-template-rows: min-content min-content 120px min-content;
+  grid-template-rows: min-content min-content 100px min-content;
   grid-template-columns:
-    [col1-start] min-content [col2-start] minmax(200px, 0.5fr)
-    [col3-start] 1fr [col3-end];
+    1fr [col1-start] min-content [col2-start] minmax(200px, 0.5fr)
+    [col3-start] min-content [col3-end] 1fr;
 
   align-items: center;
   justify-items: center;
@@ -82,7 +82,7 @@ $arrow-color: $gray-300;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1px;
+  gap: 5px;
 
   .input-image-back {
     position: absolute;
@@ -100,7 +100,9 @@ $arrow-color: $gray-300;
   }
 
   .class-label {
-    padding: 0px;
+    color: $gray-800;
+    font-weight: 500;
+    line-height: 1;
   }
 }
 
@@ -136,17 +138,17 @@ $arrow-color: $gray-300;
 
   &.feature {
     grid-row: 1 / 2;
-    grid-column: 1 / 2;
+    grid-column: col1-start / col2-start;
   }
 
   &.output {
     grid-row: 1 / 2;
-    grid-column: 3 / 4;
+    grid-column: col3-start / col3-end;
   }
 
   &.segment {
     grid-row: 4 / 5;
-    grid-column: 1 / 2;
+    grid-column: col1-start / col2-start;
   }
 }
 
@@ -157,7 +159,7 @@ $arrow-color: $gray-300;
   gap: 15px;
 
   grid-row: 2 / 3;
-  grid-column: 1 / 2;
+  grid-column: col1-start / col2-start;
 
   height: 100%;
   width: 100%;
@@ -176,7 +178,7 @@ $arrow-color: $gray-300;
   align-items: center;
 
   grid-row: 2 / 3;
-  grid-column: 2 / 3;
+  grid-column: col2-start / col3-start;
 
   width: 100%;
 
@@ -256,7 +258,7 @@ $arrow-color: $gray-300;
   align-items: center;
 
   grid-row: 4 / 5;
-  grid-column: 2 / 3;
+  grid-column: col2-start / col3-start;
 
   width: 100%;
 
@@ -338,7 +340,7 @@ $arrow-color: $gray-300;
   position: relative;
 
   grid-row: 3 / 4;
-  grid-column: 1 / 2;
+  grid-column: col1-start / col2-start;
 
   height: 100%;
 
@@ -447,7 +449,7 @@ $arrow-color: $gray-300;
   position: relative;
 
   grid-row: 3 / 4;
-  grid-column: 3 / 4;
+  grid-column: col3-start / col3-end;
 
   height: 100%;
 
@@ -551,12 +553,14 @@ $arrow-color: $gray-300;
 
 .output-box {
   display: flex;
+  gap: 10px;
   flex-direction: row;
+
   width: 100%;
   height: 100%;
 
   grid-row: 2 / 3;
-  grid-column: 3 / 4;
+  grid-column: col3-start / col3-end;
 
   padding: 10px 10px;
   border: 1px solid $gray-light-border;
@@ -564,11 +568,68 @@ $arrow-color: $gray-300;
   box-shadow: $block-shadow;
 
   font-variant-numeric: tabular-nums;
+
+  $label-height: 14px;
+
+  .output-wrapper {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+
+    .class-score {
+      height: 100%;
+      width: 35px;
+      display: flex;
+      position: relative;
+
+      .class-score-back {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+
+        width: 100%;
+        height: calc(100% - $label-height);
+        background-color: $gray-200;
+      }
+
+      .class-score-front {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+
+        width: 100%;
+        height: 0px;
+        background-color: $gray-600;
+
+        transition: height 200ms ease-in-out;
+
+        .class-score-label {
+          position: absolute;
+          top: 0;
+          left: 50%;
+          transform: translate(-50%, -110%);
+
+          color: $gray-600;
+          font-size: $label-height;
+          font-weight: 500;
+          line-height: 1;
+        }
+      }
+    }
+
+    .class-label {
+      color: $gray-800;
+      font-weight: 500;
+      line-height: 1;
+    }
+  }
 }
 
 .segment-content {
   grid-row: 4 / 5;
-  grid-column: 1 / 2;
+  grid-column: col1-start / col2-start;
   width: 100%;
   display: flex;
   align-self: start;
@@ -610,7 +671,7 @@ $arrow-color: $gray-300;
 
 .explain-content {
   grid-row: 4 / 5;
-  grid-column: 3 / 4;
+  grid-column: col3-start / col3-end;
   width: 100%;
   height: 100%;
   display: flex;
@@ -660,10 +721,6 @@ $arrow-color: $gray-300;
       display: flex;
       gap: 10px;
       width: 100%;
-
-      color: $gray-600;
-      font-weight: 600;
-      // font-size: $font-d1;
     }
 
     .bottom-row {
@@ -675,12 +732,11 @@ $arrow-color: $gray-300;
 
       .color-scale-wrapper {
         display: flex;
-        // flex-grow: 1;
         width: 300px;
 
         .color-scale-svg {
           width: 100%;
-          height: 34px;
+          height: 32px;
 
           :global(.axis-group) {
             color: $gray-600;

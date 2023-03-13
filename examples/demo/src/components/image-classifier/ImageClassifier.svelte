@@ -7,6 +7,7 @@
   import iconRefresh from '../../imgs/icon-refresh2.svg?raw';
   import iconCheck from '../../imgs/icon-check.svg?raw';
   import iconCross from '../../imgs/icon-cross.svg?raw';
+  import iconScissor from '../../imgs/icon-scissor.svg?raw';
   import iconOpen from '../../imgs/icon-open.svg?raw';
 
   let component: HTMLElement | null = null;
@@ -72,7 +73,7 @@
               <span class="svg-icon no-pointer">
                 {@html iconBox}
               </span>
-              <span class="name"> Classifier </span>
+              <span class="name"> ML Model </span>
             </div>
 
             <div class="line">
@@ -103,11 +104,23 @@
     <div class="top-section output">
       <span class="section-name">Model Output</span>
       <span class="section-description"
-        >Likelihood of four image categories
+        >Predicted likelihoods of four image categories
       </span>
     </div>
 
-    <div class="output-box">output</div>
+    <div class="output-box">
+      {#each classes as className, i}
+        <div class="{`output-wrapper-${i} output-wrapper`}">
+          <div class="class-score">
+            <div class="class-score-back"></div>
+            <div class="class-score-front">
+              <span class="class-score-label">0.0000</span>
+            </div>
+          </div>
+          <span class="class-label">{className}</span>
+        </div>
+      {/each}
+    </div>
 
     <div class="data-segment-arrow">
       <div class="background">
@@ -115,7 +128,7 @@
           <div class="content-box">
             <div class="line">
               <span class="svg-icon no-pointer">
-                {@html iconBox}
+                {@html iconScissor}
               </span>
               <span class="name"> Segmenter </span>
             </div>
@@ -152,7 +165,7 @@
             <canvas class="seg-image image-canvas"></canvas>
           </div>
 
-          <div class="segment-info">16 segments</div>
+          <div class="segment-info">10 segments</div>
         </div>
       </div>
     </div>
