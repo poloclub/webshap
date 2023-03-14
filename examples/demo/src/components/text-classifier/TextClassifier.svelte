@@ -21,11 +21,19 @@
     "what is vandalism and what isn't.  I suggest you go do your put the computer " +
     'down and do your homework.  You can play on the weekend when school lets out.';
 
-  // const benefits = ['Privacy', 'Ubiquity', 'Interactivity'];
-  // let shownBenefits: string[] = [];
+  const benefits = ['Privacy', 'Ubiquity', 'Interactivity'];
+  let shownBenefits: string[] = [];
 
   onMount(() => {
     mounted = true;
+
+    const timeGap = 420;
+    for (let i = 0; i < benefits.length; i++) {
+      setTimeout(() => {
+        shownBenefits.push(benefits[i]);
+        shownBenefits = shownBenefits;
+      }, 500 + timeGap * i);
+    }
   });
 
   const textClassifierUpdated = () => {
@@ -111,14 +119,14 @@
         <div class="end-triangle"></div>
       </div>
 
-      <!-- <div class="benefit-panel">
+      <div class="benefit-panel">
         {#each benefits as benefit}
           <div class="line" class:hidden="{!shownBenefits.includes(benefit)}">
             <span class="svg-icon no-pointer">{@html iconCheck}</span>
             <span>{benefit}</span>
           </div>
         {/each}
-      </div> -->
+      </div>
     </div>
 
     <div class="top-section output">
@@ -148,7 +156,7 @@
             </div>
           </div>
 
-          <div class="text-block">text</div>
+          <div class="text-block"></div>
         </div>
       </div>
     </div>
