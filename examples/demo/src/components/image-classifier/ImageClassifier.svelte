@@ -16,12 +16,20 @@
   let initialized = false;
   let myImageClassifier: ImageClassifier | null = null;
 
-  // const benefits = ['Privacy', 'Ubiquity', 'Interactivity'];
-  // let shownBenefits: string[] = [];
+  const benefits = ['Privacy', 'Ubiquity', 'Interactivity'];
+  let shownBenefits: string[] = [];
   const classes = ['🐞 Ladybug', '☕️ Espresso', '🍊 Orange', '🚙 Sports Car'];
 
   onMount(() => {
     mounted = true;
+
+    const timeGap = 420;
+    for (let i = 0; i < benefits.length; i++) {
+      setTimeout(() => {
+        shownBenefits.push(benefits[i]);
+        shownBenefits = shownBenefits;
+      }, 500 + timeGap * i);
+    }
   });
 
   const imageClassifierUpdated = () => {
@@ -87,6 +95,12 @@
         </div>
         <div class="end-triangle"></div>
       </div>
+
+      <div class="arrow-text">
+        See <a href="https://poloclub.github.io/cnn-explainer" target="_blank"
+          >CNN Explainer</a
+        > to learn more about TinyVGG
+      </div>
     </div>
 
     <div class="model-explain-arrow">
@@ -102,6 +116,15 @@
           </div>
         </div>
         <div class="end-triangle"></div>
+      </div>
+
+      <div class="benefit-panel">
+        {#each benefits as benefit}
+          <div class="line" class:hidden="{!shownBenefits.includes(benefit)}">
+            <span class="svg-icon no-pointer">{@html iconCheck}</span>
+            <span>{benefit}</span>
+          </div>
+        {/each}
       </div>
     </div>
 
@@ -155,6 +178,10 @@
           </div>
         </div>
         <div class="end-triangle"></div>
+      </div>
+
+      <div class="arrow-text">
+        For efficiency, compute SHAP values for segments, not individual pixels
       </div>
     </div>
 
