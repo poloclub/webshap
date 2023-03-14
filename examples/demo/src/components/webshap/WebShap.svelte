@@ -11,7 +11,7 @@
     'image-classification',
     'text-classification'
   ];
-  let view = views[1];
+  let view = views[2];
 
   // Initialize the stores to pass to child components
   // const tooltipStore = getTooltipStore();
