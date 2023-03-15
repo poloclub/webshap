@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * =============================================================================
+ *
+ * Modified by Jay Wang (jay@zijie.wang) 2023
  */
 import { util } from '@tensorflow/tfjs';
 import vocabJSON from './bert-tokenizer-vocab.json';
@@ -224,11 +226,12 @@ export class BertTokenizer {
    * Generate tokens for the given vocalbuary.
    * @param text text to be tokenized.
    */
-  tokenize(text: string): number[] {
+  tokenize(text: string): [number[], string[]] {
     // Source:
     // https://github.com/google-research/bert/blob/88a817c37f788702a363ff935fd173b6dc6ac0d6/tokenization.py#L311
 
     let outputTokens: number[] = [];
+    let outputTokensWords: string[] = [];
 
     const words = this.processInput(text);
     words.forEach(word => {
@@ -246,12 +249,14 @@ export class BertTokenizer {
       let isUnknown = false;
       let start = 0;
       const subTokens: number[] = [];
+      const subTokensWords: string[] = [];
 
       const charsLength = chars.length;
 
       while (start < charsLength) {
         let end = charsLength;
         let currIndex;
+        let currWord: string;
 
         while (start < end) {
           const substr = chars.slice(start, end).join('');
@@ -259,6 +264,12 @@ export class BertTokenizer {
           const match = this.trie.find(substr);
           if (match != null && match.end != null) {
             currIndex = match.getWord()[2];
+            const currWordArray = match.getWord()[0];
+            if (currWordArray[0] === SEPERATOR) {
+              currWord = currWordArray.slice(1).join('');
+            } else {
+              currWord = '##' + currWordArray.join('');
+            }
             break;
           }
 
@@ -271,17 +282,20 @@ export class BertTokenizer {
         }
 
         subTokens.push(currIndex);
+        subTokensWords.push(currWord!);
         start = end;
       }
 
       if (isUnknown) {
         outputTokens.push(UNK_INDEX);
+        outputTokensWords.push('[UNK]');
       } else {
         outputTokens = outputTokens.concat(subTokens);
+        outputTokensWords = outputTokensWords.concat(subTokensWords);
       }
     }
 
-    return outputTokens;
+    return [outputTokens, outputTokensWords];
   }
 }
 
