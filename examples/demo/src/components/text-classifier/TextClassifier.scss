@@ -152,7 +152,7 @@ $box-padding: 12px 12px;
   }
 }
 
-.loader {
+.line-loader {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -169,7 +169,7 @@ $box-padding: 12px 12px;
   }
 }
 
-.loader::after {
+.line-loader::after {
   content: '';
   width: 100px;
   height: 100%;
