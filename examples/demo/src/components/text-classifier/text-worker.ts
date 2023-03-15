@@ -36,7 +36,7 @@ self.onmessage = (e: MessageEvent<TextWorkerMessage>) => {
     case 'startLoadModel': {
       const modelUrl = e.data.payload.url;
       loadModel = startLoadModel(modelUrl);
-      getModelInput('Son you are too young');
+      getModelInput("Son, you're too young GPU vandalism.");
       break;
     }
 
@@ -92,39 +92,40 @@ const detokenize = (tokenIDs: number[]) => {
  * @param inputText Input text
  */
 const getModelInput = async (inputText: string) => {
-  const tokens = await tokenize(inputText);
+  const [tokenIDs, tokenWords] = await tokenize(inputText);
+  console.log(tokenWords);
 
   // Create big int arrays
-  const inputIDs = new Array<bigint>(tokens.length + 2);
-  const attentionMasks = new Array<bigint>(tokens.length + 2).fill(BigInt(1));
-  const tokenTypeIDs = new Array<bigint>(tokens.length + 2).fill(BigInt(0));
+  const inputIDs = new Array<bigint>(tokenIDs.length + 2);
+  const attentionMasks = new Array<bigint>(tokenIDs.length + 2).fill(BigInt(1));
+  const tokenTypeIDs = new Array<bigint>(tokenIDs.length + 2).fill(BigInt(0));
 
   // 101 is the [CLS] token
   inputIDs[0] = BigInt(101);
 
-  for (let i = 0; i < tokens.length; i++) {
-    inputIDs[i + 1] = BigInt(tokens[i]);
+  for (let i = 0; i < tokenIDs.length; i++) {
+    inputIDs[i + 1] = BigInt(tokenIDs[i]);
   }
 
   // 102 is the [SEP] token
-  inputIDs[tokens.length + 1] = BigInt(102);
+  inputIDs[tokenIDs.length + 1] = BigInt(102);
 
   // Convert arrays into tensors
   const inputIDsTensor = new ort.Tensor('int64', BigInt64Array.from(inputIDs), [
     1,
-    tokens.length + 2
+    tokenIDs.length + 2
   ]);
 
   const attentionMasksTensor = new ort.Tensor(
     'int64',
     BigInt64Array.from(attentionMasks),
-    [1, tokens.length + 2]
+    [1, tokenIDs.length + 2]
   );
 
   const tokenTypeIDsTensor = new ort.Tensor(
     'int64',
     BigInt64Array.from(tokenTypeIDs),
-    [1, tokens.length + 2]
+    [1, tokenIDs.length + 2]
   );
 
   console.log(inputIDsTensor, attentionMasksTensor, tokenTypeIDsTensor);
