@@ -86,18 +86,23 @@
 
     <div class="data-model-arrow">
       <div class="background">
-        <div class="start-rectangle">
-          <div class="content-box">
-            <div class="line">
-              <span class="svg-icon no-pointer">
-                {@html iconBox}
-              </span>
-              <span class="name"> ML Model </span>
-            </div>
+        <span class="loader hidden"></span>
+        <div class="start-rectangle"></div>
+        <div class="content-box">
+          <div class="line">
+            <span class="svg-icon no-pointer">
+              {@html iconBox}
+            </span>
+            <span class="name"> ML Model </span>
+          </div>
 
-            <div class="line">
-              <span class="model"> XtremeDistil </span>
-            </div>
+          <div class="line">
+            <span class="model"> XtremeDistil </span>
+          </div>
+
+          <div class="loader-container hidden">
+            <div class="circle-loader"></div>
+            <span class="loader-label">Loading model</span>
           </div>
         </div>
         <div class="end-triangle"></div>
