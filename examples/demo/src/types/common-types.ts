@@ -4,6 +4,18 @@
 
 import type { Tensor3D } from '@tensorflow/tfjs';
 
+export type TextWorkerMessage =
+  | {
+      command: 'startLoadModel';
+      payload: {
+        url: string;
+      };
+    }
+  | {
+      command: 'finishLoadModel';
+      payload: Record<string, never>;
+    };
+
 type FeatureType = 'cont' | 'cat';
 
 export interface ImageSegmentation {

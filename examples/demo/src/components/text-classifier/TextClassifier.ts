@@ -7,9 +7,10 @@ import type {
   TabularCatFeature,
   Size,
   Padding,
-  SHAPRow
+  TextWorkerMessage
 } from '../../types/common-types';
 import { KernelSHAP } from 'webshap';
+import TextWorker from './text-worker?worker';
 import {
   round,
   timeit,
@@ -33,6 +34,9 @@ export class TextClassifier {
   component: HTMLElement;
   textClassifierUpdated: () => void;
   inputText: string;
+
+  // Workers
+  textWorker: Worker;
 
   // Visualization
   colorScale: (t: number) => string;
@@ -60,6 +64,23 @@ export class TextClassifier {
     this.component = component;
     this.textClassifierUpdated = textClassifierUpdated;
     this.inputText = defaultInput;
+
+    // Initialize web workers
+    this.textWorker = new TextWorker();
+    this.textWorker.onmessage = (e: MessageEvent<TextWorkerMessage>) => {
+      this.textWorkerMessageHandler(e);
+    };
+
+    // Start to load the model
+    const message: TextWorkerMessage = {
+      command: 'startLoadModel',
+      payload: {
+        url: `${
+          import.meta.env.BASE_URL
+        }models/text-classifier/xtremedistill-int8.onnx`
+      }
+    };
+    this.textWorker.postMessage(message);
 
     // Initialize SVG elements
     this.colorScale = d3.piecewise(d3.interpolateHsl, [
@@ -152,6 +173,10 @@ export class TextClassifier {
       .tickFormat(d3.format('.2f'));
     axisGroup.call(this.colorLegendAxis);
     axisGroup.attr('font-size', null);
+  };
+
+  textWorkerMessageHandler = (e: MessageEvent<TextWorkerMessage>) => {
+    console.log(e);
   };
 
   updateTextBlock = () => {
