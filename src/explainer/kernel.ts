@@ -180,24 +180,6 @@ export class KernelSHAP {
     // Sample feature coalitions
     const fractionEvaluated = this.sampleFeatureCoalitions(x, nSamples);
 
-    // Exit early if there is no / only one varying feature
-    if (fractionEvaluated === 0) {
-      const shapValues: number[][] = [];
-      for (let t = 0; t < this.nTargets; t++) {
-        shapValues.push(new Array<number>(this.nFeatures).fill(0));
-      }
-      return shapValues;
-    } else if (fractionEvaluated === -1) {
-      const shapValues: number[][] = [];
-      for (let t = 0; t < this.nTargets; t++) {
-        const curShapValues = new Array<number>(this.nFeatures).fill(0);
-        const diff = pred[0][t] - this.expectedValue[t];
-        curShapValues[this.varyingIndexes![0]] = diff;
-        shapValues.push(curShapValues);
-      }
-      return shapValues;
-    }
-
     // Inference on the sampled feature coli
     await this.inferenceFeatureCoalitions();
 
@@ -477,14 +459,6 @@ export class KernelSHAP {
     // background instances, then the shap value is 0 for those columns)
     this.varyingIndexes = this.getVaryingIndexes(x);
     this.nVaryFeatures = this.varyingIndexes.length;
-
-    // Exit early if there is no / only 1 varying feature
-    if (this.nVaryFeatures === 0) {
-      return 0;
-    }
-    if (this.nVaryFeatures === 1) {
-      return -1;
-    }
 
     // Determine the number of feature coalitions to sample
     // If `n_samples` is not given, we use a simple heuristic to
