@@ -45,35 +45,13 @@
 
 <div class="image-classifier-wrapper" bind:this="{component}">
   <div class="image-classifier">
-    <div class="top-row">
+    <div class="image-pair">
       <div class="input-image-wrapper image-wrapper">
         <canvas class="input-image image-canvas"></canvas>
       </div>
-    </div>
 
-    <div class="bottom-row">
       <div class="seg-image-wrapper image-wrapper">
         <canvas class="seg-image image-canvas"></canvas>
-      </div>
-
-      <div class="explain-wrapper-0 explain-wrapper image-wrapper">
-        <canvas class="input-image-back image-canvas"></canvas>
-        <canvas class="explain-image image-canvas"></canvas>
-      </div>
-
-      <div class="explain-wrapper-1 explain-wrapper image-wrapper">
-        <canvas class="input-image-back image-canvas"></canvas>
-        <canvas class="explain-image image-canvas"></canvas>
-      </div>
-
-      <div class="explain-wrapper-2  explain-wrapper image-wrapper">
-        <canvas class="input-image-back image-canvas"></canvas>
-        <canvas class="explain-image image-canvas"></canvas>
-      </div>
-
-      <div class="explain-wrapper-3  explain-wrapper image-wrapper">
-        <canvas class="input-image-back image-canvas"></canvas>
-        <canvas class="explain-image image-canvas"></canvas>
       </div>
     </div>
 

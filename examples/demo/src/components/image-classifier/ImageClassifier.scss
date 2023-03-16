@@ -47,7 +47,7 @@ $arrow-color: $gray-300;
   display: flex;
   flex-direction: column;
   position: relative;
-  gap: 50px;
+  gap: 10px;
 
   width: 100%;
   height: 100%;
@@ -63,7 +63,6 @@ $arrow-color: $gray-300;
   display: flex;
   flex-direction: center;
   align-items: center;
-  position: relative;
 }
 
 :global(.hidden-canvas) {
@@ -74,16 +73,9 @@ $arrow-color: $gray-300;
   left: 0;
 }
 
-.top-row {
+.image-pair {
   display: flex;
-  gap: 30px;
-  width: 100%;
-}
-
-.bottom-row {
-  display: flex;
-  gap: 30px;
-  width: 100%;
+  gap: 10px;
 }
 
 .color-scale-wrapper {
@@ -97,22 +89,5 @@ $arrow-color: $gray-300;
     :global(.axis-group) {
       font-size: 13px;
     }
-  }
-}
-
-.explain-wrapper {
-  position: relative;
-
-  .input-image-back {
-    position: absolute;
-    left: 0px;
-    top: 0px;
-    z-index: 1;
-    filter: grayscale(1);
-  }
-
-  .explain-image {
-    z-index: 2;
-    opacity: 0.618;
   }
 }
