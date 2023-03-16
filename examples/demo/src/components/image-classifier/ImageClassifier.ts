@@ -26,6 +26,8 @@ const DIVERGE_COLORS = [config.colors['pink-600'], config.colors['blue-700']];
 const IMG_SRC_LENGTH = 64;
 const IMG_LENGTH = 134;
 
+const TOTAL_IMG_NUM = 200;
+
 /**
  * Class for the Image Classifier WebSHAP demo
  */
@@ -137,7 +139,7 @@ export class ImageClassifier {
 
     // Initialize the classifier and input image
     const modelPromise = this.initModel();
-    const imagePromise = this.loadInputImage();
+    const imagePromise = this.loadRandomInputImage();
 
     Promise.all([modelPromise, imagePromise]).then(() => {
       this.updateVisualizations();
@@ -448,19 +450,27 @@ export class ImageClassifier {
     return outputImage;
   };
 
+  sampleClicked = async () => {
+    await this.loadRandomInputImage();
+    this.updateVisualizations();
+  };
+
   /**
    * Load the initial input image
    */
-  loadInputImage = async () => {
+  loadRandomInputImage = async () => {
     const inputCtx = this.inputCanvas.getContext('2d')!;
 
     // Create a buffer context to load image
     const hiddenCanvas = createBufferCanvas(IMG_SRC_LENGTH);
     const hiddenCtx = hiddenCanvas.getContext('2d')!;
 
+    // Load a random image
+    const randomIndex = d3.randomInt(TOTAL_IMG_NUM)() + 1;
+    const basename = `${randomIndex}`.padStart(4, '0');
     const imgFile = `${
       import.meta.env.BASE_URL
-    }data/classifier-images/bug-2.jpeg`;
+    }data/classifier-images/${basename}.jpeg`;
     this.inputImage = await getInputImageData(imgFile);
 
     // Draw the input image on screen
