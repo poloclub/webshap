@@ -15,25 +15,16 @@ import type { RandomUniform, RandomInt } from 'd3-random';
  */
 export class KernelSHAP {
   /** Prediction model */
-  model: (x: number[][]) => Promise<number[][]>;
+  model: (x: number[][]) => Promise<number[]>;
 
   /** Background data */
   data: number[][];
 
-  /** Whether this.init() has finished running */
-  initialized = false;
+  /** Expected prediction value */
+  expectedValue: number;
 
-  /**
-   * Expected prediction value
-   * [nTargets]
-   */
-  expectedValue: number[];
-
-  /**
-   * Model's prediction on the background ata
-   * [nData, nTargets]
-   */
-  predictions: number[][];
+  /** Model's prediction on the background ata */
+  predictions: number[];
 
   /** Number of features */
   nFeatures: number;
@@ -104,7 +95,7 @@ export class KernelSHAP {
    * @param seed Optional random seed in the range [0, 1)
    */
   constructor(
-    model: (x: number[][]) => Promise<number[][]>,
+    model: (x: number[][]) => Promise<number[]>,
     data: number[][],
     seed: number | null
   ) {
@@ -129,26 +120,19 @@ export class KernelSHAP {
     // Initialize the model values
     // Step 1: Compute the base value (expected values), which is the average
     // of the predictions on the background dataset
-    this.predictions = [[]];
-    this.expectedValue = [];
-    this.nTargets = 1;
+    this.predictions = [];
+    this.expectedValue = 0;
+    this.model(this.data).then(value => {
+      this.predictions = value;
+      this.expectedValue =
+        this.predictions.reduce((a, b) => a + b) / this.predictions.length;
+    });
 
     // Step 2: Initialize data structures
     this.nFeatures = this.data[0].length;
+    this.nTargets = 1;
     this.nSamplesAdded = 0;
   }
-
-  /**
-   * Initialize the model predictions on the background data
-   */
-  initializeModel = async () => {
-    if (!this.initialized) {
-      this.predictions = await this.model(this.data);
-      this.nTargets = this.predictions[0].length;
-      this.expectedValue = math.mean(this.predictions, 0) as number[];
-      this.initialized = true;
-    }
-  };
 
   /**
    * Estimate SHAP values of the given sample x
@@ -157,11 +141,6 @@ export class KernelSHAP {
    * a heuristic to determine a large sample size)
    */
   explainOneInstance = async (x: number[], nSamples: number | null = null) => {
-    // Initialize the model if it is not initialized yet
-    if (!this.initialized) {
-      await this.initializeModel();
-    }
-
     // Validate the input
     if (x.length !== this.nFeatures) {
       throw new Error(
@@ -175,7 +154,7 @@ export class KernelSHAP {
     // Find the current prediction f(x)
     // Return a matrix with only one item (y(x))
     const pred = await this.model(curX);
-    const yPredProbMat = math.reshape(math.matrix(pred), [1, this.nTargets]);
+    const yPredProbMat = math.reshape(math.matrix(pred), [1, 1]);
 
     // Sample feature coalitions
     const fractionEvaluated = this.sampleFeatureCoalitions(x, nSamples);
@@ -183,36 +162,11 @@ export class KernelSHAP {
     // Inference on the sampled feature coli
     await this.inferenceFeatureCoalitions();
 
-    const shapValues: number[][] = [];
-    for (let t = 0; t < this.nTargets; t++) {
-      shapValues.push(this.computeShap(fractionEvaluated, yPredProbMat, t));
-    }
-    return shapValues;
-  };
-
-  /**
-   * Compute shap values on one target class
-   * @param fractionEvaluated Fraction of sampled coalitions out of all
-   * combinations
-   * @param yPredProbMat Model prediction output matrix [1, nTargets]
-   * @param target Current target class (a column in yPredProbMat)
-   * @returns Shap values [nFeatures]
-   */
-  computeShap = (
-    fractionEvaluated: number,
-    yPredProbMat: math.Matrix,
-    target: number
-  ) => {
     // Formulate the least square problem
     // y_exp_adj == y_exp_mat (coalition samples) - expected_value (background
     // data)
-    const yExpMat = this.yExpMat!.subset(
-      math.index(math.range(0, this.yExpMat!.size()[0]), target)
-    );
-    const yExpAdj = math.add(
-      yExpMat,
-      -this.expectedValue[target]
-    ) as math.Matrix;
+    const yExpMat = this.yExpMat!;
+    const yExpAdj = math.add(yExpMat, -this.expectedValue) as math.Matrix;
     const yExpAdjSize = yExpAdj.size() as [number, number];
 
     const kernelWeight = this.kernelWeight!;
@@ -278,8 +232,7 @@ export class KernelSHAP {
       for (let i = 0; i < yExpAdjSize[0]; i++) {
         const curI = yExpAdjSize[0] + i;
         let curValue =
-          yExpAdj.get([i, 0]) -
-          (yPredProbMat.get([0, target]) - this.expectedValue[target]);
+          yExpAdj.get([i, 0]) - (yPredProbMat.get([0, 0]) - this.expectedValue);
         curValue *= kernelWeightAug.get([curI, 0]);
         yExpAdjAug.subset(math.index(curI, 0), curValue);
       }
@@ -315,7 +268,7 @@ export class KernelSHAP {
 
     if (nonZeroIndexes.length === 0) {
       const values = new Array<number>(this.nVaryFeatures).fill(0);
-      return values;
+      return [values];
     }
 
     // Eliminate one column so that all shapley values + baseline sum to the
@@ -346,7 +299,7 @@ export class KernelSHAP {
         math.index(i, 0),
         newYExpAdj.get([i, 0]) -
           maskMat.get([i, lastColJ]) *
-            (yPredProbMat.get([0, target]) - this.expectedValue[target])
+            (yPredProbMat.get([0, 0]) - this.expectedValue)
       );
     }
 
@@ -355,8 +308,8 @@ export class KernelSHAP {
 
     // Compute the last shapely value (to make all values add up to prediction)
     const lastPhi =
-      yPredProbMat.get([0, target]) -
-      this.expectedValue[target] -
+      yPredProbMat.get([0, 0]) -
+      this.expectedValue -
       (math.sum(phiMat) as number);
 
     // Fill the shap values to varying features, others are 0
@@ -367,7 +320,7 @@ export class KernelSHAP {
     }
     shapValues[this.varyingIndexes[lastColJ]] = lastPhi;
 
-    return shapValues;
+    return [shapValues];
   };
 
   /**
@@ -413,35 +366,17 @@ export class KernelSHAP {
     // Get the model output on the sampled data and initialize self.y_mat
     const yPredProb = await this.model(sampledDataVec);
     this.yMat.subset(
-      math.index(
-        math.range(0, this.yMat.size()[0]),
-        math.range(0, this.nTargets)
-      ),
+      math.index(math.range(0, this.yMat.size()[0]), 0),
       yPredProb
     );
 
     // Get the mean y value of samples having the same mask
     const nBackground = this.data.length;
     for (let i = 0; i < this.nSamplesAdded; i++) {
-      let yMatSlice = this.yMat.subset(
-        math.index(
-          math.range(i * nBackground, (i + 1) * nBackground),
-          math.range(0, this.nTargets)
-        )
+      const yMatSlice = this.yMat.subset(
+        math.index(math.range(i * nBackground, (i + 1) * nBackground), 0)
       );
-
-      if (typeof yMatSlice === typeof 1) {
-        yMatSlice = math.matrix([[yMatSlice as unknown as number]]);
-      }
-
-      const yMatSliceMean = (math.mean(yMatSlice, 0) as math.Matrix).subset(
-        math.index(math.range(0, this.nTargets))
-      );
-
-      this.yExpMat.subset(
-        math.index(i, math.range(0, this.nTargets)),
-        yMatSliceMean
-      );
+      this.yExpMat.subset(math.index(i, 0), math.mean(yMatSlice));
     }
   };
 
