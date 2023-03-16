@@ -90,12 +90,12 @@ $box-padding: 12px 12px;
     top: 0px;
     z-index: 1;
     filter: grayscale(1);
-    opacity: 0.16;
+    opacity: 0.3;
   }
 
   .explain-image {
     z-index: 2;
-    opacity: 0.6;
+    opacity: 0.5;
     mix-blend-mode: multiply;
   }
 

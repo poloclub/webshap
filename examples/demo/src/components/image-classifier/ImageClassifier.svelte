@@ -61,12 +61,7 @@
   <div class="image-classifier">
     <div class="top-section feature">
       <span class="section-name">Input Image</span>
-      <div
-        class="svg-icon rect-button"
-        on:click="{() => {
-          if (myImageClassifier) myImageClassifier.sampleClicked();
-        }}"
-      >
+      <div class="svg-icon rect-button" on:click="{() => {}}">
         {@html iconRefresh}
       </div>
       <div class="svg-icon rect-button" on:click="{() => {}}">
