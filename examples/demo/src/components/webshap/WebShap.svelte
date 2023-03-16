@@ -88,38 +88,5 @@
         <TextClassifier />
       </div>
     </div>
-
-    <div class="app-tabs">
-      <button
-        class="tab"
-        class:selected="{view === 'loan-prediction'}"
-        on:click="{() => {
-          view = 'loan-prediction';
-        }}"
-        data-text="Loan Approval Prediction">Loan Approval Prediction</button
-      >
-
-      <span class="splitter"></span>
-
-      <button
-        class="tab"
-        class:selected="{view === 'image-classification'}"
-        on:click="{() => {
-          view = 'image-classification';
-        }}"
-        data-text="Image Classification">Image Classification</button
-      >
-
-      <span class="splitter"></span>
-
-      <button
-        class="tab"
-        class:selected="{view === 'text-classification'}"
-        on:click="{() => {
-          view = 'text-classification';
-        }}"
-        data-text="Text Toxicity Detection">Text Toxicity Detection</button
-      >
-    </div>
   </div>
 </div>

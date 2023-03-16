@@ -6,7 +6,6 @@ $block-shadow: 0px 0px 2px hsla(0, 0%, 0%, 0.1),
   0px 0px 6px hsla(0, 0%, 0%, 0.05);
 $right-content-left-margin: 25px;
 $arrow-color: $gray-300;
-$box-padding: 12px 12px;
 
 .svg-icon {
   display: flex;
@@ -50,6 +49,7 @@ $box-padding: 12px 12px;
 .image-classifier {
   position: relative;
   width: 100%;
+  padding: 20px 23px;
   cursor: default;
 
   display: grid;
@@ -166,7 +166,7 @@ $box-padding: 12px 12px;
   font-size: 0.9rem;
   overflow-y: auto;
 
-  padding: $box-padding;
+  padding: 10px 10px;
   border: 1px solid $gray-light-border;
   border-radius: $border-radius;
   box-shadow: $block-shadow;
@@ -553,7 +553,7 @@ $box-padding: 12px 12px;
 
 .output-box {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   flex-direction: row;
 
   width: 100%;
@@ -562,7 +562,7 @@ $box-padding: 12px 12px;
   grid-row: 2 / 3;
   grid-column: col3-start / col3-end;
 
-  padding: $box-padding;
+  padding: 10px 10px;
   border: 1px solid $gray-light-border;
   border-radius: $border-radius;
   box-shadow: $block-shadow;
@@ -580,7 +580,7 @@ $box-padding: 12px 12px;
 
     .class-score {
       height: 100%;
-      width: 30px;
+      width: 35px;
       display: flex;
       position: relative;
 
@@ -588,8 +588,6 @@ $box-padding: 12px 12px;
         position: absolute;
         bottom: 0;
         left: 0;
-        border-top-right-radius: 2px;
-        border-top-left-radius: 2px;
 
         width: 100%;
         height: calc(100% - $label-height);
@@ -604,8 +602,6 @@ $box-padding: 12px 12px;
         width: 100%;
         height: 0px;
         background-color: $gray-600;
-        border-top-right-radius: 2px;
-        border-top-left-radius: 2px;
 
         transition: height 200ms ease-in-out;
 
@@ -613,7 +609,7 @@ $box-padding: 12px 12px;
           position: absolute;
           top: 0;
           left: 50%;
-          transform: translate(-50%, -112%);
+          transform: translate(-50%, -110%);
 
           color: $gray-600;
           font-size: $label-height;
@@ -705,7 +701,7 @@ $box-padding: 12px 12px;
     width: 100%;
     gap: 12px;
 
-    padding: $box-padding;
+    padding: 10px 10px;
     border: 1px solid $gray-light-border;
     border-radius: $border-radius;
     box-shadow: $block-shadow;
@@ -723,7 +719,7 @@ $box-padding: 12px 12px;
 
     .image-row {
       display: flex;
-      gap: 12px;
+      gap: 10px;
       width: 100%;
     }
 
