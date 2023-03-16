@@ -295,7 +295,7 @@ export class TextClassifier {
    * Flip the loading spinner for the data model arrow
    * @param isLoading If the model is loading
    */
-  updateModelLoader = (isLoading: boolean) => {
+  updateModelLoader = (isLoading: boolean, controlCircle = true) => {
     const lineLoader = this.component.querySelector(
       '.data-model-arrow .line-loader'
     ) as HTMLElement;
@@ -306,10 +306,16 @@ export class TextClassifier {
 
     if (isLoading) {
       lineLoader.classList.remove('hidden');
-      circleLoader.classList.remove('hidden');
+
+      if (controlCircle) {
+        circleLoader.classList.remove('hidden');
+      }
     } else {
       lineLoader.classList.add('hidden');
-      circleLoader.classList.add('hidden');
+
+      if (controlCircle) {
+        circleLoader.classList.add('hidden');
+      }
     }
   };
 
@@ -392,6 +398,7 @@ export class TextClassifier {
    * @param result Prediction result
    */
   updatePrediction = (result: TextPredictionResult) => {
+    this.updateModelLoader(false, false);
     this.curPred = result.probs[1];
     this.updatePred();
     this.textClassifierUpdated();
@@ -424,6 +431,7 @@ export class TextClassifier {
         inputText
       }
     };
+    this.updateModelLoader(true, false);
     this.textWorker.postMessage(message);
 
     // Get the shap scores
