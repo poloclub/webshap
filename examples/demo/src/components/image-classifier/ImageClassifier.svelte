@@ -54,9 +54,5 @@
         <canvas class="seg-image image-canvas"></canvas>
       </div>
     </div>
-
-    <div class="color-scale-wrapper">
-      <svg class="color-scale-svg"></svg>
-    </div>
   </div>
 </div>

@@ -33,8 +33,7 @@ import {
   interpolateLab,
   interpolateRgb,
   interpolateRgbBasis,
-  interpolateZoom,
-  piecewise
+  interpolateZoom
 } from 'd3-interpolate';
 
 import {
@@ -124,7 +123,6 @@ export default {
   interpolateRgb,
   interpolateRgbBasis,
   interpolateZoom,
-  piecewise,
   lch,
   hsl,
   color,
