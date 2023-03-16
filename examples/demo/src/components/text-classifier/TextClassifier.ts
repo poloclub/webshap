@@ -8,7 +8,6 @@ import type {
   TextWorkerMessage,
   TextExplainResult
 } from '../../types/common-types';
-import { KernelSHAP } from 'webshap';
 import TextWorker from './text-worker?worker';
 import {
   round,
@@ -34,7 +33,6 @@ const RANDOM_UNIFORM = d3.randomUniform.source(LCG);
 export class TextClassifier {
   component: HTMLElement;
   textClassifierUpdated: () => void;
-  inputText: string;
 
   // Workers
   textWorker: Worker;
@@ -45,8 +43,9 @@ export class TextClassifier {
   shapScale: d3.ScaleLinear<number, number, never>;
   colorLegendAxis: d3.Axis<d3.NumberValue>;
 
-  // Predictions
+  // Predictions and explanations
   curPred = 0;
+  curPendingExplainTexts: [string | null, string | null] = [null, null];
 
   // SVG elements
   colorScaleSVG: d3.Selection<HTMLElement, unknown, null, undefined>;
@@ -62,16 +61,13 @@ export class TextClassifier {
    */
   constructor({
     component,
-    textClassifierUpdated,
-    defaultInput
+    textClassifierUpdated
   }: {
     component: HTMLElement;
     textClassifierUpdated: () => void;
-    defaultInput: string;
   }) {
     this.component = component;
     this.textClassifierUpdated = textClassifierUpdated;
-    this.inputText = defaultInput;
 
     // Initialize web workers
     this.textWorker = new TextWorker();
@@ -161,6 +157,7 @@ export class TextClassifier {
         inputText
       }
     };
+    this.curPendingExplainTexts[0] = inputText;
     this.textWorker.postMessage(explainMessage);
   };
 
@@ -316,6 +313,32 @@ export class TextClassifier {
     }
   };
 
+  /**
+   * Flip the loading spinner for the explain loaders
+   * @param isLoading If the model is loading
+   */
+  updateExplainLoader = (isLoading: boolean) => {
+    const circleLoader = this.component.querySelector(
+      '.text-block-container .loader-container'
+    ) as HTMLElement;
+    const lineLoader = this.component.querySelector(
+      '.model-explain-arrow .line-loader'
+    ) as HTMLElement;
+    const textBlock = this.component.querySelector(
+      '.text-block-container .text-block'
+    ) as HTMLElement;
+
+    if (isLoading) {
+      lineLoader.classList.remove('hidden');
+      circleLoader.classList.remove('hidden');
+      textBlock.classList.add('hidden');
+    } else {
+      lineLoader.classList.add('hidden');
+      circleLoader.classList.add('hidden');
+      textBlock.classList.remove('hidden');
+    }
+  };
+
   textWorkerMessageHandler = (e: MessageEvent<TextWorkerMessage>) => {
     switch (e.data.command) {
       case 'finishLoadModel': {
@@ -331,7 +354,29 @@ export class TextClassifier {
 
       case 'finishExplain': {
         const result = e.data.payload.result;
-        this.updateExplainBlock(result);
+        // Release the pending explain input
+        if (result.inputText === this.curPendingExplainTexts[0]) {
+          if (this.curPendingExplainTexts[1] !== null) {
+            this.curPendingExplainTexts[0] = this.curPendingExplainTexts[1];
+            this.curPendingExplainTexts[1] = null;
+
+            // Start the next explanation
+            this.updateExplainLoader(true);
+            const explainMessage: TextWorkerMessage = {
+              command: 'startExplain',
+              payload: {
+                inputText: this.curPendingExplainTexts[0]
+              }
+            };
+            this.textWorker.postMessage(explainMessage);
+          } else {
+            this.curPendingExplainTexts[0] = null;
+            this.updateExplainBlock(result);
+          }
+        } else {
+          console.error('Explain input is no longer in the input queue.');
+        }
+
         break;
       }
 
@@ -380,6 +425,57 @@ export class TextClassifier {
       }
     };
     this.textWorker.postMessage(message);
+
+    // Get the shap scores
+    // Put the input text into the explanation queue
+    // The queue size is always 2 to avoid wasting time to explain expired input
+    if (this.curPendingExplainTexts[0] !== null) {
+      this.curPendingExplainTexts[1] = inputText;
+    } else {
+      this.curPendingExplainTexts[0] = inputText;
+      this.updateExplainLoader(true);
+      const explainMessage: TextWorkerMessage = {
+        command: 'startExplain',
+        payload: {
+          inputText
+        }
+      };
+      this.textWorker.postMessage(explainMessage);
+    }
+  };
+
+  inputChanged = () => {
+    const textArea = this.component.querySelector(
+      '.input-area'
+    ) as HTMLInputElement;
+    const inputText = textArea.value;
+
+    if (inputText === '') return;
+
+    // Get the prediction score
+    const message: TextWorkerMessage = {
+      command: 'startPredict',
+      payload: {
+        inputText
+      }
+    };
+    this.textWorker.postMessage(message);
+
+    // Put the input text into the explanation queue
+    // The queue size is always 2 to avoid wasting time to explain expired input
+    if (this.curPendingExplainTexts[0] !== null) {
+      this.curPendingExplainTexts[1] = inputText;
+    } else {
+      this.curPendingExplainTexts[0] = inputText;
+      this.updateExplainLoader(true);
+      const explainMessage: TextWorkerMessage = {
+        command: 'startExplain',
+        payload: {
+          inputText
+        }
+      };
+      this.textWorker.postMessage(explainMessage);
+    }
   };
 
   updateExplainBlock = (result: TextExplainResult) => {
@@ -414,6 +510,11 @@ export class TextClassifier {
       }
     }
 
+    if (Math.abs(shapRange[0]) < 0.01 && Math.abs(shapRange[1]) < 0.01) {
+      shapRange[0] = -0.5;
+      shapRange[1] = 0.5;
+    }
+
     // Update the shap scales
     this.shapScale.domain(shapRange);
     this.shapLengthScale.domain(shapRange);
@@ -429,22 +530,14 @@ export class TextClassifier {
       .tickFormat(d3.format('.2f'));
     axisGroup.call(this.colorLegendAxis);
 
-    // Hide the loaders
-    const circleLoader = this.component.querySelector(
-      '.text-block-container .loader-container'
-    ) as HTMLElement;
-    const lineLoader = this.component.querySelector(
-      '.model-explain-arrow .line-loader'
-    ) as HTMLElement;
-
-    circleLoader.classList.add('hidden');
-    lineLoader.classList.add('hidden');
-
     // Add the words to the text block
     const textBlock = d3
       .select(this.component)
       .select<HTMLElement>('.text-block');
     textBlock.selectAll('*').remove();
+
+    // Hide the loaders
+    this.updateExplainLoader(false);
 
     for (const [i, word] of words.entries()) {
       const backColorStr = this.colorScale(this.shapScale(shapValues[i]));
