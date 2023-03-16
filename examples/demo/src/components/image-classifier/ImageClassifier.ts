@@ -3,12 +3,7 @@ import { config } from '../../config/config';
 import { SLIC } from './segmentation/slic';
 import type { SuperPixelOptions } from './segmentation/slic';
 import { tick } from 'svelte';
-import type {
-  LoadedImage,
-  Size,
-  Padding,
-  ImageSegmentation
-} from '../../types/common-types';
+import type { LoadedImage, Size, Padding } from '../../types/common-types';
 import { KernelSHAP } from 'webshap';
 import { round, timeit, downloadJSON } from '../../utils/utils';
 import { getLatoTextWidth } from '../../utils/text-width';
@@ -37,7 +32,6 @@ export class ImageClassifier {
 
   // ML inference
   inputImage: LoadedImage | null = null;
-  imageSeg: ImageSegmentation | null = null;
   model: LayersModel | null = null;
 
   /**
@@ -111,7 +105,7 @@ export class ImageClassifier {
     const imgFile = `${
       import.meta.env.BASE_URL
     }data/classifier-images/bug-1.jpeg`;
-    this.inputImage = await getInputImageData(imgFile);
+    this.inputImage = await getInputImageArray(imgFile);
 
     // Draw the input image on screen
     hiddenCtx.clearRect(0, 0, IMG_SRC_LENGTH, IMG_SRC_LENGTH);
@@ -190,48 +184,14 @@ export class ImageClassifier {
       segRgba[i + 3] = 255;
     }
 
-    const imageSegRGB = new ImageData(
+    const segImageData = new ImageData(
       new Uint8ClampedArray(segRgba),
       IMG_SRC_LENGTH,
-      IMG_SRC_LENGTH
-    );
-
-    this.imageSeg = {
-      segData: slic.result,
-      segRGBData: imageSegRGB,
-      segSize: slic.numSegments
-    };
-
-    hiddenCtx.clearRect(0, 0, IMG_SRC_LENGTH, IMG_SRC_LENGTH);
-    hiddenCtx.putImageData(imageSegRGB, 0, 0);
-
-    segCtx.drawImage(
-      hiddenCanvas,
-      0,
-      0,
-      IMG_SRC_LENGTH,
-      IMG_SRC_LENGTH,
-      0,
-      0,
-      IMG_LENGTH,
-      IMG_LENGTH
-    );
-
-    // Test the segmentation
-    const maskedImage = getMaskedImageData(
-      imageData.data,
-      this.imageSeg.segData.data,
-      7
-    );
-
-    const tempImageData = new ImageData(
-      maskedImage,
-      IMG_SRC_LENGTH,
-      IMG_SRC_LENGTH
+      slic.result.height
     );
 
     hiddenCtx.clearRect(0, 0, IMG_SRC_LENGTH, IMG_SRC_LENGTH);
-    hiddenCtx.putImageData(tempImageData, 0, 0);
+    hiddenCtx.putImageData(segImageData, 0, 0);
 
     segCtx.drawImage(
       hiddenCanvas,
@@ -268,6 +228,38 @@ const initCanvasElement = (
 };
 
 /**
+ * Async wrapper for the image load event
+ * @param url Image source url
+ * @returns Promise of the loaded image
+ */
+const loadImageAsync = (url: string) => {
+  return new Promise<HTMLImageElement>(resolve => {
+    const image = new Image();
+    image.onload = () => {
+      resolve(image);
+    };
+    image.src = url;
+  });
+};
+
+/**
+ * Convert RGBA data array to RGB data array
+ * @param data Image data read from canvas
+ * @returns RGB pixel values
+ */
+const rgbaToRgb = (data: Uint8ClampedArray) => {
+  const results: number[] = [];
+
+  for (let i = 0; i < data.length; i++) {
+    if (i % 4 !== 3) {
+      results.push(data[i]);
+    }
+  }
+
+  return results;
+};
+
+/**
  * Create a throw away canvas
  * @param length Canvas length (width and height of square canvas)
  * @returns Created canvas
@@ -286,7 +278,7 @@ const createBufferCanvas = (length: number) => {
  * @param {string} imgFile File path to the image file
  * @returns A promise with the corresponding 3D array
  */
-const getInputImageData = (imgFile: string, normalize = true) => {
+const getInputImageArray = (imgFile: string, normalize = true) => {
   const canvas = document.createElement('canvas');
   canvas.style.cssText = 'display:none;';
   document.getElementsByTagName('body')[0].appendChild(canvas);
@@ -379,46 +371,34 @@ const getInputImageData = (imgFile: string, normalize = true) => {
 };
 
 /**
- * Crop the largest central square of size IMG_SRC_LENGTH x IMG_SRC_LENGTH x 3
- * of a 3d array.
+ * Crop the largest central square of size 64x64x3 of a 3d array.
  *
- * @param {number[][][]} arr array that requires cropping and padding (if a
- * IMG_SRC_LENGTH x IMG_SRC_LENGTH crop is not present)
- * @returns IMG_SRC_LENGTH x IMG_SRC_LENGTH x 3 array
+ * @param {number[][][]} arr array that requires cropping and padding (if a 64x64 crop
+ * is not present)
+ * @returns 64x64x3 array
  */
 const cropCentralSquare = (arr: number[][][]) => {
   const width = arr.length;
   const height = arr[0].length;
   let croppedArray: number[][][] = [];
 
+  // Crop largest square from image if the image is smaller than 64x64 and pad the
+  // cropped image.
   if (width < IMG_SRC_LENGTH || height < IMG_SRC_LENGTH) {
-    throw Error('Image size is smaller than the specified length.');
+    const cropDimensions = Math.min(width, height);
+    const startXIdx = Math.floor(width / 2) - cropDimensions / 2;
+    const startYIdx = Math.floor(height / 2) - cropDimensions / 2;
+    const unpaddedSubarray = arr
+      .slice(startXIdx, startXIdx + cropDimensions)
+      .map(i => i.slice(startYIdx, startYIdx + cropDimensions));
+  } else {
+    const startXIdx = Math.floor(width / 2) - Math.floor(IMG_SRC_LENGTH / 2);
+    const startYIdx = Math.floor(height / 2) - Math.floor(IMG_SRC_LENGTH / 2);
+    croppedArray = arr
+      .slice(startXIdx, startXIdx + IMG_SRC_LENGTH)
+      .map(i => i.slice(startYIdx, startYIdx + IMG_SRC_LENGTH));
   }
-
-  // Crop largest square from image
-  const startXIdx = Math.floor(width / 2) - Math.floor(IMG_SRC_LENGTH / 2);
-  const startYIdx = Math.floor(height / 2) - Math.floor(IMG_SRC_LENGTH / 2);
-  croppedArray = arr
-    .slice(startXIdx, startXIdx + IMG_SRC_LENGTH)
-    .map(i => i.slice(startYIdx, startYIdx + IMG_SRC_LENGTH));
   return croppedArray;
-};
-
-const getMaskedImageData = (
-  imageArray: Uint8ClampedArray,
-  segArray: Uint8ClampedArray,
-  segIndex: number,
-  background = 255
-) => {
-  const output = new Array<number>(imageArray.length).fill(background);
-  for (let i = 0; i < imageArray.length; i += 4) {
-    if (segArray[i] === segIndex) {
-      for (let j = 0; j < 3; j++) {
-        output[i + j] = imageArray[i + j];
-      }
-    }
-  }
-  return new Uint8ClampedArray(output);
 };
 
 /**
@@ -426,9 +406,9 @@ const getMaskedImageData = (
  * Recall that tensorflow uses NHWC order (batch, height, width, channel).
  * Each pixel is in 0-255 scale.
  *
- * @param imageData Canvas image data
- * @param width Canvas image width
- * @param height Canvas image height
+ * @param {[int8]} imageData Canvas image data
+ * @param {int} width Canvas image width
+ * @param {int} height Canvas image height
  */
 const imageDataTo3DTensor = (
   imageData: Uint8ClampedArray,

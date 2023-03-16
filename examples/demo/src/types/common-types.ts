@@ -6,12 +6,6 @@ import type { Tensor3D } from '@tensorflow/tfjs';
 
 type FeatureType = 'cont' | 'cat';
 
-export interface ImageSegmentation {
-  segData: ImageData;
-  segRGBData: ImageData;
-  segSize: number;
-}
-
 export interface LoadedImage {
   imageData: ImageData;
   imageTensor: Tensor3D;
