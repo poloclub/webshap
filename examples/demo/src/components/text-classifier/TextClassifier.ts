@@ -2,9 +2,7 @@ import d3 from '../../utils/d3-import';
 import { config } from '../../config/config';
 import { tick } from 'svelte';
 import type {
-  TabularData,
-  TabularContFeature,
-  TabularCatFeature,
+  TextPredictionResult,
   Size,
   Padding,
   TextWorkerMessage
@@ -19,6 +17,7 @@ import {
   getContrastRatio
 } from '../../utils/utils';
 import { getLatoTextWidth } from '../../utils/text-width';
+import randomComments from './data/random-comments.json';
 
 const DEBUG = config.debug;
 const DIVERGE_COLORS = [config.colors['pink-600'], config.colors['blue-700']];
@@ -44,8 +43,15 @@ export class TextClassifier {
   shapScale: d3.ScaleLinear<number, number, never>;
   colorLegendAxis: d3.Axis<d3.NumberValue>;
 
+  // Predictions
+  curPred = 0;
+
   // SVG elements
   colorScaleSVG: d3.Selection<HTMLElement, unknown, null, undefined>;
+  predBarSVG: d3.Selection<HTMLElement, unknown, null, undefined>;
+  predBarSVGSize: Size;
+  predBarSVGPadding: Padding;
+  predBarScale: d3.ScaleLinear<number, number, never>;
 
   /**
    * @param args Named parameters
@@ -97,13 +103,42 @@ export class TextClassifier {
     this.colorScaleSVG = d3
       .select(this.component)
       .select<HTMLElement>('svg.color-scale-svg');
-    this.initSVGs();
+    this.initColorScaleSVG();
+
+    this.predBarSVG = d3
+      .select<HTMLElement, unknown>(this.component)
+      .select('svg.pred-bar-svg');
+    this.predBarSVGSize = { width: 0, height: 0 };
+    this.predBarSVGPadding = { top: 4, bottom: 4, left: 10, right: 10 };
+    this.predBarScale = d3.scaleLinear();
+    this.initPredBar();
+
+    // Initialize the input and output block
+    this.initInputText();
 
     // Initialize the text block
     this.updateTextBlock();
   }
 
-  initSVGs = () => {
+  initInputText = () => {
+    // Add a random comment to the input area
+    const randomIndex = d3.randomInt(randomComments.length)();
+    const textArea = this.component.querySelector(
+      '.input-area'
+    ) as HTMLInputElement;
+    textArea.value = randomComments[randomIndex];
+
+    // Get the prediction score
+    const message: TextWorkerMessage = {
+      command: 'startPredict',
+      payload: {
+        inputText: randomComments[randomIndex]
+      }
+    };
+    this.textWorker.postMessage(message);
+  };
+
+  initColorScaleSVG = () => {
     // Initialize the color scale svg
     const bbox = this.colorScaleSVG.node()!.getBoundingClientRect();
     const svgSize: Size = {
@@ -114,7 +149,7 @@ export class TextClassifier {
     const svgPadding: Padding = {
       top: 8,
       left: 0,
-      right: 0,
+      right: 8,
       bottom: 8
     };
     const axisWidth = 40;
@@ -176,6 +211,63 @@ export class TextClassifier {
     axisGroup.attr('font-size', null);
   };
 
+  initPredBar = () => {
+    if (this.predBarSVG === null) throw Error('predBarSVG is null.');
+
+    // Get the SVG size
+    const svgBBox = this.predBarSVG.node()?.getBoundingClientRect();
+    if (svgBBox !== undefined) {
+      this.predBarSVGSize.width =
+        svgBBox.width -
+        this.predBarSVGPadding.left -
+        this.predBarSVGPadding.right;
+      this.predBarSVGSize.height =
+        svgBBox.height -
+        this.predBarSVGPadding.top -
+        this.predBarSVGPadding.bottom;
+    }
+
+    const content = this.predBarSVG
+      .append('g')
+      .attr('class', 'content')
+      .attr(
+        'transform',
+        `translate(${this.predBarSVGPadding.left}, ${this.predBarSVGPadding.top})`
+      );
+
+    // Create scales
+    this.predBarScale = d3
+      .scaleLinear()
+      .domain([0, 1])
+      .range([0, this.predBarSVGSize.width]);
+
+    // Init rectangles
+    content
+      .append('rect')
+      .attr('class', 'back-rect')
+      .attr('rx', this.predBarSVGSize.height / 2)
+      .attr('ry', this.predBarSVGSize.height / 2)
+      .attr('width', this.predBarScale(1))
+      .attr('height', this.predBarSVGSize.height);
+
+    content
+      .append('rect')
+      .attr('class', 'top-rect')
+      .classed('approval', this.curPred ? this.curPred >= 0.5 : true)
+      .attr('rx', this.predBarSVGSize.height / 2)
+      .attr('ry', this.predBarSVGSize.height / 2)
+      .attr('width', this.predBarScale(this.curPred || 0))
+      .attr('height', this.predBarSVGSize.height);
+
+    // Add a threshold bar
+    content
+      .append('rect')
+      .attr('class', 'threshold')
+      .attr('x', this.predBarScale(0.5) - 1)
+      .attr('width', 2)
+      .attr('height', this.predBarSVGSize.height);
+  };
+
   /**
    * Flip the loading spinner for the data model arrow
    * @param isLoading If the model is loading
@@ -205,11 +297,41 @@ export class TextClassifier {
         break;
       }
 
+      case 'finishPredict': {
+        const result = e.data.payload.result;
+        this.updatePrediction(result);
+        break;
+      }
+
       default: {
         console.error('Worker: unknown message', e.data.command);
         break;
       }
     }
+  };
+
+  /**
+   * Update the predictions
+   * @param result Prediction result
+   */
+  updatePrediction = (result: TextPredictionResult) => {
+    this.curPred = result.probs[1];
+    this.updatePred();
+    this.textClassifierUpdated();
+  };
+
+  /**
+   * Helper function to update the view with the new prediction result
+   */
+  updatePred = () => {
+    if (this.curPred === null) return;
+
+    // Update the bar
+    const content = this.predBarSVG.select('g.content');
+    content
+      .select('rect.top-rect')
+      .classed('approval', this.curPred >= 0.5)
+      .attr('width', this.predBarScale(this.curPred));
   };
 
   updateTextBlock = () => {
