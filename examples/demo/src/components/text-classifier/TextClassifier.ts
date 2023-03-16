@@ -72,7 +72,6 @@ export class TextClassifier {
     };
 
     // Start to load the model
-    this.updateModelLoader(true);
     const message: TextWorkerMessage = {
       command: 'startLoadModel',
       payload: {
@@ -176,40 +175,8 @@ export class TextClassifier {
     axisGroup.attr('font-size', null);
   };
 
-  /**
-   * Flip the loading spinner for the data model arrow
-   * @param isLoading If the model is loading
-   */
-  updateModelLoader = (isLoading: boolean) => {
-    const lineLoader = this.component.querySelector(
-      '.data-model-arrow .line-loader'
-    ) as HTMLElement;
-
-    const circleLoader = this.component.querySelector(
-      '.data-model-arrow .loader-container'
-    ) as HTMLElement;
-
-    if (isLoading) {
-      lineLoader.classList.remove('hidden');
-      circleLoader.classList.remove('hidden');
-    } else {
-      lineLoader.classList.add('hidden');
-      circleLoader.classList.add('hidden');
-    }
-  };
-
   textWorkerMessageHandler = (e: MessageEvent<TextWorkerMessage>) => {
-    switch (e.data.command) {
-      case 'finishLoadModel': {
-        this.updateModelLoader(false);
-        break;
-      }
-
-      default: {
-        console.error('Worker: unknown message', e.data.command);
-        break;
-      }
-    }
+    console.log(e);
   };
 
   updateTextBlock = () => {

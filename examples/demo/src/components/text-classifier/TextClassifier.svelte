@@ -86,7 +86,7 @@
 
     <div class="data-model-arrow">
       <div class="background">
-        <span class="line-loader hidden"></span>
+        <span class="loader hidden"></span>
         <div class="start-rectangle"></div>
         <div class="content-box">
           <div class="line">

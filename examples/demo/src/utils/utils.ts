@@ -345,13 +345,3 @@ export const yieldToMain = () => {
     setTimeout(resolve, 0);
   });
 };
-
-/**
- * A helper function for sleep()
- * @returns A promise that resolves in n ms
- */
-export const sleep = (n: number) => {
-  return new Promise(resolve => {
-    setTimeout(resolve, n);
-  });
-};
