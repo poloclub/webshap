@@ -17,7 +17,6 @@ import wasmSimdThreaded from 'onnxruntime-web/dist/ort-wasm-simd-threaded.wasm?u
 
 // const NUM_SAMPLES = 512;
 const NUM_SAMPLES = 128;
-const BATCH_SIZE = 32;
 
 // Set up the correct WASM paths
 ort.env.wasm.wasmPaths = {
@@ -184,8 +183,6 @@ const explainInputText = async (inputText: string) => {
   // We need to create the prediction function as a closure because the number
   // of tokenIDs can vary
   const maskedPredict = async (tokenIDMasks: number[][]) => {
-    const predictedProbs: number[][] = [];
-
     // Step 1: create the default inputs
     const inputIDs = new Array<bigint>(tokenIDs.length + 2);
     const tokenTypeIDs = new Array<bigint>(tokenIDs.length + 2).fill(BigInt(0));
@@ -201,71 +198,67 @@ const explainInputText = async (inputText: string) => {
     inputIDs[tokenIDs.length + 1] = BigInt(102);
 
     // Step 2: create collision inputs by varying the attention masks
-    // Create big int arrays (in batches)
-    for (let b = 0; b < Math.ceil(tokenIDMasks.length / BATCH_SIZE); b++) {
-      const allInputIDs: bigint[] = [];
-      const allAttentionMasks: bigint[] = [];
-      const allTokenTypeIDs: bigint[] = [];
+    // Create big int arrays
+    const allInputIDs: bigint[] = [];
+    const allAttentionMasks: bigint[] = [];
+    const allTokenTypeIDs: bigint[] = [];
 
-      const rStart = b * BATCH_SIZE;
-      const rEnd = Math.min(tokenIDMasks.length, (b + 1) * BATCH_SIZE);
+    for (let r = 0; r < tokenIDMasks.length; r++) {
+      // We won't change token IDs or type IDs
+      allInputIDs.push(...inputIDs);
+      allTokenTypeIDs.push(...tokenTypeIDs);
 
-      for (let r = rStart; r < rEnd; r++) {
-        // We won't change token IDs or type IDs
-        allInputIDs.push(...inputIDs);
-        allTokenTypeIDs.push(...tokenTypeIDs);
+      // We will vary attention masks based on the current perturbation
+      const curAttentionMasks = new Array<bigint>(tokenIDs.length + 2).fill(
+        BigInt(1)
+      );
 
-        // We will vary attention masks based on the current perturbation
-        const curAttentionMasks = new Array<bigint>(tokenIDs.length + 2).fill(
-          BigInt(1)
-        );
-
-        for (let c = 0; c < tokenIDMasks[r].length; c++) {
-          if (tokenIDMasks[r][c] === 0) {
-            curAttentionMasks[c + 1] = BigInt(0);
-          }
+      for (let c = 0; c < tokenIDMasks[r].length; c++) {
+        if (tokenIDMasks[r][c] === 0) {
+          curAttentionMasks[c + 1] = BigInt(0);
         }
-        allAttentionMasks.push(...curAttentionMasks);
       }
+      allAttentionMasks.push(...curAttentionMasks);
+    }
 
-      // Step 3: create batch tensors
-      // Convert arrays into tensors
-      const inputIDsTensor = new ort.Tensor(
-        'int64',
-        BigInt64Array.from(allInputIDs),
-        [rEnd - rStart, tokenIDs.length + 2]
-      );
+    // Step 3: create batch tensors
+    // Convert arrays into tensors
+    const inputIDsTensor = new ort.Tensor(
+      'int64',
+      BigInt64Array.from(allInputIDs),
+      [tokenIDMasks.length, tokenIDs.length + 2]
+    );
 
-      const attentionMasksTensor = new ort.Tensor(
-        'int64',
-        BigInt64Array.from(allAttentionMasks),
-        [rEnd - rStart, tokenIDs.length + 2]
-      );
+    const attentionMasksTensor = new ort.Tensor(
+      'int64',
+      BigInt64Array.from(allAttentionMasks),
+      [tokenIDMasks.length, tokenIDs.length + 2]
+    );
 
-      const tokenTypeIDsTensor = new ort.Tensor(
-        'int64',
-        BigInt64Array.from(allTokenTypeIDs),
-        [rEnd - rStart, tokenIDs.length + 2]
-      );
+    const tokenTypeIDsTensor = new ort.Tensor(
+      'int64',
+      BigInt64Array.from(allTokenTypeIDs),
+      [tokenIDMasks.length, tokenIDs.length + 2]
+    );
 
-      // We need to use the exact input name defined in the onnx model
-      const onnxInput = {
-        input_ids: inputIDsTensor,
-        attention_mask: attentionMasksTensor,
-        token_type_ids: tokenTypeIDsTensor
-      };
+    // We need to use the exact input name defined in the onnx model
+    const onnxInput = {
+      input_ids: inputIDsTensor,
+      attention_mask: attentionMasksTensor,
+      token_type_ids: tokenTypeIDsTensor
+    };
 
-      // Step 4: run the model on this batch
-      const output = await model.session.run(onnxInput);
+    // Step 4: run the model on this batch
+    const output = await model.session.run(onnxInput);
 
-      // Step 5: Convert logits into probabilities
-      const logits = output['output_0'].data as Float32Array;
+    // Step 5: Convert logits into probabilities
+    const logits = output['output_0'].data as Float32Array;
+    const predictedProbs: number[][] = [];
 
-      for (let i = 0; i < logits.length; i += 2) {
-        const curLogits = [logits[i], logits[i + 1]];
-        const probs = softmax(curLogits);
-        predictedProbs.push([probs[1]]);
-      }
+    for (let i = 0; i < logits.length; i += 2) {
+      const curLogits = [logits[i], logits[i + 1]];
+      const probs = softmax(curLogits);
+      predictedProbs.push([probs[1]]);
     }
 
     // Step 6: return a promise
