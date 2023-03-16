@@ -16,7 +16,7 @@
 
   // const benefits = ['Privacy', 'Ubiquity', 'Interactivity'];
   // let shownBenefits: string[] = [];
-  const classes = ['🐞 Ladybug', '☕️ Espresso', '🍊 Orange', '🚙 Sports Car'];
+  const classes = [];
 
   onMount(() => {
     mounted = true;
@@ -52,7 +52,7 @@
 <div class="image-classifier-wrapper" bind:this="{component}">
   <div class="image-classifier">
     <div class="top-section feature">
-      <span class="section-name">Input Image</span>
+      <span class="section-name">Input Data</span>
       <div class="svg-icon rect-button" on:click="{() => {}}">
         {@html iconRefresh}
       </div>
@@ -144,7 +144,7 @@
     <div class="segment-content">
       <div class="segment-component">
         <div class="top-section segment">
-          <span class="section-name">Image Segments</span>
+          <span class="section-name">Input Segments</span>
         </div>
 
         <div class="segment-box">
@@ -170,23 +170,30 @@
         </div>
 
         <div class="explain-box">
-          <div class="image-row">
-            {#each classes as className, i}
-              <div
-                class="{`explain-wrapper-${i} explain-wrapper image-wrapper`}"
-              >
-                <canvas class="input-image-back image-canvas"></canvas>
-                <canvas class="explain-image image-canvas"></canvas>
-                <span class="class-label">{className}</span>
-              </div>
-            {/each}
+          <div class="bottom-row">
+            <div class="explain-wrapper-0 explain-wrapper image-wrapper">
+              <canvas class="input-image-back image-canvas"></canvas>
+              <canvas class="explain-image image-canvas"></canvas>
+            </div>
+
+            <div class="explain-wrapper-1 explain-wrapper image-wrapper">
+              <canvas class="input-image-back image-canvas"></canvas>
+              <canvas class="explain-image image-canvas"></canvas>
+            </div>
+
+            <div class="explain-wrapper-2  explain-wrapper image-wrapper">
+              <canvas class="input-image-back image-canvas"></canvas>
+              <canvas class="explain-image image-canvas"></canvas>
+            </div>
+
+            <div class="explain-wrapper-3  explain-wrapper image-wrapper">
+              <canvas class="input-image-back image-canvas"></canvas>
+              <canvas class="explain-image image-canvas"></canvas>
+            </div>
           </div>
 
-          <div class="bottom-row">
-            <span class="shap-label">SHAP Values</span>
-            <div class="color-scale-wrapper">
-              <svg class="color-scale-svg"></svg>
-            </div>
+          <div class="color-scale-wrapper">
+            <svg class="color-scale-svg"></svg>
           </div>
         </div>
       </div>
