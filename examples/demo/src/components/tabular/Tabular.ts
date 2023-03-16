@@ -70,6 +70,7 @@ export class Tabular {
   curIndex = 0;
 
   // ONNX data
+  onnxSession: ort.InferenceSession | null = null;
   message: string;
   curPred: number | null = null;
 
@@ -530,7 +531,7 @@ export class Tabular {
     // Inference the model
     const x = this.getCurX();
     const result = await this.predict([x]);
-    this.curPred = result[0];
+    this.curPred = result[0][0];
 
     // Explain this instance
     // Create background data for SHAP
@@ -699,12 +700,14 @@ export class Tabular {
    * @returns Predicted positive label probabilities (n)
    */
   predict = async (x: number[][]) => {
-    const posProbs = [];
+    // Load the model if it is not loaded already
+    if (this.onnxSession === null) {
+      this.onnxSession = await ort.InferenceSession.create(modelUrl);
+    }
+
+    const posProbs: number[][] = [];
 
     try {
-      // Create a new session and load the LightGBM model
-      const session = await ort.InferenceSession.create(modelUrl);
-
       // First need to flatten the x array
       const xFlat = Float32Array.from(x.flat());
 
@@ -713,7 +716,7 @@ export class Tabular {
       const feeds = { float_input: xTensor };
 
       // Feed inputs and run
-      const results = await session.run(feeds);
+      const results = await this.onnxSession.run(feeds);
 
       // Read from results, probs has shape (n * 2) => (n, 2)
       const probs = results.probabilities.data as Float32Array;
@@ -721,11 +724,11 @@ export class Tabular {
       for (const [i, p] of probs.entries()) {
         // Positive label prob is always at the odd index
         if (i % 2 === 1) {
-          posProbs.push(p);
+          posProbs.push([p]);
         }
       }
 
-      this.message = `Success: ${round(posProbs[0], 4)}`;
+      this.message = `Success: ${round(posProbs[0][0], 4)}`;
     } catch (e) {
       this.message = `Failed: ${e}.`;
     }
@@ -745,10 +748,10 @@ export class Tabular {
       0.2022
     );
 
-    timeit('Explain', DEBUG);
+    timeit('Explain tabular', DEBUG);
     const shapValues = await explainer.explainOneInstance(x, 512);
     // const shapValues = await explainer.explainOneInstance(x);
-    timeit('Explain', DEBUG);
+    timeit('Explain tabular', DEBUG);
     return shapValues;
   };
 
@@ -766,7 +769,7 @@ export class Tabular {
       return;
     }
 
-    this.curPred = result[0];
+    this.curPred = result[0][0];
     this.updatePred();
     this.updateShapPlot();
 
@@ -788,7 +791,7 @@ export class Tabular {
       return;
     }
 
-    this.curPred = result[0];
+    this.curPred = result[0][0];
     this.updatePred();
     this.tabularUpdated();
 

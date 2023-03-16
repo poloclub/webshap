@@ -1,13 +1,50 @@
 <script lang="ts">
   import Tabular from '../tabular/Tabular.svelte';
+  import ImageClassifier from '../image-classifier/ImageClassifier.svelte';
+  import TextClassifier from '../text-classifier/TextClassifier.svelte';
   import iconGithub from '../../imgs/icon-github.svg?raw';
   import iconWebshap from '../../imgs/icon-webshap.svg?raw';
+  import iconFile from '../../imgs/icon-file.svg?raw';
+  import d3 from '../../utils/d3-import';
 
   let component: HTMLElement | null = null;
-  let view = 'loan-prediction';
+  const views = [
+    'loan-prediction',
+    'image-classification',
+    'text-classification'
+  ];
 
-  // Initialize the stores to pass to child components
-  // const tooltipStore = getTooltipStore();
+  const randomIndex = d3.randomInt(views.length)();
+  let view = views[randomIndex];
+
+  // Check url query to change the view
+  if (window.location.search !== '') {
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.has('model')) {
+      const modelName = searchParams.get('model')!;
+
+      switch (modelName) {
+        case 'tabular': {
+          view = views[0];
+          break;
+        }
+
+        case 'image': {
+          view = views[1];
+          break;
+        }
+
+        case 'text': {
+          view = views[2];
+          break;
+        }
+
+        default: {
+          break;
+        }
+      }
+    }
+  }
 </script>
 
 <style lang="scss">
@@ -61,30 +98,72 @@
         </div>
       </div>
 
-      <div class="title-right">
-        <a class="title-link" href="https://github.com/poloclub/webshap">
-          {@html iconGithub}
-        </a>
-      </div>
+      <div class="title-right"></div>
     </div>
 
     <div class="main-app" bind:this="{component}">
-      <div
-        class="main-app-container"
-        class:hidden="{view !== 'loan-prediction'}"
-      >
+      <div class="main-app-container" class:hidden="{view !== views[0]}">
         <Tabular />
       </div>
 
-      <div
-        class="main-app-container"
-        class:hidden="{view !== 'image-classification'}"
-      ></div>
+      <div class="main-app-container" class:hidden="{view !== views[1]}">
+        <ImageClassifier />
+      </div>
 
-      <div
-        class="main-app-container"
-        class:hidden="{view !== 'text-classification'}"
-      ></div>
+      <div class="main-app-container" class:hidden="{view !== views[2]}">
+        <TextClassifier />
+      </div>
+    </div>
+
+    <div class="app-tabs">
+      <button
+        class="tab"
+        class:selected="{view === 'loan-prediction'}"
+        on:click="{() => {
+          view = 'loan-prediction';
+        }}"
+        data-text="Loan Approval Prediction">Loan Approval Prediction</button
+      >
+
+      <span class="splitter"></span>
+
+      <button
+        class="tab"
+        class:selected="{view === 'image-classification'}"
+        on:click="{() => {
+          view = 'image-classification';
+        }}"
+        data-text="Image Classification">Image Classification</button
+      >
+
+      <span class="splitter"></span>
+
+      <button
+        class="tab"
+        class:selected="{view === 'text-classification'}"
+        on:click="{() => {
+          view = 'text-classification';
+        }}"
+        data-text="Text Toxicity Detection">Text Toxicity Detection</button
+      >
+    </div>
+  </div>
+
+  <div class="text-right">
+    <div class="icon-container">
+      <a target="_blank" href="https://github.com/poloclub/webshap/">
+        <div class="svg-icon" title="Open-source code">
+          {@html iconGithub}
+        </div>
+        <span>Code</span>
+      </a>
+
+      <a target="_blank" href="https://arxiv.org/abs/2302.14165">
+        <div class="svg-icon" title="Research paper">
+          {@html iconFile}
+        </div>
+        <span>Paper</span>
+      </a>
     </div>
   </div>
 </div>

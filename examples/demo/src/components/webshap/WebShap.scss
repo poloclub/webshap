@@ -20,10 +20,27 @@
 
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   height: 100%;
   max-height: 950px;
+}
+
+.svg-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: currentColor;
+  cursor: pointer;
+  width: 1em;
+  height: 1em;
+  transition: color 100ms;
+
+  :global(svg) {
+    fill: currentColor;
+    width: 100%;
+    height: 100%;
+  }
 }
 
 .app-title {
@@ -172,6 +189,107 @@
 
       &:hover {
         color: white;
+      }
+    }
+  }
+}
+
+.text-right {
+  grid-row: 2 / 3;
+  grid-column: 3 / 4;
+  display: flex;
+  justify-content: flex-start;
+  padding-left: 12px;
+  margin-top: 80px;
+
+  color: $gray-300;
+
+  .icon-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 6px;
+  }
+
+  a {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    color: white;
+    gap: 10px;
+    font-size: 1.1rem;
+  }
+
+  .svg-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: currentColor;
+    width: 30px;
+    height: 30px;
+  }
+}
+
+.app-tabs {
+  display: flex;
+  flex-direction: row;
+  padding: 10px 0 0 0;
+
+  .splitter {
+    border-right: 1px solid $gray-400;
+    margin: 0 12px;
+    width: 0px;
+  }
+
+  .tab {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    color: white;
+
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+
+    transition: font-weight 100ms linear;
+
+    &::after {
+      content: attr(data-text);
+      height: 0;
+      visibility: hidden;
+      pointer-events: none;
+      overflow: hidden;
+      font-weight: 700;
+    }
+
+    &:hover {
+      // font-weight: 800;
+    }
+
+    &:active {
+      color: $gray-100;
+    }
+
+    &.selected {
+      font-weight: 700;
+      text-decoration: underline;
+      text-decoration-color: $gray-500;
+
+      &::before {
+        content: '';
+        z-index: -1;
+        width: 108%;
+        position: absolute;
+        bottom: -4px;
+        left: 50%;
+        transform: translate(-50%, 0);
+
+        border-radius: 5px;
       }
     }
   }

@@ -2,7 +2,68 @@
  * Common types.
  */
 
+import type { Tensor3D } from '@tensorflow/tfjs';
+
+export type TextWorkerMessage =
+  | {
+      command: 'startLoadModel';
+      payload: {
+        url: string;
+      };
+    }
+  | {
+      command: 'finishLoadModel';
+      payload: Record<string, never>;
+    }
+  | {
+      command: 'startPredict';
+      payload: {
+        inputText: string;
+      };
+    }
+  | {
+      command: 'finishPredict';
+      payload: {
+        result: TextPredictionResult;
+      };
+    }
+  | {
+      command: 'startExplain';
+      payload: {
+        inputText: string;
+      };
+    }
+  | {
+      command: 'finishExplain';
+      payload: {
+        result: TextExplainResult;
+      };
+    };
+
+export interface TextExplainResult {
+  inputText: string;
+  tokenWords: string[];
+  shapValues: number[];
+}
+
+export interface TextPredictionResult {
+  inputText: string;
+  tokenWords: string[];
+  probs: number[];
+}
+
 type FeatureType = 'cont' | 'cat';
+
+export interface ImageSegmentation {
+  segData: ImageData;
+  segRGBData: ImageData;
+  segSize: number;
+}
+
+export interface LoadedImage {
+  imageData: ImageData;
+  imageTensor: Tensor3D;
+}
 
 export interface SHAPRow {
   index: number;
