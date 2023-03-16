@@ -144,17 +144,7 @@ export class TextClassifier {
     };
     this.textWorker.postMessage(message);
 
-    // Get the shap scores
-    const circleLoader = this.component.querySelector(
-      '.text-block-container .loader-container'
-    ) as HTMLElement;
-    const lineLoader = this.component.querySelector(
-      '.model-explain-arrow .line-loader'
-    ) as HTMLElement;
-
-    circleLoader.classList.remove('hidden');
-    lineLoader.classList.remove('hidden');
-
+    // Get the shap score
     const explainMessage: TextWorkerMessage = {
       command: 'startExplain',
       payload: {
@@ -386,6 +376,8 @@ export class TextClassifier {
     const shapValues = result.shapValues;
     const words = result.tokenWords;
 
+    console.log(shapValues, words);
+
     // Need to get the min and max of shap values across all classes
     const shapRange: [number, number] = [Infinity, -Infinity];
     for (const value of shapValues) {
@@ -429,17 +421,6 @@ export class TextClassifier {
       .tickFormat(d3.format('.2f'));
     axisGroup.call(this.colorLegendAxis);
 
-    // Hide the loaders
-    const circleLoader = this.component.querySelector(
-      '.text-block-container .loader-container'
-    ) as HTMLElement;
-    const lineLoader = this.component.querySelector(
-      '.model-explain-arrow .line-loader'
-    ) as HTMLElement;
-
-    circleLoader.classList.add('hidden');
-    lineLoader.classList.add('hidden');
-
     // Add the words to the text block
     const textBlock = d3
       .select(this.component)
@@ -468,5 +449,6 @@ export class TextClassifier {
             )
         );
     }
+    console.log(words);
   };
 }

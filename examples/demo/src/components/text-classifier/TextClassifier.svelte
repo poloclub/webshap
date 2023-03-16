@@ -116,14 +116,14 @@
 
     <div class="model-explain-arrow">
       <div class="background">
-        <span class="line-loader"></span>
-        <div class="start-rectangle"></div>
-        <div class="content-box">
-          <div class="line">
-            <span class="svg-icon no-pointer">
-              {@html iconWebshap}
-            </span>
-            <span class="name"> WebSHAP </span>
+        <div class="start-rectangle">
+          <div class="content-box">
+            <div class="line">
+              <span class="svg-icon no-pointer">
+                {@html iconWebshap}
+              </span>
+              <span class="name"> WebSHAP </span>
+            </div>
           </div>
         </div>
         <div class="end-triangle"></div>
@@ -208,10 +208,6 @@
           </div>
 
           <div class="text-block-container">
-            <div class="loader-container hidden">
-              <div class="circle-loader"></div>
-              <span class="loader-label">Computing SHAP values</span>
-            </div>
             <div class="text-block"></div>
           </div>
         </div>
