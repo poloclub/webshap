@@ -10,13 +10,7 @@ import type {
   SHAPRow
 } from '../../types/common-types';
 import { KernelSHAP } from 'webshap';
-import {
-  round,
-  timeit,
-  downloadJSON,
-  haveContrast,
-  getContrastRatio
-} from '../../utils/utils';
+import { round, timeit, downloadJSON, haveContrast } from '../../utils/utils';
 import { getLatoTextWidth } from '../../utils/text-width';
 
 const DEBUG = config.debug;
@@ -88,16 +82,14 @@ export class TextClassifier {
       width: bbox.width,
       height: bbox.height
     };
-    const rectWidth = 15;
+    const rectWidth = 10;
+
     const svgPadding: Padding = {
       top: 8,
-      left: 0,
+      left: svgSize.width / 2 + rectWidth / 2,
       right: 0,
       bottom: 8
     };
-    const axisWidth = 40;
-
-    this.colorScaleSVG.attr('transform', `translate(${-rectWidth / 2}, 0)`);
 
     const contentGroup = this.colorScaleSVG
       .append('g')
@@ -106,12 +98,15 @@ export class TextClassifier {
     const axisGroup = contentGroup
       .append('g')
       .attr('class', 'axis-group')
-      .attr('transform', `translate(${axisWidth + 1}, ${svgPadding.top + 1})`);
+      .attr(
+        'transform',
+        `translate(${svgPadding.left + 1}, ${svgPadding.top})`
+      );
 
     contentGroup
       .append('rect')
       .attr('class', 'scale-rect')
-      .attr('x', axisWidth)
+      .attr('x', svgPadding.left)
       .attr('y', svgPadding.top)
       .attr('width', rectWidth)
       .attr('height', svgSize.height - svgPadding.top - svgPadding.bottom)
@@ -322,14 +317,10 @@ export class TextClassifier {
         .style('background-color', backColorStr)
         .classed(
           'dark-background',
-          getContrastRatio(
+          !haveContrast(
             [backColor.r, backColor.g, backColor.b],
             [frontColor.r, frontColor.g, frontColor.b]
-          ) >
-            getContrastRatio(
-              [backColor.r, backColor.g, backColor.b],
-              [255, 255, 255]
-            )
+          )
         );
     }
     console.log(words);

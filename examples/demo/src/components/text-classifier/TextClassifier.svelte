@@ -156,9 +156,7 @@
             </div>
           </div>
 
-          <div class="text-block-container">
-            <div class="text-block"></div>
-          </div>
+          <div class="text-block"></div>
         </div>
       </div>
     </div>

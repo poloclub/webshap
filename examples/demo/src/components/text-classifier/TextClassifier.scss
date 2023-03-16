@@ -512,25 +512,13 @@ $box-padding: 12px 12px;
     border-radius: $border-radius;
     box-shadow: $block-shadow;
 
-    .text-block-container {
-      display: flex;
-      width: 100%;
-      height: 100%;
-      align-items: center;
-      justify-content: center;
-      background-color: change-color($color: $gray-500, $lightness: 97%);
-      padding: 30px;
-      border-radius: 8px;
-      overflow-y: auto;
-    }
-
     .text-block {
       display: flex;
       flex-direction: row;
       flex-wrap: wrap;
       justify-content: flex-start;
 
-      row-gap: 15px;
+      row-gap: 20px;
       column-gap: 16px;
       width: 100%;
       color: $gray-900;
@@ -540,8 +528,9 @@ $box-padding: 12px 12px;
         height: max-content;
         padding: 5px 10px;
         line-height: 1;
+
         border-radius: 5px;
-        border: 1px solid $gray-800;
+        border: 1px solid $gray-600;
       }
 
       :global(.text-word.dark-background) {
@@ -559,7 +548,7 @@ $box-padding: 12px 12px;
 
       .shap-label {
         font-weight: 500;
-        padding: 2px 8px;
+        padding: 2px 10px;
         border-radius: 4px;
         white-space: nowrap;
         background: linear-gradient(
@@ -574,7 +563,7 @@ $box-padding: 12px 12px;
         height: 100%;
 
         .color-scale-svg {
-          width: 56px;
+          width: 100px;
           height: 100%;
 
           :global(.axis-group) {
