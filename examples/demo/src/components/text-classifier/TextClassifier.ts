@@ -120,27 +120,19 @@ export class TextClassifier {
     this.updateTextBlock();
   }
 
-  /**
-   * Load a random comment
-   */
-  loadRandomSample = () => {
+  initInputText = () => {
     // Add a random comment to the input area
     const randomIndex = d3.randomInt(randomComments.length)();
     const textArea = this.component.querySelector(
       '.input-area'
     ) as HTMLInputElement;
     textArea.value = randomComments[randomIndex];
-    return randomComments[randomIndex];
-  };
-
-  initInputText = () => {
-    const inputText = this.loadRandomSample();
 
     // Get the prediction score
     const message: TextWorkerMessage = {
       command: 'startPredict',
       payload: {
-        inputText
+        inputText: randomComments[randomIndex]
       }
     };
     this.textWorker.postMessage(message);
@@ -340,22 +332,6 @@ export class TextClassifier {
       .select('rect.top-rect')
       .classed('approval', this.curPred >= 0.5)
       .attr('width', this.predBarScale(this.curPred));
-  };
-
-  /**
-   * Event handler for the sample button clicking.
-   */
-  sampleClicked = async () => {
-    const inputText = this.loadRandomSample();
-
-    // Get the prediction score
-    const message: TextWorkerMessage = {
-      command: 'startPredict',
-      payload: {
-        inputText
-      }
-    };
-    this.textWorker.postMessage(message);
   };
 
   updateTextBlock = () => {

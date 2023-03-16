@@ -70,12 +70,7 @@
   <div class="text-classifier">
     <div class="top-section feature">
       <span class="section-name">Input Text</span>
-      <div
-        class="svg-icon rect-button"
-        on:click="{() => {
-          if (myTextClassifier) myTextClassifier.sampleClicked();
-        }}"
-      >
+      <div class="svg-icon rect-button" on:click="{() => {}}">
         {@html iconRefresh}
       </div>
     </div>
