@@ -745,10 +745,10 @@ export class Tabular {
       0.2022
     );
 
-    timeit('Explain tabular', DEBUG);
+    timeit('Explain', DEBUG);
     const shapValues = await explainer.explainOneInstance(x, 512);
     // const shapValues = await explainer.explainOneInstance(x);
-    timeit('Explain tabular', DEBUG);
+    timeit('Explain', DEBUG);
     return shapValues;
   };
 

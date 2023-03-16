@@ -69,7 +69,6 @@ export class ImageClassifier {
 
     Promise.all([modelPromise, imagePromise]).then(() => {
       this.modelInference();
-      this.explain();
     });
   }
 
@@ -83,10 +82,6 @@ export class ImageClassifier {
     this.model = await loadLayersModel(modelFile);
   };
 
-  /**
-   * Run the model on the current input image
-   * @returns Class probabilities
-   */
   modelInference = () => {
     if (this.model === null || this.inputImage === null) {
       throw Error('Model or input image is not initialized.');
@@ -101,70 +96,6 @@ export class ImageClassifier {
     const predictedProb = predictedProbTensor[0].dataSync();
 
     return predictedProb;
-  };
-
-  explain = async () => {
-    if (
-      this.model === null ||
-      this.imageSeg === null ||
-      this.inputImage === null
-    ) {
-      throw Error('Model or data is not initialized.');
-    }
-
-    // We need to create the prediction function as a closure because the number
-    // of segments can vary
-    const predict = (segMasks: number[][]) => {
-      // Step 1: convert segMasks into masked image tensors
-      const maskedImageTensors: Tensor3D[] = [];
-      for (const segMask of segMasks) {
-        const curMaskedImageArray = getMaskedImageData(
-          this.inputImage!.imageData.data,
-          this.imageSeg!.segData.data,
-          segMask
-        );
-
-        const curMaskedTensor = imageDataTo3DTensor(
-          curMaskedImageArray,
-          IMG_SRC_LENGTH,
-          IMG_SRC_LENGTH,
-          true
-        );
-
-        maskedImageTensors.push(curMaskedTensor);
-      }
-
-      // Step 2: create a batch tensor (4D)
-      const batchTensor = stack(maskedImageTensors);
-
-      // Step 3: run the model on this batch
-      const predictedProbTensor = this.model!.call(
-        batchTensor,
-        {}
-      ) as Tensor<Rank>[];
-      const predictedProb = predictedProbTensor[0].arraySync() as number[][];
-
-      // Step 4: return a promise
-      const promise = new Promise<number[][]>(resolve => {
-        resolve(predictedProb);
-      });
-      return promise;
-    };
-
-    // The background data would be empty image (white color)
-    // We represent "features" as a binary array of segSize elements
-    // 0: use white color for the ith segment
-    // 1: use the input image's segment for the ith segment
-    const backgroundData = [new Array<number>(this.imageSeg.segSize).fill(0)];
-    const explainer = new KernelSHAP(predict, backgroundData, 0.2022);
-
-    // To explain the prediction on this image, we provide the "feature" as
-    // showing all segments
-    timeit('Explain image', DEBUG);
-    const allSegData = new Array<number>(this.imageSeg.segSize).fill(1);
-    const shapValues = await explainer.explainOneInstance(allSegData, 512);
-    timeit('Explain image', DEBUG);
-    console.log(shapValues);
   };
 
   /**
@@ -273,6 +204,34 @@ export class ImageClassifier {
 
     hiddenCtx.clearRect(0, 0, IMG_SRC_LENGTH, IMG_SRC_LENGTH);
     hiddenCtx.putImageData(imageSegRGB, 0, 0);
+
+    segCtx.drawImage(
+      hiddenCanvas,
+      0,
+      0,
+      IMG_SRC_LENGTH,
+      IMG_SRC_LENGTH,
+      0,
+      0,
+      IMG_LENGTH,
+      IMG_LENGTH
+    );
+
+    // Test the segmentation
+    const maskedImage = getMaskedImageData(
+      imageData.data,
+      this.imageSeg.segData.data,
+      7
+    );
+
+    const tempImageData = new ImageData(
+      maskedImage,
+      IMG_SRC_LENGTH,
+      IMG_SRC_LENGTH
+    );
+
+    hiddenCtx.clearRect(0, 0, IMG_SRC_LENGTH, IMG_SRC_LENGTH);
+    hiddenCtx.putImageData(tempImageData, 0, 0);
 
     segCtx.drawImage(
       hiddenCanvas,
@@ -445,38 +404,20 @@ const cropCentralSquare = (arr: number[][][]) => {
   return croppedArray;
 };
 
-/**
- * Get the masked image array
- * @param imageArray Image array
- * @param segArray Segmentation array, R value is the segmentation index
- * @param segMask Binary array: 1 => show image segmentation, 0 => nothing
- * @param background Background color
- * @returns Masked image array
- */
 const getMaskedImageData = (
   imageArray: Uint8ClampedArray,
   segArray: Uint8ClampedArray,
-  segMask: number[],
+  segIndex: number,
   background = 255
 ) => {
-  // Collect the segmentation index to show
-  const segIndexes = new Set<number>();
-  for (const [i, m] of segMask.entries()) {
-    if (m !== 0) {
-      segIndexes.add(i);
-    }
-  }
-
-  // Fill the image array with the correct RGB values
   const output = new Array<number>(imageArray.length).fill(background);
   for (let i = 0; i < imageArray.length; i += 4) {
-    if (segIndexes.has(segArray[i])) {
+    if (segArray[i] === segIndex) {
       for (let j = 0; j < 3; j++) {
         output[i + j] = imageArray[i + j];
       }
     }
   }
-
   return new Uint8ClampedArray(output);
 };
 
