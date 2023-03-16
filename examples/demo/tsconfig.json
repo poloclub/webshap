@@ -14,8 +14,7 @@
      * of JS in `.svelte` files.
      */
     "allowJs": true,
-    "checkJs": true,
-    "skipLibCheck": true
+    "checkJs": true
   },
   "include": [
     "src/**/*.d.ts",

@@ -2,14 +2,7 @@
  * Common types.
  */
 
-import type { Tensor3D } from '@tensorflow/tfjs';
-
 type FeatureType = 'cont' | 'cat';
-
-export interface LoadedImage {
-  imageData: ImageData;
-  imageTensor: Tensor3D;
-}
 
 export interface SHAPRow {
   index: number;
