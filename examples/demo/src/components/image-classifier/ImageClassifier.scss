@@ -61,15 +61,10 @@ $arrow-color: $gray-300;
   align-items: center;
 }
 
-:global(.hidden-canvas) {
+.hidden-canvas {
   visibility: hidden;
   pointer-events: none;
   position: absolute;
   top: 0;
   left: 0;
-}
-
-.image-pair {
-  display: flex;
-  gap: 10px;
 }

@@ -16,10 +16,6 @@ import {
 import {
   schemeTableau10,
   schemePastel1,
-  schemePastel2,
-  schemeSet1,
-  schemeSet2,
-  schemeSet3,
   interpolateRainbow,
   interpolateBlues
 } from 'd3-scale-chromatic';
@@ -45,7 +41,6 @@ import {
   sum,
   bin,
   shuffle,
-  shuffler,
   quickselect,
   mean,
   median
@@ -112,10 +107,6 @@ export default {
   scaleSequential,
   schemeTableau10,
   schemePastel1,
-  schemePastel2,
-  schemeSet1,
-  schemeSet2,
-  schemeSet3,
   interpolateRainbow,
   interpolateBlues,
   interpolateHsl,
@@ -136,7 +127,6 @@ export default {
   sum,
   bin,
   shuffle,
-  shuffler,
   quickselect,
   mean,
   median,
