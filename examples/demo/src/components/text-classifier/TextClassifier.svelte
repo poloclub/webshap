@@ -16,11 +16,6 @@
   let initialized = false;
   let myTextClassifier: TextClassifier | null = null;
 
-  const defaultInput =
-    "Son, you're too young and stupid to tell me that you know enough to claim " +
-    "what is vandalism and what isn't.  I suggest you go do your put the computer " +
-    'down and do your homework.  You can play on the weekend when school lets out.';
-
   // const benefits = ['Privacy', 'Ubiquity', 'Interactivity'];
   // let shownBenefits: string[] = [];
 
@@ -43,8 +38,7 @@
     if (component) {
       myTextClassifier = new TextClassifier({
         component,
-        textClassifierUpdated,
-        defaultInput
+        textClassifierUpdated
       });
     }
   };
@@ -71,8 +65,7 @@
           class="input-area"
           autocorrect="off"
           spellcheck="false"
-          rows="7">{defaultInput}</textarea
-        >
+          rows="7"></textarea>
       </div>
     </div>
 

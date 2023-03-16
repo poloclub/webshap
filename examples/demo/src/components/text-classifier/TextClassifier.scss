@@ -523,6 +523,7 @@ $box-padding: 12px 12px;
     }
 
     .scale-block {
+      background-color: $blue-100;
       display: flex;
       flex-direction: column;
       gap: 10px;
@@ -532,7 +533,7 @@ $box-padding: 12px 12px;
 
       .shap-label {
         font-weight: 500;
-        padding: 2px 10px;
+        padding: 2px 8px;
         border-radius: 4px;
         white-space: nowrap;
         background: linear-gradient(
@@ -544,11 +545,11 @@ $box-padding: 12px 12px;
 
       .color-scale-wrapper {
         display: flex;
-        height: 100%;
+        width: 20px;
 
         .color-scale-svg {
-          width: 100px;
-          height: 100%;
+          width: 100%;
+          height: 32px;
 
           :global(.axis-group) {
             color: $gray-600;
