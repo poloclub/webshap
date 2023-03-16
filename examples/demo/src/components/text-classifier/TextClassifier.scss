@@ -50,12 +50,14 @@ $box-padding: 12px 12px;
 .text-classifier {
   position: relative;
   width: 100%;
-  height: 100%;
   cursor: default;
   padding: 20px 23px;
 
   display: grid;
-  grid-template-rows: min-content min-content min-content 20px 1fr;
+  grid-template-rows: min-content min-content min-content 20px minmax(
+      min-content,
+      300px
+    );
   grid-template-columns:
     1fr [col1-start] minmax(min-content, 340px) [col2-start] minmax(
       200px,
@@ -505,7 +507,7 @@ $box-padding: 12px 12px;
     align-items: center;
     width: 100%;
     height: 100%;
-    gap: 30px;
+    gap: 12px;
 
     padding: $box-padding;
     border: 1px solid $gray-light-border;
@@ -514,28 +516,10 @@ $box-padding: 12px 12px;
 
     .text-block {
       display: flex;
-      flex-direction: row;
-      flex-wrap: wrap;
-      justify-content: flex-start;
-
-      row-gap: 20px;
-      column-gap: 16px;
+      gap: 12px;
       width: 100%;
-      color: $gray-900;
-
-      :global(.text-word) {
-        display: flex;
-        height: max-content;
-        padding: 5px 10px;
-        line-height: 1;
-
-        border-radius: 5px;
-        border: 1px solid $gray-600;
-      }
-
-      :global(.text-word.dark-background) {
-        color: white;
-      }
+      height: 100%;
+      background-color: $green-100;
     }
 
     .scale-block {
