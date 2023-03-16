@@ -4,7 +4,6 @@
   import TextClassifier from '../text-classifier/TextClassifier.svelte';
   import iconGithub from '../../imgs/icon-github.svg?raw';
   import iconWebshap from '../../imgs/icon-webshap.svg?raw';
-  import iconFile from '../../imgs/icon-file.svg?raw';
   import d3 from '../../utils/d3-import';
 
   let component: HTMLElement | null = null;
@@ -98,7 +97,11 @@
         </div>
       </div>
 
-      <div class="title-right"></div>
+      <div class="title-right">
+        <a class="title-link" href="https://github.com/poloclub/webshap">
+          {@html iconGithub}
+        </a>
+      </div>
     </div>
 
     <div class="main-app" bind:this="{component}">
@@ -146,24 +149,6 @@
         }}"
         data-text="Text Toxicity Detection">Text Toxicity Detection</button
       >
-    </div>
-  </div>
-
-  <div class="text-right">
-    <div class="icon-container">
-      <a target="_blank" href="https://github.com/poloclub/webshap/">
-        <div class="svg-icon" title="Open-source code">
-          {@html iconGithub}
-        </div>
-        <span>Code</span>
-      </a>
-
-      <a target="_blank" href="https://arxiv.org/abs/2302.14165">
-        <div class="svg-icon" title="Research paper">
-          {@html iconFile}
-        </div>
-        <span>Paper</span>
-      </a>
     </div>
   </div>
 </div>
