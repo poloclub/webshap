@@ -36,6 +36,8 @@
     myImageClassifier = myImageClassifier;
   };
 
+  const predFormatter = d3.format('.2%');
+
   /**
    * Initialize the embedding view.
    */

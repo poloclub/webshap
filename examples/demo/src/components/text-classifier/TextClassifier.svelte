@@ -3,13 +3,6 @@
   import { TextClassifier } from './TextClassifier';
   import { onMount } from 'svelte';
   import iconWebshap from '../../imgs/icon-webshap.svg?raw';
-  import iconBox from '../../imgs/icon-box.svg?raw';
-  import iconRefresh from '../../imgs/icon-refresh2.svg?raw';
-  import iconCheck from '../../imgs/icon-check.svg?raw';
-  import iconCross from '../../imgs/icon-cross.svg?raw';
-  import iconUpload from '../../imgs/icon-upload.svg?raw';
-  import iconScissor from '../../imgs/icon-scissor.svg?raw';
-  import iconOpen from '../../imgs/icon-open.svg?raw';
 
   let component: HTMLElement | null = null;
   let mounted = false;
@@ -51,99 +44,5 @@
 </style>
 
 <div class="text-classifier-wrapper" bind:this="{component}">
-  <div class="text-classifier">
-    <div class="top-section feature">
-      <span class="section-name">Input Text</span>
-      <div class="svg-icon rect-button" on:click="{() => {}}">
-        {@html iconRefresh}
-      </div>
-    </div>
-
-    <div class="feature-box">
-      <div class="intput-wrapper">
-        <textarea
-          class="input-area"
-          autocorrect="off"
-          spellcheck="false"
-          rows="7"></textarea>
-      </div>
-    </div>
-
-    <div class="data-model-arrow">
-      <div class="background">
-        <div class="start-rectangle">
-          <div class="content-box">
-            <div class="line">
-              <span class="svg-icon no-pointer">
-                {@html iconBox}
-              </span>
-              <span class="name"> ML Model </span>
-            </div>
-
-            <div class="line">
-              <span class="model"> XtremeDistil </span>
-            </div>
-          </div>
-        </div>
-        <div class="end-triangle"></div>
-      </div>
-    </div>
-
-    <div class="model-explain-arrow">
-      <div class="background">
-        <div class="start-rectangle">
-          <div class="content-box">
-            <div class="line">
-              <span class="svg-icon no-pointer">
-                {@html iconWebshap}
-              </span>
-              <span class="name"> WebSHAP </span>
-            </div>
-          </div>
-        </div>
-        <div class="end-triangle"></div>
-      </div>
-
-      <!-- <div class="benefit-panel">
-        {#each benefits as benefit}
-          <div class="line" class:hidden="{!shownBenefits.includes(benefit)}">
-            <span class="svg-icon no-pointer">{@html iconCheck}</span>
-            <span>{benefit}</span>
-          </div>
-        {/each}
-      </div> -->
-    </div>
-
-    <div class="top-section output">
-      <span class="section-name">Model Output</span>
-      <span class="section-description">Predicted likelihood of toxicity </span>
-    </div>
-
-    <div class="output-box">output</div>
-
-    <div class="explain-content">
-      <div class="explain-component">
-        <div class="top-section explain">
-          <span class="svg-icon no-pointer">
-            {@html iconOpen}
-          </span>
-          <span class="section-name"> Model Explanation</span>
-          <span class="section-description"
-            >Each word's contribution to this model's prediction
-          </span>
-        </div>
-
-        <div class="explain-box">
-          <div class="scale-block">
-            <span class="shap-label">SHAP Values</span>
-            <div class="color-scale-wrapper">
-              <svg class="color-scale-svg"></svg>
-            </div>
-          </div>
-
-          <div class="text-block">text</div>
-        </div>
-      </div>
-    </div>
-  </div>
+  <div class="text-classifier">Text</div>
 </div>
