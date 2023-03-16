@@ -456,7 +456,8 @@ export class ImageClassifier {
    */
   handleCustomImage = async (url: string) => {
     // User gives a valid image URL
-    this.loadInputImage(url);
+    await this.loadInputImage(url);
+    this.updateVisualizations();
   };
 
   sampleClicked = async () => {
@@ -474,7 +475,7 @@ export class ImageClassifier {
     const imgFile = `${
       import.meta.env.BASE_URL
     }data/classifier-images/${basename}.jpeg`;
-    this.loadInputImage(imgFile);
+    await this.loadInputImage(imgFile);
   };
 
   /**
@@ -682,8 +683,8 @@ const getInputImageData = (imgFile: string, normalize = true) => {
         // Step 1 - Resize using smaller dimension to scale the image down.
         const resizeCanvas = document.createElement('canvas'),
           resizeContext = resizeCanvas.getContext('2d')!;
-        const smallerDimension = Math.min(inputImage.width, inputImage.height);
-        const resizeFactor = (IMG_SRC_LENGTH + 1) / smallerDimension;
+        const resizeFactor =
+          IMG_SRC_LENGTH / Math.min(inputImage.width, inputImage.height);
         resizeCanvas.width = inputImage.width * resizeFactor;
         resizeCanvas.height = inputImage.height * resizeFactor;
         resizeContext.drawImage(
@@ -694,31 +695,26 @@ const getInputImageData = (imgFile: string, normalize = true) => {
           resizeCanvas.height
         );
 
-        // Step 2 - Flip non-square images horizontally and rotate them 90deg since
-        // non-square images are not stored upright.
+        // Step 2 - Draw resized image on original canvas.
         if (inputImage.width != inputImage.height) {
-          context.translate(resizeCanvas.width, 0);
-          context.scale(-1, 1);
-          context.translate(resizeCanvas.width / 2, resizeCanvas.height / 2);
-          context.rotate((90 * Math.PI) / 180);
-        }
+          const sx = (resizeCanvas.width - IMG_SRC_LENGTH) / 2;
+          const sy = (resizeCanvas.height - IMG_SRC_LENGTH) / 2;
 
-        // Step 3 - Draw resized image on original canvas.
-        if (inputImage.width != inputImage.height) {
           context.drawImage(
             resizeCanvas,
-            -resizeCanvas.width / 2,
-            -resizeCanvas.height / 2
+            sx,
+            sy,
+            IMG_SRC_LENGTH,
+            IMG_SRC_LENGTH,
+            0,
+            0,
+            IMG_SRC_LENGTH,
+            IMG_SRC_LENGTH
           );
         } else {
           context.drawImage(resizeCanvas, 0, 0);
         }
-        imageData = context.getImageData(
-          0,
-          0,
-          resizeCanvas.width,
-          resizeCanvas.height
-        );
+        imageData = context.getImageData(0, 0, IMG_SRC_LENGTH, IMG_SRC_LENGTH);
       } else {
         context.drawImage(inputImage, 0, 0);
         imageData = context.getImageData(
