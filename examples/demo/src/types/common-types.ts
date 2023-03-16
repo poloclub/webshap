@@ -26,7 +26,25 @@ export type TextWorkerMessage =
       payload: {
         result: TextPredictionResult;
       };
+    }
+  | {
+      command: 'startExplain';
+      payload: {
+        inputText: string;
+      };
+    }
+  | {
+      command: 'finishExplain';
+      payload: {
+        result: TextExplainResult;
+      };
     };
+
+export interface TextExplainResult {
+  inputText: string;
+  tokenWords: string[];
+  shapValues: number[];
+}
 
 export interface TextPredictionResult {
   inputText: string;

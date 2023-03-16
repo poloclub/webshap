@@ -39,7 +39,6 @@
 
   const textClassifierUpdated = () => {
     myTextClassifier = myTextClassifier;
-    console.log(myTextClassifier?.curPred);
   };
 
   const predFormatter = d3.format('.2%');
