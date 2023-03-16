@@ -5,8 +5,7 @@ import type {
   TextPredictionResult,
   Size,
   Padding,
-  TextWorkerMessage,
-  TextExplainResult
+  TextWorkerMessage
 } from '../../types/common-types';
 import { KernelSHAP } from 'webshap';
 import TextWorker from './text-worker?worker';
@@ -18,7 +17,6 @@ import {
   getContrastRatio
 } from '../../utils/utils';
 import { getLatoTextWidth } from '../../utils/text-width';
-// import randomComments from './data/short-comments.json';
 import randomComments from './data/random-comments.json';
 
 const DEBUG = config.debug;
@@ -117,6 +115,9 @@ export class TextClassifier {
 
     // Initialize the input and output block
     this.initInputText();
+
+    // Initialize the text block
+    this.updateTextBlock();
   }
 
   /**
@@ -143,15 +144,6 @@ export class TextClassifier {
       }
     };
     this.textWorker.postMessage(message);
-
-    // Get the shap score
-    const explainMessage: TextWorkerMessage = {
-      command: 'startExplain',
-      payload: {
-        inputText
-      }
-    };
-    this.textWorker.postMessage(explainMessage);
   };
 
   initColorScaleSVG = () => {
@@ -319,12 +311,6 @@ export class TextClassifier {
         break;
       }
 
-      case 'finishExplain': {
-        const result = e.data.payload.result;
-        this.updateExplainBlock(result);
-        break;
-      }
-
       default: {
         console.error('Worker: unknown message', e.data.command);
         break;
@@ -359,7 +345,7 @@ export class TextClassifier {
   /**
    * Event handler for the sample button clicking.
    */
-  sampleClicked = () => {
+  sampleClicked = async () => {
     const inputText = this.loadRandomSample();
 
     // Get the prediction score
@@ -372,11 +358,112 @@ export class TextClassifier {
     this.textWorker.postMessage(message);
   };
 
-  updateExplainBlock = (result: TextExplainResult) => {
-    const shapValues = result.shapValues;
-    const words = result.tokenWords;
+  updateTextBlock = () => {
+    let words = [];
+    let curWord = '';
 
-    console.log(shapValues, words);
+    // eslint-disable-next-line quotes
+    const punctuations = new Set([',', '.', '/', '?', '!', '@', "'", '"', '`']);
+
+    for (let i = 0; i < this.inputText.length; i++) {
+      const curChar = this.inputText[i];
+      if (curChar === ' ') {
+        if (curWord !== '') {
+          words.push(curWord);
+        }
+        curWord = '';
+        // eslint-disable-next-line quotes
+      } else if (curChar === "'") {
+        if (curWord !== '') {
+          words.push(curWord);
+          curWord = '';
+        }
+        // eslint-disable-next-line quotes
+        curWord = "'";
+      } else if (punctuations.has(curChar)) {
+        if (curWord !== '') {
+          words.push(curWord);
+          words.push(curChar);
+          curWord = '';
+        } else {
+          words.push(curChar);
+        }
+      } else {
+        curWord += curChar.toLowerCase();
+      }
+    }
+
+    words = [
+      'son',
+      ', ',
+      'you',
+      "'",
+      're ',
+      'too ',
+      'young ',
+      'and ',
+      'stupid ',
+      'to ',
+      'tell ',
+      'me ',
+      'that ',
+      'you ',
+      'know ',
+      'enough ',
+      'to ',
+      'claim ',
+      'what ',
+      'is ',
+      'van',
+      'dal',
+      'ism ',
+      'and ',
+      'what ',
+      'isn',
+      "'",
+      't',
+      '.  ',
+      'I ',
+      'suggest ',
+      'you ',
+      'go ',
+      'do ',
+      'your ',
+      'put ',
+      'the ',
+      'computer ',
+      'down ',
+      'and ',
+      'do ',
+      'your ',
+      'homework',
+      '.  ',
+      'You ',
+      'can ',
+      'play ',
+      'on ',
+      'the ',
+      'weekend ',
+      'when ',
+      'school ',
+      'lets ',
+      'out',
+      '.'
+    ];
+
+    const shapValues = [
+      0.01092504, 0.00455374, -0.00485153, -0.00448904, -0.00224217,
+      -0.04614502, -0.00383218, -0.00510751, -0.06787664, -0.00415155,
+      -0.00535764, -0.00535764, -0.00371679, -0.00371679, -0.00326535,
+      -0.00326535, -0.00260804, -0.00260804, -0.00618124, -0.00205904,
+      -0.03055499, -0.01819205, -0.01296856, -0.0064224, -0.01313715,
+      -0.01091389, -0.00870228, -0.00464682, -0.00877311, -0.00895331,
+      -0.00924679, 0.00626233, 0.00452801, -0.00864476, -0.00701219,
+      -0.02690166, -0.01169196, -0.04226858, -0.07019774, 0.01310815,
+      -0.01112492, -0.00257022, 0.00244315, 0.00703637, 0.01107377, 0.0118604,
+      0.00137123, 0.0015346, -0.00076053, -0.00076053, 0.00096916, -0.00264306,
+      -0.04983622, -0.04860111, -0.00971938
+    ];
 
     // Need to get the min and max of shap values across all classes
     const shapRange: [number, number] = [Infinity, -Infinity];
@@ -428,7 +515,7 @@ export class TextClassifier {
     textBlock.selectAll('*').remove();
 
     for (const [i, word] of words.entries()) {
-      const backColorStr = this.colorScale(this.shapScale(shapValues[i]));
+      const backColorStr = this.colorScale(this.shapScale(-shapValues[i]));
       const backColor = d3.color(backColorStr)!.rgb();
       const frontColor = d3.color(config.colors['gray-900'])!.rgb();
 
