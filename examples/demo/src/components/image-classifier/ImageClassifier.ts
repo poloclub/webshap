@@ -24,7 +24,7 @@ const NUM_CLASS = 4;
 const DIVERGE_COLORS = [config.colors['pink-600'], config.colors['blue-700']];
 
 const IMG_SRC_LENGTH = 64;
-const IMG_LENGTH = 135;
+const IMG_LENGTH = 150;
 
 /**
  * Class for the Image Classifier WebSHAP demo
@@ -260,7 +260,7 @@ export class ImageClassifier {
       .append('linearGradient')
       .attr('id', 'scale-gradient');
 
-    const splits = 5;
+    const splits = 10;
     for (let i = 0; i < splits; i++) {
       const curStep = i / (splits - 1);
       gradients
@@ -434,7 +434,7 @@ export class ImageClassifier {
 
     const imgFile = `${
       import.meta.env.BASE_URL
-    }data/classifier-images/bug-2.jpeg`;
+    }data/classifier-images/bug-1.jpeg`;
     this.inputImage = await getInputImageData(imgFile);
 
     // Draw the input image on screen
@@ -490,6 +490,7 @@ export class ImageClassifier {
 
     const options: SuperPixelOptions = {
       regionSize: 16,
+      minRegionSize: 100,
       maxIterations: 10
     };
 
