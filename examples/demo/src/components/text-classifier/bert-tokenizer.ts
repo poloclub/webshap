@@ -17,7 +17,7 @@
  * Modified by Jay Wang (jay@zijie.wang) 2023
  */
 import { util } from '@tensorflow/tfjs';
-import vocabJSON from './data/bert-tokenizer-vocab.json';
+import vocabJSON from './bert-tokenizer-vocab.json';
 
 const SEPERATOR = '\u2581';
 export const UNK_INDEX = 100;

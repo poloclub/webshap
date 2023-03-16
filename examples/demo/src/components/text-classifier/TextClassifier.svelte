@@ -5,9 +5,8 @@
   import iconWebshap from '../../imgs/icon-webshap.svg?raw';
   import iconBox from '../../imgs/icon-box.svg?raw';
   import iconRefresh from '../../imgs/icon-refresh2.svg?raw';
-  import iconToxic from '../../imgs/icon-toxic.svg?raw';
-  import iconBenign from '../../imgs/icon-benign.svg?raw';
   import iconCheck from '../../imgs/icon-check.svg?raw';
+  import iconCross from '../../imgs/icon-cross.svg?raw';
   import iconUpload from '../../imgs/icon-upload.svg?raw';
   import iconScissor from '../../imgs/icon-scissor.svg?raw';
   import iconOpen from '../../imgs/icon-open.svg?raw';
@@ -39,7 +38,6 @@
 
   const textClassifierUpdated = () => {
     myTextClassifier = myTextClassifier;
-    console.log(myTextClassifier?.curPred);
   };
 
   const predFormatter = d3.format('.2%');
@@ -81,7 +79,8 @@
           class="input-area"
           autocorrect="off"
           spellcheck="false"
-          rows="7"></textarea>
+          rows="7">{defaultInput}</textarea
+        >
       </div>
     </div>
 
@@ -140,48 +139,7 @@
       <span class="section-description">Predicted likelihood of toxicity </span>
     </div>
 
-    <div class="output-box">
-      <div class="pred-number">
-        {myTextClassifier ? predFormatter(myTextClassifier.curPred) : ''}
-      </div>
-
-      <div class="pred-bar">
-        <svg class="pred-bar-svg"></svg>
-      </div>
-
-      <div class="label-container">
-        <div class="label placeholder hidden">
-          <span class="label-icon svg-icon no-pointer">
-            {@html iconBenign}
-          </span>
-          <span class="label-name"> Benign </span>
-        </div>
-
-        <div
-          class="label approval"
-          class:hidden="{myTextClassifier
-            ? myTextClassifier.curPred < 0.5
-            : true}"
-        >
-          <span class="label-icon svg-icon no-pointer">
-            {@html iconToxic}
-          </span>
-          <span class="label-name"> Toxic </span>
-        </div>
-
-        <div
-          class="label rejection"
-          class:hidden="{myTextClassifier
-            ? myTextClassifier.curPred >= 0.5
-            : true}"
-        >
-          <span class="label-icon svg-icon no-pointer">
-            {@html iconBenign}
-          </span>
-          <span class="label-name"> Benign </span>
-        </div>
-      </div>
-    </div>
+    <div class="output-box">output</div>
 
     <div class="explain-content">
       <div class="explain-component">
