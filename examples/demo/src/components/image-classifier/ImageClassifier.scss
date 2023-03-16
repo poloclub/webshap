@@ -54,17 +54,3 @@ $arrow-color: $gray-300;
   align-items: center;
   justify-content: center;
 }
-
-.image-wrapper {
-  display: flex;
-  flex-direction: center;
-  align-items: center;
-}
-
-.hidden-canvas {
-  visibility: hidden;
-  pointer-events: none;
-  position: absolute;
-  top: 0;
-  left: 0;
-}
