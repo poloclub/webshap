@@ -4,6 +4,7 @@
   import TextClassifier from '../text-classifier/TextClassifier.svelte';
   import iconGithub from '../../imgs/icon-github.svg?raw';
   import iconWebshap from '../../imgs/icon-webshap.svg?raw';
+  import d3 from '../../utils/d3-import';
 
   let component: HTMLElement | null = null;
   const views = [
@@ -11,10 +12,38 @@
     'image-classification',
     'text-classification'
   ];
-  let view = views[1];
 
-  // Initialize the stores to pass to child components
-  // const tooltipStore = getTooltipStore();
+  const randomIndex = d3.randomInt(views.length)();
+  let view = views[randomIndex];
+
+  // Check url query to change the view
+  if (window.location.search !== '') {
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.has('model')) {
+      const modelName = searchParams.get('model')!;
+
+      switch (modelName) {
+        case 'tabular': {
+          view = views[0];
+          break;
+        }
+
+        case 'image': {
+          view = views[1];
+          break;
+        }
+
+        case 'text': {
+          view = views[2];
+          break;
+        }
+
+        default: {
+          break;
+        }
+      }
+    }
+  }
 </script>
 
 <style lang="scss">
