@@ -7,7 +7,6 @@
   import iconRefresh from '../../imgs/icon-refresh2.svg?raw';
   import iconCheck from '../../imgs/icon-check.svg?raw';
   import iconCross from '../../imgs/icon-cross.svg?raw';
-  import iconUpload from '../../imgs/icon-upload.svg?raw';
   import iconScissor from '../../imgs/icon-scissor.svg?raw';
   import iconOpen from '../../imgs/icon-open.svg?raw';
 
@@ -57,9 +56,6 @@
       <span class="section-name">Input Image</span>
       <div class="svg-icon rect-button" on:click="{() => {}}">
         {@html iconRefresh}
-      </div>
-      <div class="svg-icon rect-button" on:click="{() => {}}">
-        {@html iconUpload}
       </div>
     </div>
 
