@@ -15,6 +15,14 @@
   let mounted = false;
   let initialized = false;
   let myImageClassifier: ImageClassifier | null = null;
+  let dialogElement: HTMLDialogElement | null = null;
+  let valiImg: HTMLImageElement;
+  let files;
+  let usingURL = true;
+  let inputValue = '';
+  let showError = false;
+
+  // https://i.imgur.com/auioQcG.png
 
   const benefits = ['Privacy', 'Ubiquity', 'Interactivity'];
   let shownBenefits: string[] = [];
@@ -50,6 +58,49 @@
     }
   };
 
+  const imageUpload = () => {
+    usingURL = false;
+    const reader = new FileReader();
+    reader.onload = event => {
+      valiImg.src = event.target.result;
+    };
+    reader.readAsDataURL(files[0]);
+  };
+
+  const loadCallback = () => {
+    // The URL is valid, but we are not sure if loading it to canvas would be
+    // blocked by crossOrigin setting. Try it here before dispatch to parent.
+    // https://stackoverflow.com/questions/13674835/canvas-tainted-by-cross-origin-data
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d')!;
+    canvas.width = valiImg.width;
+    canvas.height = valiImg.height;
+    context.drawImage(valiImg, 0, 0);
+
+    try {
+      context.getImageData(0, 0, valiImg.width, valiImg.height);
+      // If the foreign image does support CORS -> use this image
+      // dispatch to parent component to use the input image
+      myImageClassifier?.handleCustomImage(valiImg.src);
+      dialogElement?.close();
+    } catch (err) {
+      // If the foreign image does not support CORS -> use this image
+      showError = true;
+    }
+  };
+
+  const addClicked = () => {
+    // Validate the input URL
+    showError = false;
+    valiImg.crossOrigin = 'Anonymous';
+    valiImg.src = inputValue;
+  };
+
+  const errorCallback = () => {
+    // The URL is invalid, show an error message on the UI
+    showError = true;
+  };
+
   $: mounted && !initialized && component && initView();
 </script>
 
@@ -58,6 +109,59 @@
 </style>
 
 <div class="image-classifier-wrapper" bind:this="{component}">
+  <dialog id="image-dialog" bind:this="{dialogElement}">
+    <div class="header">Add Input Image</div>
+
+    <div class="row-block">
+      <input
+        class="image-url-input"
+        type="url"
+        placeholder="Paste URL of image..."
+        bind:value="{inputValue}"
+      />
+
+      <span>or</span>
+
+      <div class="file">
+        <label class="file-label">
+          <input
+            class="file-input"
+            type="file"
+            name="image"
+            accept=".png,.jpeg,.tiff,.jpg,.png"
+            bind:files="{files}"
+            on:change="{imageUpload}"
+          />
+          <div class="button upload-button">
+            <div class="svg-icon no-pointer">
+              {@html iconUpload}
+            </div>
+            Upload
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <div class="button-block">
+      <span class="error-message" class:hidden="{!showError}"
+        >Failed to load, try a different image.</span
+      >
+      <button
+        class="add-button"
+        on:click="{() => {
+          addClicked();
+        }}">Add</button
+      >
+
+      <button
+        class="close-button"
+        on:click="{() => {
+          dialogElement?.close();
+        }}">Close</button
+      >
+    </div>
+  </dialog>
+
   <div class="image-classifier">
     <div class="top-section feature">
       <span class="section-name">Input Image</span>
@@ -69,7 +173,12 @@
       >
         {@html iconRefresh}
       </div>
-      <div class="svg-icon rect-button" on:click="{() => {}}">
+      <div
+        class="svg-icon rect-button"
+        on:click="{() => {
+          dialogElement?.showModal();
+        }}"
+      >
         {@html iconUpload}
       </div>
     </div>
@@ -239,4 +348,14 @@
       </div>
     </div>
   </div>
+
+  <!-- An invisible image to check if the user input URL is valid -->
+  <img
+    style="display: none"
+    id="vali-image"
+    alt="hidden image"
+    bind:this="{valiImg}"
+    on:error="{errorCallback}"
+    on:load="{loadCallback}"
+  />
 </div>

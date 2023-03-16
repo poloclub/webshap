@@ -450,6 +450,15 @@ export class ImageClassifier {
     return outputImage;
   };
 
+  /**
+   * Load user specified image
+   * @param url Image url
+   */
+  handleCustomImage = async (url: string) => {
+    // User gives a valid image URL
+    this.loadInputImage(url);
+  };
+
   sampleClicked = async () => {
     await this.loadRandomInputImage();
     this.updateVisualizations();
@@ -459,19 +468,27 @@ export class ImageClassifier {
    * Load the initial input image
    */
   loadRandomInputImage = async () => {
-    const inputCtx = this.inputCanvas.getContext('2d')!;
-
-    // Create a buffer context to load image
-    const hiddenCanvas = createBufferCanvas(IMG_SRC_LENGTH);
-    const hiddenCtx = hiddenCanvas.getContext('2d')!;
-
     // Load a random image
     const randomIndex = d3.randomInt(TOTAL_IMG_NUM)() + 1;
     const basename = `${randomIndex}`.padStart(4, '0');
     const imgFile = `${
       import.meta.env.BASE_URL
     }data/classifier-images/${basename}.jpeg`;
-    this.inputImage = await getInputImageData(imgFile);
+    this.loadInputImage(imgFile);
+  };
+
+  /**
+   * Load an image from its url
+   * @param url Image url
+   */
+  loadInputImage = async (url: string) => {
+    const inputCtx = this.inputCanvas.getContext('2d')!;
+
+    // Create a buffer context to load image
+    const hiddenCanvas = createBufferCanvas(IMG_SRC_LENGTH);
+    const hiddenCtx = hiddenCanvas.getContext('2d')!;
+
+    this.inputImage = await getInputImageData(url);
 
     // Draw the input image on screen
     hiddenCtx.clearRect(0, 0, IMG_SRC_LENGTH, IMG_SRC_LENGTH);
