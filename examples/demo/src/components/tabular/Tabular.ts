@@ -530,7 +530,7 @@ export class Tabular {
     // Inference the model
     const x = this.getCurX();
     const result = await this.predict([x]);
-    this.curPred = result[0][0];
+    this.curPred = result[0];
 
     // Explain this instance
     // Create background data for SHAP
@@ -699,7 +699,7 @@ export class Tabular {
    * @returns Predicted positive label probabilities (n)
    */
   predict = async (x: number[][]) => {
-    const posProbs: number[][] = [];
+    const posProbs = [];
 
     try {
       // Create a new session and load the LightGBM model
@@ -721,11 +721,11 @@ export class Tabular {
       for (const [i, p] of probs.entries()) {
         // Positive label prob is always at the odd index
         if (i % 2 === 1) {
-          posProbs.push([p]);
+          posProbs.push(p);
         }
       }
 
-      this.message = `Success: ${round(posProbs[0][0], 4)}`;
+      this.message = `Success: ${round(posProbs[0], 4)}`;
     } catch (e) {
       this.message = `Failed: ${e}.`;
     }
@@ -766,7 +766,7 @@ export class Tabular {
       return;
     }
 
-    this.curPred = result[0][0];
+    this.curPred = result[0];
     this.updatePred();
     this.updateShapPlot();
 
@@ -788,7 +788,7 @@ export class Tabular {
       return;
     }
 
-    this.curPred = result[0][0];
+    this.curPred = result[0];
     this.updatePred();
     this.tabularUpdated();
 
