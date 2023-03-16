@@ -24,7 +24,7 @@ const NUM_CLASS = 4;
 const DIVERGE_COLORS = [config.colors['pink-600'], config.colors['blue-700']];
 
 const IMG_SRC_LENGTH = 64;
-const IMG_LENGTH = 134;
+const IMG_LENGTH = 135;
 
 /**
  * Class for the Image Classifier WebSHAP demo
@@ -39,7 +39,6 @@ export class ImageClassifier {
   segCanvas: HTMLCanvasElement;
   explainCanvases: HTMLCanvasElement[];
   inputBackCanvases: HTMLCanvasElement[];
-  outputWrappers: d3.Selection<HTMLElement, unknown, null, undefined>[];
 
   // SVG selections
   colorScaleSVG: d3.Selection<HTMLElement, unknown, null, undefined>;
@@ -49,7 +48,6 @@ export class ImageClassifier {
   shapScale: d3.ScaleLinear<number, number, never>;
   shapLengthScale: d3.ScaleLinear<number, number, never>;
   colorLegendAxis: d3.Axis<d3.NumberValue>;
-  predProbScale: d3.ScaleLinear<number, number, never>;
 
   // ML inference
   inputImage: LoadedImage | null = null;
@@ -85,7 +83,6 @@ export class ImageClassifier {
 
     this.explainCanvases = [];
     this.inputBackCanvases = [];
-    this.outputWrappers = [];
 
     for (let i = 0; i < NUM_CLASS; i++) {
       const explainCanvas = initCanvasElement(
@@ -101,23 +98,7 @@ export class ImageClassifier {
         IMG_LENGTH
       );
       this.inputBackCanvases.push(inputCanvas);
-
-      const outputWrapper = d3
-        .select(component)
-        .select<HTMLElement>(`.output-wrapper-${i}`);
-      this.outputWrappers.push(outputWrapper);
     }
-
-    // Initialize the prediction rect scale
-    const barBackBBox = this.outputWrappers[0]
-      .select<HTMLElement>('.class-score-back')
-      .node()!
-      .getBoundingClientRect();
-
-    this.predProbScale = d3
-      .scaleLinear()
-      .domain([0, 1])
-      .range([0, barBackBBox.height]);
 
     // Initialize SVG elements
     this.colorScale = d3.piecewise(d3.interpolateHsl, [
@@ -150,14 +131,7 @@ export class ImageClassifier {
   updateVisualizations = async () => {
     // Get the model prediction
     const predictedProb = this.modelInference();
-    const formatter = d3.format('.4f');
-
-    // Update the bar chart
-    for (const [i, output] of this.outputWrappers.entries()) {
-      const frontRect = output.select<HTMLElement>('.class-score-front');
-      frontRect.style('height', `${this.predProbScale(predictedProb[i])}px`);
-      frontRect.select('.class-score-label').text(formatter(predictedProb[i]));
-    }
+    console.log(predictedProb);
 
     // Explain the model prediction
     const shapValues = await this.explainInputImage();
@@ -583,11 +557,6 @@ export class ImageClassifier {
       IMG_LENGTH,
       IMG_LENGTH
     );
-
-    // Update the segment info
-    d3.select(this.component)
-      .select('.segment-info')
-      .text(`${this.imageSeg.segSize} segments`);
 
     hiddenCanvas.remove();
   };
