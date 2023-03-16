@@ -1,17 +1,10 @@
 <script lang="ts">
   import Tabular from '../tabular/Tabular.svelte';
-  import ImageClassifier from '../image-classifier/ImageClassifier.svelte';
-  import TextClassifier from '../text-classifier/TextClassifier.svelte';
   import iconGithub from '../../imgs/icon-github.svg?raw';
   import iconWebshap from '../../imgs/icon-webshap.svg?raw';
 
   let component: HTMLElement | null = null;
-  const views = [
-    'loan-prediction',
-    'image-classification',
-    'text-classification'
-  ];
-  let view = views[2];
+  let view = 'loan-prediction';
 
   // Initialize the stores to pass to child components
   // const tooltipStore = getTooltipStore();
@@ -76,17 +69,22 @@
     </div>
 
     <div class="main-app" bind:this="{component}">
-      <div class="main-app-container" class:hidden="{view !== views[0]}">
+      <div
+        class="main-app-container"
+        class:hidden="{view !== 'loan-prediction'}"
+      >
         <Tabular />
       </div>
 
-      <div class="main-app-container" class:hidden="{view !== views[1]}">
-        <ImageClassifier />
-      </div>
+      <div
+        class="main-app-container"
+        class:hidden="{view !== 'image-classification'}"
+      ></div>
 
-      <div class="main-app-container" class:hidden="{view !== views[2]}">
-        <TextClassifier />
-      </div>
+      <div
+        class="main-app-container"
+        class:hidden="{view !== 'text-classification'}"
+      ></div>
     </div>
   </div>
 </div>
