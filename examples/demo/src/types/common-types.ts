@@ -14,7 +14,25 @@ export type TextWorkerMessage =
   | {
       command: 'finishLoadModel';
       payload: Record<string, never>;
+    }
+  | {
+      command: 'startPredict';
+      payload: {
+        inputText: string;
+      };
+    }
+  | {
+      command: 'finishPredict';
+      payload: {
+        result: TextPredictionResult;
+      };
     };
+
+export interface TextPredictionResult {
+  inputText: string;
+  tokenWords: string[];
+  probs: number[];
+}
 
 type FeatureType = 'cont' | 'cat';
 

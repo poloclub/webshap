@@ -459,83 +459,93 @@ $box-padding: 12px 12px;
 
 .output-box {
   display: flex;
-  gap: 12px;
   flex-direction: row;
-
   width: 100%;
   height: 100%;
-  height: 50px;
-  width: 410px;
 
   grid-row: 2 / 3;
-  grid-column: col3-start / col3-end;
+  grid-column: 4 / 5;
 
-  padding: $box-padding;
+  padding: 10px 15px;
   border: 1px solid $gray-light-border;
   border-radius: $border-radius;
   box-shadow: $block-shadow;
 
-  font-variant-numeric: tabular-nums;
+  .label-container {
+    position: relative;
+    flex-shrink: 0;
 
-  $label-height: 14px;
+    .label {
+      position: absolute;
+      top: 0px;
+      left: 0px;
 
-  .output-wrapper {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-
-    .class-score {
-      height: 100%;
-      width: 30px;
       display: flex;
-      position: relative;
+      gap: 4px;
+      align-items: center;
 
-      .class-score-back {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        border-top-right-radius: 2px;
-        border-top-left-radius: 2px;
+      font-weight: 600;
+      opacity: 100%;
+      transition: opacity 100ms ease-in-out;
 
-        width: 100%;
-        height: calc(100% - $label-height);
-        background-color: $gray-200;
+      &.placeholder {
+        position: relative;
       }
 
-      .class-score-front {
-        position: absolute;
-        bottom: 0;
-        left: 0;
+      &.approval {
+        color: $blue-500;
+      }
 
-        width: 100%;
-        height: 0px;
-        background-color: $gray-600;
-        border-top-right-radius: 2px;
-        border-top-left-radius: 2px;
+      &.rejection {
+        color: $pink-300;
+      }
 
-        transition: height 300ms ease-in-out;
+      &.hidden {
+        opacity: 0%;
+        pointer-events: none;
+      }
 
-        .class-score-label {
-          position: absolute;
-          top: 0;
-          left: 50%;
-          transform: translate(-50%, -112%);
-
-          color: $gray-600;
-          font-size: $label-height;
-          font-weight: 500;
-          line-height: 1;
-        }
+      .svg-icon {
+        width: 20px;
+        height: 20px;
       }
     }
+  }
 
-    .class-label {
-      color: $gray-800;
-      font-weight: 500;
-      line-height: 1;
+  .pred-bar {
+    // width: 185px;
+    padding: 0 0px;
+    display: flex;
+    align-items: center;
+
+    .pred-bar-svg {
+      width: 100%;
+      height: 20px;
+
+      :global(.back-rect) {
+        fill: $gray-300;
+      }
+
+      :global(.top-rect) {
+        fill: $pink-200;
+        transition: width 200ms ease-in-out, fill 200ms linear;
+      }
+
+      :global(.top-rect.approval) {
+        fill: $blue-400;
+      }
+
+      :global(.threshold) {
+        fill: $gray-700;
+      }
     }
+  }
+
+  .pred-number {
+    width: 70px;
+    flex-shrink: 0;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
   }
 }
 

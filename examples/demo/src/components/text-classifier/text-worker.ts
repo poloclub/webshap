@@ -36,7 +36,12 @@ self.onmessage = (e: MessageEvent<TextWorkerMessage>) => {
     case 'startLoadModel': {
       const modelUrl = e.data.payload.url;
       loadModel = startLoadModel(modelUrl);
-      getModelInput("Son, you're too young GPU vandalism.");
+      break;
+    }
+
+    case 'startPredict': {
+      const inputText = e.data.payload.inputText;
+      predict(inputText);
       break;
     }
 
@@ -76,14 +81,7 @@ const startLoadModel = async (url: string) => {
 const tokenize = (inputText: string) => {
   // Tokenize the input text
   return loadModel.then(model => {
-    const tokens = model.tokenizer.tokenize(inputText);
-    return tokens;
-  });
-};
-
-const detokenize = (tokenIDs: number[]) => {
-  return loadModel.then(model => {
-    // TODO
+    return model.tokenizer.tokenize(inputText);
   });
 };
 
@@ -91,10 +89,7 @@ const detokenize = (tokenIDs: number[]) => {
  * Get the model's input (token IDs, attention mask, type ids) in Tensor format
  * @param inputText Input text
  */
-const getModelInput = async (inputText: string) => {
-  const [tokenIDs, tokenWords] = await tokenize(inputText);
-  console.log(tokenWords);
-
+const getONNXInput = (tokenIDs: number[]) => {
   // Create big int arrays
   const inputIDs = new Array<bigint>(tokenIDs.length + 2);
   const attentionMasks = new Array<bigint>(tokenIDs.length + 2).fill(BigInt(1));
@@ -128,11 +123,48 @@ const getModelInput = async (inputText: string) => {
     [1, tokenIDs.length + 2]
   );
 
-  console.log(inputIDsTensor, attentionMasksTensor, tokenTypeIDsTensor);
-
-  return {
-    inputIDsTensor,
-    attentionMasksTensor,
-    tokenTypeIDsTensor
+  // We need to use the exact input name defined in the onnx model
+  const onnxInput = {
+    input_ids: inputIDsTensor,
+    attention_mask: attentionMasksTensor,
+    token_type_ids: tokenTypeIDsTensor
   };
+
+  return onnxInput;
+};
+
+const predict = async (inputText: string) => {
+  const [tokenIDs, tokenWords] = await tokenize(inputText);
+  const onnxInput = getONNXInput(tokenIDs);
+  const model = await loadModel;
+  const output = await model.session.run(onnxInput);
+
+  // Convert logits into probabilities
+  const logits = output['output_0'].data as Float32Array;
+  const probs = softmax([...logits]);
+
+  const result = {
+    inputText,
+    tokenWords,
+    probs
+  };
+
+  // Send the result back to the main thread
+  const message: TextWorkerMessage = {
+    command: 'finishPredict',
+    payload: {
+      result
+    }
+  };
+  postMessage(message);
+};
+
+/**
+ * Helper function for softmax
+ * @param logits Logits
+ * @returns Class probabilities
+ */
+const softmax = (logits: number[]) => {
+  const expSum = logits.reduce((a, b) => a + Math.exp(b), 0);
+  return logits.map(d => Math.exp(d) / expSum);
 };
