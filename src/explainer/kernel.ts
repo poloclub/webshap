@@ -394,9 +394,6 @@ export class KernelSHAP {
     return varyingIndexes;
   };
 
-  /**
-   * Run the ML model on all sampled feature coalitions
-   */
   inferenceFeatureCoalitions = async () => {
     if (this.sampledData === null) {
       throw Error('sampledData is null.');
