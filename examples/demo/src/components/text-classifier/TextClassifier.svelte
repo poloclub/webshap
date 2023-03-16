@@ -17,6 +17,11 @@
   let initialized = false;
   let myTextClassifier: TextClassifier | null = null;
 
+  const defaultInput =
+    "Son, you're too young and stupid to tell me that you know enough to claim " +
+    "what is vandalism and what isn't.  I suggest you go do your put the computer " +
+    'down and do your homework.  You can play on the weekend when school lets out.';
+
   const benefits = ['Privacy', 'Ubiquity', 'Interactivity'];
   let shownBenefits: string[] = [];
 
@@ -47,7 +52,8 @@
     if (component) {
       myTextClassifier = new TextClassifier({
         component,
-        textClassifierUpdated
+        textClassifierUpdated,
+        defaultInput
       });
     }
   };
@@ -79,9 +85,6 @@
           class="input-area"
           autocorrect="off"
           spellcheck="false"
-          on:input="{() => {
-            if (myTextClassifier) myTextClassifier.inputChanged();
-          }}"
           rows="7"></textarea>
       </div>
     </div>
@@ -209,7 +212,7 @@
               <div class="circle-loader"></div>
               <span class="loader-label">Computing SHAP values</span>
             </div>
-            <div class="text-block hidden"></div>
+            <div class="text-block"></div>
           </div>
         </div>
       </div>

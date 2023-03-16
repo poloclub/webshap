@@ -54,10 +54,10 @@ $box-padding: 12px 12px;
   cursor: default;
 
   display: grid;
-  grid-template-rows: 1fr min-content min-content min-content 12px min-content 1fr;
+  grid-template-rows: 1fr min-content min-content min-content 12px 330px 1fr;
   grid-template-columns:
     1fr [col1-start] minmax(min-content, 340px) [col2-start] minmax(
-      220px,
+      200px,
       0.5fr
     )
     [col3-start] min-content [col3-end] 1fr;
@@ -644,7 +644,7 @@ $box-padding: 12px 12px;
     .text-block-container {
       display: flex;
       width: 100%;
-      height: 290px;
+      height: 100%;
       align-items: flex-start;
       justify-content: center;
       background-color: change-color($color: $gray-500, $lightness: 97%);
@@ -698,14 +698,6 @@ $box-padding: 12px 12px;
       column-gap: 12px;
       width: 100%;
       color: $gray-900;
-
-      transition: opacity 200ms ease-in-out;
-      opacity: 1;
-
-      &.hidden {
-        opacity: 0;
-        pointer-events: none;
-      }
 
       :global(.text-word) {
         display: flex;
