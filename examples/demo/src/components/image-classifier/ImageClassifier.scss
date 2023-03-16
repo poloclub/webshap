@@ -101,9 +101,8 @@ $box-padding: 12px 12px;
 
   .class-label {
     color: $gray-800;
-    font-weight: 600;
+    font-weight: 500;
     line-height: 1;
-    font-size: $font-u1;
   }
 }
 
@@ -659,9 +658,8 @@ $box-padding: 12px 12px;
 
     .class-label {
       color: $gray-800;
-      font-weight: 600;
+      font-weight: 500;
       line-height: 1;
-      font-size: $font-u1;
     }
   }
 }
@@ -749,7 +747,6 @@ $box-padding: 12px 12px;
       font-weight: 600;
       padding: 2px 10px;
       border-radius: 4px;
-      color: $gray-800;
       background: linear-gradient(
         135deg,
         change-color($pink-200, $alpha: 0.8) 0%,

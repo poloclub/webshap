@@ -55,7 +55,7 @@ $box-padding: 12px 12px;
   padding: 20px 23px;
 
   display: grid;
-  grid-template-rows: min-content min-content min-content 30px 1fr;
+  grid-template-rows: min-content min-content min-content 20px 1fr;
   grid-template-columns:
     1fr [col1-start] minmax(min-content, 340px) [col2-start] minmax(
       200px,
@@ -516,10 +516,10 @@ $box-padding: 12px 12px;
       display: flex;
       width: 100%;
       height: 100%;
-      align-items: flex-start;
+      align-items: center;
       justify-content: center;
       background-color: change-color($color: $gray-500, $lightness: 97%);
-      padding: 30px 30px;
+      padding: 30px;
       border-radius: 8px;
       overflow-y: auto;
     }
@@ -530,8 +530,8 @@ $box-padding: 12px 12px;
       flex-wrap: wrap;
       justify-content: flex-start;
 
-      row-gap: 12px;
-      column-gap: 12px;
+      row-gap: 15px;
+      column-gap: 16px;
       width: 100%;
       color: $gray-900;
 
@@ -562,7 +562,6 @@ $box-padding: 12px 12px;
         padding: 2px 8px;
         border-radius: 4px;
         white-space: nowrap;
-        color: $gray-800;
         background: linear-gradient(
           135deg,
           change-color($pink-200, $alpha: 0.8) 0%,
