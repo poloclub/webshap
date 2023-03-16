@@ -70,7 +70,6 @@ export class Tabular {
   curIndex = 0;
 
   // ONNX data
-  onnxSession: ort.InferenceSession | null = null;
   message: string;
   curPred: number | null = null;
 
@@ -700,14 +699,12 @@ export class Tabular {
    * @returns Predicted positive label probabilities (n)
    */
   predict = async (x: number[][]) => {
-    // Load the model if it is not loaded already
-    if (this.onnxSession === null) {
-      this.onnxSession = await ort.InferenceSession.create(modelUrl);
-    }
-
     const posProbs: number[][] = [];
 
     try {
+      // Create a new session and load the LightGBM model
+      const session = await ort.InferenceSession.create(modelUrl);
+
       // First need to flatten the x array
       const xFlat = Float32Array.from(x.flat());
 
@@ -716,7 +713,7 @@ export class Tabular {
       const feeds = { float_input: xTensor };
 
       // Feed inputs and run
-      const results = await this.onnxSession.run(feeds);
+      const results = await session.run(feeds);
 
       // Read from results, probs has shape (n * 2) => (n, 2)
       const probs = results.probabilities.data as Float32Array;
