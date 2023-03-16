@@ -26,6 +26,23 @@
   max-height: 950px;
 }
 
+.svg-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: currentColor;
+  cursor: pointer;
+  width: 1em;
+  height: 1em;
+  transition: color 100ms;
+
+  :global(svg) {
+    fill: currentColor;
+    width: 100%;
+    height: 100%;
+  }
+}
+
 .app-title {
   width: 100%;
 
@@ -174,6 +191,43 @@
         color: white;
       }
     }
+  }
+}
+
+.text-right {
+  grid-row: 2 / 3;
+  grid-column: 3 / 4;
+  display: flex;
+  justify-content: flex-start;
+  padding-left: 12px;
+  margin-top: 80px;
+
+  color: $gray-300;
+
+  .icon-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 6px;
+  }
+
+  a {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    color: white;
+    gap: 10px;
+    font-size: 1.1rem;
+  }
+
+  .svg-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: currentColor;
+    width: 30px;
+    height: 30px;
   }
 }
 
