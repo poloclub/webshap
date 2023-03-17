@@ -1,32 +1,26 @@
 # WebSHAP <a href="https://poloclub.github.io/webshap/"><img align="right" src="examples/demo/src/imgs/icon-webshap.svg" height="38"></img></a>
 
 [![build](https://github.com/xiaohk/webshap/actions/workflows/build.yml/badge.svg)](https://github.com/xiaohk/webshap/actions/workflows/build.yml)
-[![npm](https://img.shields.io/npm/v/webshap?color=red)](https://www.npmjs.com/package/webshap)
+[![npm](https://img.shields.io/npm/v/webshap?color=orange)](https://www.npmjs.com/package/webshap)
 [![license](https://img.shields.io/badge/License-MIT-blue)](https://github.com/poloclub/webshap/blob/main/LICENSE)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7604420.svg)](https://doi.org/10.5281/zenodo.7604420)
-<!-- [![arxiv badge](https://img.shields.io/badge/arXiv-2209.09227-red)](https://arxiv.org/abs/2209.09227) -->
-<!-- [![DOI:10.1145/3491101.3519653](https://img.shields.io/badge/DOI-10.1145/3491101.3519653-blue)](https://doi.org/10.1145/3491101.3519653) -->
+[![arxiv badge](https://img.shields.io/badge/arXiv-2209.09227-red)](https://arxiv.org/abs/2303.09545)
+[![DOI:10.1145/3543873.3587362](https://img.shields.io/badge/DOI-10.1145/3543873.3587362-blue)](https://doi.org/10.1145/3543873.3587362)
 
 Explaining any machine learning models directly in your browser!
 
-<!-- <table>
+<table>
   <tr>
-    <td colspan="4"><a href="https://poloclub.github.io/timbertrek"><img src='https://i.imgur.com/t4qtPPX.png'></a></td>
+    <td colspan="4"><a href="https://poloclub.github.io/webshap"><img src='https://user-images.githubusercontent.com/15007159/225828020-a09a68bd-0cbf-4d35-9255-6d9bf2ac15b3.gif'></a></td>
   </tr>
   <tr></tr>
   <tr>
-    <td><a href="https://poloclub.github.io/timbertrek">🚀 Live Demo</a></td>
-    <td><a href="https://youtu.be/3eGqTmsStJM">📺 Demo Video</a></td>
-    <td><a href="https://youtu.be/l1mr9z1TuAk">👨🏻‍🏫 Conference Talk</a></td>
-    <td><a href="https://arxiv.org/abs/2209.09227">📖 Research Paper</a></td>
+    <td><a href="https://poloclub.github.io/webshap/?model=tabulark">💰 Loan Prediction</a></td>
+    <td><a href="https://poloclub.github.io/webshap/?model=image">🖼️ Image Classifier</a></td>
+    <td><a href="https://poloclub.github.io/webshap/?model=text">🤬 Toxicity Detector</a></td>
+    <td><a href="https://arxiv.org/abs/2303.09545">📖 Research Paper</a></td>
   </tr>
-</table> -->
+</table>
 
-
-|<img src="https://i.imgur.com/IaYAGex.png">|
-|:---:|
-|<img src='https://user-images.githubusercontent.com/15007159/216748746-9cc9eb56-e456-454b-b448-52d400801610.gif'>|
-|<a href="https://poloclub.github.io/webshap/">🔎 Example Web application applying WebSHAP to explain loan approval decisions|
 
 ## What is WebSHAP?
 
