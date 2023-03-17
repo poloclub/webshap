@@ -110,7 +110,7 @@ This demo runs entirely on the client side, making it accessible from desktops, 
 
 ### Demo 2: Explaining Convolutional Neural Networks
 
-|<img src='https://user-images.githubusercontent.com/15007159/225994489-2ade48fc-343e-4ef8-940a-13b383ae0440.jpg'>|
+|<img src='https://user-images.githubusercontent.com/15007159/226048036-c92043ee-df9b-42a6-9607-a15dd3da5470.jpg'>|
 |:---:|
 |[🔎 WebSHAP explaining a convolutional neural network for image classification](https://poloclub.github.io/webshap/?model=image) 🌠|
 
@@ -124,7 +124,7 @@ Everything in this example (TinyVGG, image segmenter, WebSHAP) runs in the user'
 
 ### Demo 3: Explaining Transformer-based Text Classifiers
 
-|<img src='https://user-images.githubusercontent.com/15007159/225994494-805952ae-2235-48d2-a923-7ea0c7e55e9a.jpg'>|
+|<img src='https://user-images.githubusercontent.com/15007159/226048056-1e5f0d2d-f7f1-4f8f-9a48-7b2b2f4cad72.jpg'>|
 |:---:|
 |[🔎 WebSHAP explaining a transformer model for text classification](https://poloclub.github.io/webshap/?model=text) 🔤|
 
