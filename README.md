@@ -1,4 +1,4 @@
-# WebSHAP <a href="https://poloclub.github.io/webshap/"><img align="right" src="examples/demo/src/imgs/icon-webshap.svg" height="38"></img></a>
+# WebSHAP <a href="https://poloclub.github.io/webshap/"><img align="right" src="https://raw.githubusercontent.com/poloclub/webshap/main/examples/demo/src/imgs/icon-webshap.svg" height="38"></img></a>
 
 [![build](https://github.com/xiaohk/webshap/actions/workflows/build.yml/badge.svg)](https://github.com/xiaohk/webshap/actions/workflows/build.yml)
 [![npm](https://img.shields.io/npm/v/webshap?color=orange)](https://www.npmjs.com/package/webshap)
@@ -6,25 +6,45 @@
 [![arxiv badge](https://img.shields.io/badge/arXiv-2209.09227-red)](https://arxiv.org/abs/2303.09545)
 [![DOI:10.1145/3543873.3587362](https://img.shields.io/badge/DOI-10.1145/3543873.3587362-blue)](https://doi.org/10.1145/3543873.3587362)
 
-Explaining any machine learning models directly in your browser!
+JavaScript library that explains any machine learning models in your browser!
 
 <table>
   <tr>
-    <td colspan="4"><a href="https://poloclub.github.io/webshap"><img src='https://user-images.githubusercontent.com/15007159/225828020-a09a68bd-0cbf-4d35-9255-6d9bf2ac15b3.gif'></a></td>
+    <td colspan="2"><a href="https://poloclub.github.io/webshap"><img src='https://user-images.githubusercontent.com/15007159/225991959-c2b10d8b-be24-4f5c-a6f4-2b9f5876095c.gif' width="100%"></a></td>
   </tr>
   <tr></tr>
   <tr>
-    <td><a href="https://poloclub.github.io/webshap/?model=tabulark">💰 Loan Prediction</a></td>
-    <td><a href="https://poloclub.github.io/webshap/?model=image">🖼️ Image Classifier</a></td>
-    <td><a href="https://poloclub.github.io/webshap/?model=text">🤬 Toxicity Detector</a></td>
-    <td><a href="https://arxiv.org/abs/2303.09545">📖 Research Paper</a></td>
+    <td>
+      <table>
+        <tr>
+          <td colspan="3" align="center">Live Explainer Demos</td>
+        </tr>
+        <tr></tr>
+        <tr>
+          <td><a href="https://poloclub.github.io/webshap/?model=tabulark">💰 Loan Prediction</a></td>
+          <td><a href="https://poloclub.github.io/webshap/?model=image">🌠 Image Classifier</a></td>
+          <td><a href="https://poloclub.github.io/webshap/?model=text">🔤 Toxicity Detector</a></td>
+        </tr>
+      </table>
+    </td>
+    <td>
+      <table>
+        <tr>
+          <td colspan="1" align="center">Research Paper</td>
+        </tr>
+        <tr></tr>
+        <tr>
+          <td><a href="https://poloclub.github.io/webshap/?model=tabulark">📖 WebSHAP(TheWebConf'23)</a></td>
+        </tr>
+      </table>
+    </td>
   </tr>
 </table>
 
 
 ## What is WebSHAP?
 
-WebSHAP is a TypeScript library that adapts Kernel SHAP for the Web environments. You can use it to explain any machine learning models available on the Web directly in your browser. Given a model's prediction on a data point, WebSHAP can compute the importance score for each input feature. WebSHAP leverages modern Web technologies such as WebGL to accelerate computations. With a moderate model size and number of input features, WebSHAP can generate explanations in real time.✨
+WebSHAP is a JavaScript library that adapts Kernel SHAP for the Web environments. You can use it to explain any machine learning models available on the Web directly in your browser. Given a model's prediction on a data point, WebSHAP can compute the importance score for each input feature. WebSHAP leverages modern Web technologies such as WebGL to accelerate computations. With a moderate model size and number of input features, WebSHAP can generate explanations in real time.✨
 
 ## Getting Started
 
@@ -76,15 +96,47 @@ console.log(shapValue);
 See the [WebSHAP Documentation](http://poloclub.github.io/webshap/doc/) for more details.
 
 ## Application Example
-|<img src='https://i.imgur.com/42IGD2Y.png'>|
-|:---:|
-|[🔎 WebSHAP explaining an XGBoost-based loan approval model](https://poloclub.github.io/webshap)|
 
-We present `Loan Explainer` as an example of applying WebSHAP to explain a financial ML model in browsers. For a live demo of Loan Explainer, visit: <https://poloclub.github.io/webshap>.
+### Demo 1: Explaining XGBoost
+
+|<img src='https://user-images.githubusercontent.com/15007159/226003794-94b3a0d9-b132-4ab2-80fc-33aecbd66337.jpg'>|
+|:---:|
+|[🔎 WebSHAP explaining an XGBoost-based loan approval model](https://poloclub.github.io/webshap/?model=tabular) 💰|
+
+We present `Loan Explainer` as an example of applying WebSHAP to explain a financial ML model in browsers. For a live demo of Loan Explainer, visit [this webpage](https://poloclub.github.io/webshap/?model=text).
 
 This example showcases a bank using an [XGBoost classifier](https://github.com/dmlc/xgboost) on the [LendingClub dataset](https://www.kaggle.com/datasets/wordsforthewise/lending-club) to predict if a loan applicant will be able to repay the loan on time. With this model, the bank can make automatic loan approval decisions. It's important to understand how these high-stakes decisions are being made, and that's where WebSHAP comes in. It provides *private*, *ubiquitous*, and *interactive* ML explanations.
 
 This demo runs entirely on the client side, making it accessible from desktops, tablets, and phones. The model inference is powered by [ONNX Runtime](https://github.com/microsoft/onnxruntime). The UI is implemented using [Svelte](https://github.com/sveltejs/svelte). With Loan Explainer, users can experiment with different feature inputs and instantly see the model's predictions, along with clear explanations for those predictions.
+
+### Demo 2: Explaining Convolutional Neural Networks
+
+|<img src='https://user-images.githubusercontent.com/15007159/225994489-2ade48fc-343e-4ef8-940a-13b383ae0440.jpg'>|
+|:---:|
+|[🔎 WebSHAP explaining a convolutional neural network for image classification](https://poloclub.github.io/webshap/?model=image) 🌠|
+
+We apply WebSHAP to explain convolutional neural networks (CNNs) in browsers. The live demo of this explainer is available on [this webpage](https://poloclub.github.io/webshap/?model=image).
+
+In this example, we first train a TinyVGG model to classify images into four categories: 🐞`Ladybug`, ☕️`Espresso`, 🍊`Orange`, and 🚙`Sports Car`. TinyVGG is a type of convolutional neural network. For more details about the model architecture, check out [CNN Explainer](https://poloclub.github.io/cnn-explainer). TinyVGG is implemented using [TensorFlow.js](https://www.tensorflow.org/js).
+
+To explain the predictions of TinyVGG, we first apply image segmentation ([SLIC](https://www.iro.umontreal.ca/~mignotte/IFT6150/Articles/SLIC_Superpixels.pdf)) to divide the input image into multiple segments. Then, we compute SHAP scores on each segment for each class. The background data here are white pixels. We compute SHAP values for segments instead of raw pixels for computation efficiency. For example, in the figure above, there are only 16 input features (16 segments) for WebSHAP, but there would have been $64 \times 64 \times 3 = 12288$ input features if we use raw pixels. Finally, we visualize the SHAP scores of each segment as an overlay with a diverging color scale on top of the original input image.
+
+Everything in this example (TinyVGG, image segmenter, WebSHAP) runs in the user's browser. In addition, WebSHAP enables *interactive* explanation: users can click a button to use a random input image or upload their own images. Both model inference and SHAP computation are real-time.
+
+
+### Demo 3: Explaining Transformer-based Text Classifiers
+
+|<img src='https://user-images.githubusercontent.com/15007159/225994494-805952ae-2235-48d2-a923-7ea0c7e55e9a.jpg'>|
+|:---:|
+|[🔎 WebSHAP explaining a transformer model for text classification](https://poloclub.github.io/webshap/?model=text) 🔤|
+
+We use WebSHAP to explain the predictions of a Transformer text classifier in browsers. The live demo for this explainer is accessible on [this webpage](https://poloclub.github.io/webshap/?model=text).
+
+We train an [XtremeDistil model](https://github.com/microsoft/xtreme-distil-transformers) to predict if an input text is toxic. The XtremeDistil model is a distilled version of pre-trained transformer-based language model BERT. We train this model on the [Toxic Comments dataset](https://www.kaggle.com/competitions/jigsaw-toxic-comment-classification-challenge/data). Then, we quantize and export the trained model to use `int8` weights with [ONNX](https://github.com/onnx/onnxmltools). We use [TensorFlow.js](https://github.com/tensorflow/tfjs-models/blob/master/qna/src/bert_tokenizer.ts) for tokenization and [ONNX Runtime](https://onnxruntime.ai) for model inference.
+
+To explain the model's predictions, we compute SHAP scores for each input token. For background data, we use BERT's attention mechanism to mask tokens. For example, we represent a "missing" token by setting its [attention map](https://huggingface.co/docs/transformers/glossary#attention-mask) to `0`, which tells the model to ignore this token. Finally, we visualize the SHAP scores as token's background color with a diverging color scale.
+
+All components in this example (XtremeDistil, tokenizer, WebSHAP) runs on the client-side. WebSHAP provides *private*, *ubiquitous*, and *interactive* explanations. Users can edit the input text and see new predictions and explanations. The model inference is real-time, and SHAP computation takes about 5 seconds for 50 tokens.
 
 
 ## Developing WebSHAP
@@ -107,7 +159,7 @@ Use Vitest for unit testing:
 npm run test
 ```
 
-## Developing the Loan Explainer Example
+## Developing the Application Examples
 
 Clone or download this repository:
 
@@ -133,12 +185,26 @@ Then run Loan Explainer:
 npm run dev
 ```
 
-Navigate to localhost:3000. You should see Loan Explainer running in your browser :)
+Navigate to localhost:3000. You should see three Explainers running in your browser :)
 
 ## Credits
 
 WebSHAP is created by <a href='https://zijie.wang/' target='_blank'>Jay Wang</a> and <a href='' target='_blank'>Polo Chau</a>.
 
+## Citation
+
+To learn more about WebSHAP, please read our [research paper](https://arxiv.org/abs/2303.09545) (published at [TheWebConf'23](https://www2023.thewebconf.org)). If you find WebSHAP useful for your research, please consider citing our paper. And if you're building any exciting projects with WebSHAP, we'd love to hear about them!
+
+```bibTeX
+@inproceedings{wangWebSHAPExplainingAny2023,
+  title = {{{WebSHAP}}: {{Towards Explaining Any Machine Learning Models Anywhere}}},
+  shorttitle = {{{WebSHAP}}},
+  booktitle = {Companion {{Proceedings}} of the {{Web Conference}} 2023},
+  author = {Wang, Zijie J. and Chau, Duen Horng},
+  year = {2023},
+  langid = {english}
+}
+```
 
 ## License
 
