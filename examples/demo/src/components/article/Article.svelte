@@ -6,8 +6,8 @@
 
   import iconLogo from '../../imgs/icon-webshap.svg?raw';
   import iconGT from '../../imgs/logo-gt.svg?raw';
-  import iconCopy from '../../imgs/icon-check-box.svg?raw';
-  import iconCheckBox from '../../imgs/icon-check.svg?raw';
+  import iconCopy from '../../imgs/icon-copy-box.svg?raw';
+  import iconCheckBox from '../../imgs/icon-check-box.svg?raw';
   import text from './ArticleText.yml';
 
   let component: HTMLElement | null = null;

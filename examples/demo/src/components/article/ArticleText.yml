@@ -6,13 +6,13 @@ tool:
     models that can run on clients' edge devices. To reflect the "transparency
     and explainability" <a
     href='https://www.w3.org/TR/webmachinelearning-ethics/#principle-6-transparency-and-explainability'
-    target='_blank' rel='noreferrer'>ethical principle</a> of Web ML, <a
+    target='_blank' rel='noreferrer'>ethical principle</a> of Web ML, <strong><a
     href='https://github.com/poloclub/webshap' target='_blank'
-    rel='noreferrer'>WebSHAP</a> is the first JavaScript library that brings <a
+    rel='noreferrer'>WebSHAP</a> is the first JavaScript library</strong> that brings <a
     href='https://proceedings.neurips.cc/paper/2017/hash/8a20a8621978632d76c43dfd28b67767-Abstract.html'
     target='_blank' rel='noreferrer'>Kernel SHAP</a> to the Web
-    environment—enabling developers and end-users to <strong>explain any ML
-    models anywhere.</strong>
+    environment—<em>enabling developers and end-users to explain any ML
+    models anywhere.</em>
 
   - >
     Kernel SHAP is the state-of-the-art model-agnostic explainability technique
@@ -68,11 +68,11 @@ tutorial:
           rel='noreferrer'>ONNX Runtime</a>. With Loan Explainer, users can
           experiment with different feature inputs and instantly see the model's
           predictions, along with clear explanations for those predictions.
-      caption: The <em>Rashomon Overview</em> adapts Sunburst to summarize the
-        whole Rashomon set. It organizes decision trees based on their decision
-        paths. Users can click a sector to zoom into a specific subset of models
-        with similar prediction patterns. Users can also control the number of
-        levels to show in the Sunburst.
+      caption: The <em>loan explainer</em> applies WebSHAP to explain an XGBoost
+        model in the browser. Users can click the shuffle button to change a
+        random test sample. Users can also modify individual continuous and
+        categorical input features. XGBoost will give a new prediction on the
+        updated input data and WebSHAP will explain the prediction in real time.
     - id: image
       name: Explaining Convolutional Neural Networks (CNNs)
       isWide: true
@@ -108,12 +108,13 @@ tutorial:
           upload their own images. Both model inference and SHAP computation are
           real-time.
       caption: >
-        A <em>Tree Windows</em> uses a node-link diagram to illustrate the
-        details of a decision tree. An alternative waterfall-like chart
-        augments node size with its sample size, helping users to better
-        understand each tree's robustness. To compare the structure and
-        prediction patterns of multiple decision trees, users can open multiple
-        windows and drag to reposition them side by side.
+        The <em>image classifier explainer</em> applies WebSHAP to explain a CNN
+        model in the browser. Users can click the shuffle button to change a
+        random input image. Users can also upload their own images by clicking
+        the upload button. The CNN model will give a new prediction on the new
+        input image in real time. WebSHAP will compute SHAP scores on a few
+        segments of the image and visualize the SHAP scores with a diverging
+        color scale.
     - id: text
       name: Explaining Transformers
       isWide: false
@@ -155,12 +156,12 @@ tutorial:
           model inference is real-time, and SHAP computation takes about 5
           seconds for 50 tokens.
       caption: >
-        The <em>Search Panel</em> allows users to search for decision trees with
-        desired properties by applying different filtering tools. For example, a
-        user can drag the accuracy slider to hide decision trees with slightly
-        smaller accuracy scores. Similarly, a user can also click checkboxes under
-        "Depth 3" to search for trees that use specific features in their
-        second level.
+        The <em>text classifier explainer</em> applies WebSHAP to explain a
+        transformer-based toxicity detector in the browser. Users can click the
+        shuffle button to change a random input document. Users can also enter
+        their own sentences by typing in the text area. The transformer model
+        will give a new prediction on the current input text, and WebSHAP will
+        compute SHAP scores for each input token.
 
 development: >
   WebSHAP is written in <a href='https://www.typescriptlang.org'
