@@ -803,7 +803,7 @@ dialog[open] {
   pointer-events: all;
 
   &::backdrop {
-    background-color: hsla(0, 0%, 0%, 0.55);
+    background-color: hsla(0, 0%, 0%, 0.75);
     animation: fade-in 300ms;
   }
 

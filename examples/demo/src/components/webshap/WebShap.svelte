@@ -5,6 +5,7 @@
   import iconGithub from '../../imgs/icon-github.svg?raw';
   import iconWebshap from '../../imgs/icon-webshap.svg?raw';
   import iconFile from '../../imgs/icon-file.svg?raw';
+  import iconVideo from '../../imgs/icon-youtube.svg?raw';
   import d3 from '../../utils/d3-import';
 
   let component: HTMLElement | null = null;
@@ -57,12 +58,12 @@
   <div class="description-panel">
     <div class="text-blocks">
       <p>
-        <a href="https://github.com/poloclub/webshap">WebSHAP</a> is an open-source
+        <a href="https://github.com/poloclub/webshap">WebSHAP</a> is a JavaScript
         library that can explain any machine learning models on the Web.
       </p>
 
       <p>
-        ✨There is no backend server for this demo. Everything is running in
+        ✨There is no backend server for the demos. Everything is running in
         your browser. ✨
       </p>
 
@@ -72,9 +73,17 @@
             >WebSHAP</a
           >
         </li>
-        <li>
-          Inference by <a href="https://onnxruntime.ai/">ONNX Runtime</a>
-        </li>
+        {#if view === views[1]}
+          <li>
+            Inference by <a href="https://www.tensorflow.org/js/"
+              >TensorFlow.js</a
+            >
+          </li>
+        {:else}
+          <li>
+            Inference by <a href="https://onnxruntime.ai/">ONNX Runtime</a>
+          </li>
+        {/if}
         <li>
           Acceleration by <a href="https://www.tensorflow.org/js"
             >TensorFlow.js</a
@@ -158,7 +167,14 @@
         <span>Code</span>
       </a>
 
-      <a target="_blank" href="https://arxiv.org/abs/2302.14165">
+      <a target="_blank" href="https://youtu.be/Dju6ZRMWSAA">
+        <div class="svg-icon" title="Research paper">
+          {@html iconVideo}
+        </div>
+        <span>Video</span>
+      </a>
+
+      <a target="_blank" href="https://arxiv.org/abs/2303.09545">
         <div class="svg-icon" title="Research paper">
           {@html iconFile}
         </div>

@@ -39,7 +39,7 @@
 
 <div class="article-page" bind:this="{component}">
   <div class="main-app" tabindex="-1">
-    <div class="webshap-app">Here</div>
+    <div class="webshap-app"><WebShap /></div>
   </div>
 
   <div class="article">

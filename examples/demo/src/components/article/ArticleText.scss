@@ -457,7 +457,7 @@ video {
 }
 
 .article-footer {
-  background: $gray-900;
+  background: adjust-color($color: $blue-900, $lightness: -20%);
   color: white;
   padding: 2rem 0 2em 0;
   margin-top: 1rem;
