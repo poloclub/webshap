@@ -5,14 +5,9 @@
   import { fade, fly } from 'svelte/transition';
 
   import iconLogo from '../../imgs/icon-webshap.svg?raw';
-  import iconRocket from '../../imgs/icon-webshap.svg?raw';
-  import iconNote from '../../imgs/icon-webshap.svg?raw';
-  import iconGT from '../../imgs/icon-webshap.svg?raw';
-  import iconFujitsu from '../../imgs/icon-webshap.svg?raw';
-  import iconDuke from '../../imgs/icon-webshap.svg?raw';
-  import iconUBC from '../../imgs/icon-webshap.svg?raw';
-  import iconCopy from '../../imgs/icon-webshap.svg?raw';
-  import iconCheckBox from '../../imgs/icon-webshap.svg?raw';
+  import iconGT from '../../imgs/logo-gt.svg?raw';
+  import iconCopy from '../../imgs/icon-check-box.svg?raw';
+  import iconCheckBox from '../../imgs/icon-check.svg?raw';
   import text from './ArticleText.yml';
 
   let component: HTMLElement | null = null;
@@ -65,7 +60,7 @@
     <p>{@html text.usage.p1}</p>
 
     <h2 id="usage">
-      Any Examples that Use <span class="tool-name">WebSHAP</span>?
+      Any Examples Using <span class="tool-name">WebSHAP</span>?
     </h2>
     <p>{@html text.tutorial.p1}</p>
 
@@ -168,27 +163,6 @@
         <a target="_blank" href="https://www.gatech.edu/">
           <div class="svg-logo" title="Georgia Tech">
             {@html iconGT}
-          </div>
-        </a>
-
-        <a target="_blank" href="https://www.duke.edu/">
-          <div class="svg-logo" title="Duke University">
-            {@html iconDuke}
-          </div>
-        </a>
-
-        <a
-          target="_blank"
-          href="https://www.fujitsu.com/global/about/research/"
-        >
-          <div class="svg-logo" title="Fujitsu Lab">
-            {@html iconFujitsu}
-          </div>
-        </a>
-
-        <a target="_blank" href="https://www.ubc.ca/">
-          <div class="svg-logo" title="The University of British Columbia">
-            {@html iconUBC}
           </div>
         </a>
       </div>
