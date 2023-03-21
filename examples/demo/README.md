@@ -21,7 +21,7 @@ JavaScript library that explains any machine learning models in your browser!
         </tr>
         <tr></tr>
         <tr>
-          <td><a href="https://poloclub.github.io/webshap/?model=tabulark">💰 Loan Prediction</a></td>
+          <td><a href="https://poloclub.github.io/webshap/?model=tabular">💰 Loan Prediction</a></td>
           <td><a href="https://poloclub.github.io/webshap/?model=image">🌠 Image Classifier</a></td>
           <td><a href="https://poloclub.github.io/webshap/?model=text">🔤 Toxicity Detector</a></td>
         </tr>
@@ -34,7 +34,7 @@ JavaScript library that explains any machine learning models in your browser!
         </tr>
         <tr></tr>
         <tr>
-          <td><a href="https://poloclub.github.io/webshap/?model=tabulark">📖 WebSHAP(TheWebConf'23)</a></td>
+          <td><a href="https://arxiv.org/abs/2303.09545">📖 WebSHAP(TheWebConf'23)</a></td>
         </tr>
       </table>
     </td>
