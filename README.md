@@ -134,9 +134,9 @@ We use WebSHAP to explain the predictions of a Transformer text classifier in br
 
 We train an [XtremeDistil model](https://github.com/microsoft/xtreme-distil-transformers) to predict if an input text is toxic. The XtremeDistil model is a distilled version of pre-trained transformer-based language model BERT. We train this model on the [Toxic Comments dataset](https://www.kaggle.com/competitions/jigsaw-toxic-comment-classification-challenge/data). Then, we quantize and export the trained model to use `int8` weights with [ONNX](https://github.com/onnx/onnxmltools). We use [TensorFlow.js](https://github.com/tensorflow/tfjs-models/blob/master/qna/src/bert_tokenizer.ts) for tokenization and [ONNX Runtime](https://onnxruntime.ai) for model inference.
 
-To explain the model's predictions, we compute SHAP scores for each input token. For background data, we use BERT's attention mechanism to mask tokens. For example, we represent a "missing" token by setting its [attention map](https://huggingface.co/docs/transformers/glossary#attention-mask) to `0`, which tells the model to ignore this token. Finally, we visualize the SHAP scores as token's background color with a diverging color scale.
+To explain the model's predictions, we compute SHAP scores for each input token. For background data, we use BERT's attention mechanism to mask tokens. For example, we represent a "missing" token by setting its [attention map](https://huggingface.co/docs/transformers/glossary#attention-mask) to `0`, which tells the model to ignore this token. Finally, we visualize the SHAP scores as the token's background color with a diverging color scale.
 
-All components in this example (XtremeDistil, tokenizer, WebSHAP) runs on the client-side. WebSHAP provides *private*, *ubiquitous*, and *interactive* explanations. Users can edit the input text and see new predictions and explanations. The model inference is real-time, and SHAP computation takes about 5 seconds for 50 tokens.
+All components in this example (XtremeDistil, tokenizer, WebSHAP) run on the client side. WebSHAP provides *private*, *ubiquitous*, and *interactive* explanations. Users can edit the input text and see new predictions and explanations. The model inference is real-time, and SHAP computation takes about 5 seconds for 50 tokens.
 
 
 ## Developing WebSHAP
