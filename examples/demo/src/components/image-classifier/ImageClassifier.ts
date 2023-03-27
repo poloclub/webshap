@@ -7,24 +7,19 @@ import type {
   LoadedImage,
   Size,
   Padding,
-  ImageSegmentation
+  ImageSegmentation,
+  ImageWorkerMessage
 } from '../../types/common-types';
-import { KernelSHAP } from 'webshap';
-import { round, timeit, downloadJSON } from '../../utils/utils';
-import { getLatoTextWidth } from '../../utils/text-width';
-import { fill, tensor3d, loadLayersModel, stack } from '@tensorflow/tfjs';
-import type { Tensor3D, LayersModel, Tensor, Rank } from '@tensorflow/tfjs';
+import ImageWorker from './image-worker?worker';
 
 const DEBUG = config.debug;
 const LCG = d3.randomLcg(0.20230101);
 
-// const NUM_SAMPLES = 512;
-const NUM_SAMPLES = 128;
 const NUM_CLASS = 4;
 const DIVERGE_COLORS = [config.colors['pink-600'], config.colors['blue-700']];
 
-const IMG_SRC_LENGTH = 64;
-const IMG_LENGTH = 134;
+const IMG_SRC_LENGTH = config.layout.imageSrcLength;
+const IMG_LENGTH = config.layout.imageLength;
 
 const TOTAL_IMG_NUM = 200;
 
@@ -43,6 +38,9 @@ export class ImageClassifier {
   inputBackCanvases: HTMLCanvasElement[];
   outputWrappers: d3.Selection<HTMLElement, unknown, null, undefined>[];
 
+  // Workers
+  imageWorker: Worker;
+
   // SVG selections
   colorScaleSVG: d3.Selection<HTMLElement, unknown, null, undefined>;
 
@@ -56,7 +54,6 @@ export class ImageClassifier {
   // ML inference
   inputImage: LoadedImage | null = null;
   imageSeg: ImageSegmentation | null = null;
-  model: LayersModel | null = null;
 
   /**
    * @param args Named parameters
@@ -72,6 +69,21 @@ export class ImageClassifier {
   }) {
     this.component = component;
     this.imageClassifierUpdated = imageClassifierUpdated;
+
+    // Initialize the worker
+    this.imageWorker = new ImageWorker();
+    this.imageWorker.onmessage = (e: MessageEvent<ImageWorkerMessage>) => {
+      this.imageWorkerMessageHandler(e);
+    };
+
+    // Start to load the model
+    const message: ImageWorkerMessage = {
+      command: 'startLoadModel',
+      payload: {
+        url: `${import.meta.env.BASE_URL}models/image-classifier/model.json`
+      }
+    };
+    this.imageWorker.postMessage(message);
 
     // Initialize canvas elements
     this.inputCanvas = initCanvasElement(
@@ -137,21 +149,86 @@ export class ImageClassifier {
       .select<HTMLElement>('svg.color-scale-svg');
     this.initSVGs();
 
-    // Initialize the classifier and input image
-    const modelPromise = this.initModel();
+    // Initialize the input image
     const imagePromise = this.loadRandomInputImage();
 
-    Promise.all([modelPromise, imagePromise]).then(() => {
-      this.updateVisualizations();
+    Promise.all([imagePromise]).then(() => {
+      // Inference and explain the input image
+      this.startPredictInputImage();
+      this.startExplainInputImage();
     });
   }
 
   /**
-   * Update visualizations for the model prediction and explanations
+   * Tell the Web Worker to predict on the current input image
    */
-  updateVisualizations = async () => {
-    // Get the model prediction
-    const predictedProb = this.modelInference();
+  startPredictInputImage = () => {
+    if (this.inputImage === null) {
+      throw Error('Data is not initialized.');
+    }
+
+    const message: ImageWorkerMessage = {
+      command: 'startPredict',
+      payload: {
+        inputImageData: this.inputImage!.imageData
+      }
+    };
+    this.imageWorker.postMessage(message);
+  };
+
+  /**
+   * Tell the Web Worker to explain the model on the current input image
+   */
+  startExplainInputImage = () => {
+    if (this.imageSeg === null || this.inputImage === null) {
+      throw Error('Data is not initialized.');
+    }
+
+    const message: ImageWorkerMessage = {
+      command: 'startExplain',
+      payload: {
+        inputImageData: this.inputImage!.imageData,
+        inputImageSeg: this.imageSeg
+      }
+    };
+    this.imageWorker.postMessage(message);
+  };
+
+  /**
+   * Handling worker messages
+   * @param e Message event
+   */
+  imageWorkerMessageHandler = (e: MessageEvent<ImageWorkerMessage>) => {
+    switch (e.data.command) {
+      case 'finishLoadModel': {
+        break;
+      }
+
+      case 'finishPredict': {
+        const predictedProb = e.data.payload.predictedProb;
+        this.updateBarChart(predictedProb);
+
+        break;
+      }
+
+      case 'finishExplain': {
+        const shapValues = e.data.payload.shapValues;
+        this.updateExplanation(shapValues);
+        break;
+      }
+
+      default: {
+        console.error('Worker: unknown message', e.data.command);
+        break;
+      }
+    }
+  };
+
+  /**
+   * Update the probability bar chart
+   * @param predictedProb New predicted probabilities
+   */
+  updateBarChart = (predictedProb: Float32Array) => {
     const formatter = d3.format('.4f');
 
     // Update the bar chart
@@ -160,10 +237,13 @@ export class ImageClassifier {
       frontRect.style('height', `${this.predProbScale(predictedProb[i])}px`);
       frontRect.select('.class-score-label').text(formatter(predictedProb[i]));
     }
+  };
 
-    // Explain the model prediction
-    const shapValues = await this.explainInputImage();
-
+  /**
+   * Update visualizations for the explanations
+   * @param shapValues Shap values on the input image
+   */
+  updateExplanation = (shapValues: number[][]) => {
     // Show the explanations
     // Need to get the min and max of shap values across all classes
     const shapRange: [number, number] = [Infinity, -Infinity];
@@ -318,107 +398,6 @@ export class ImageClassifier {
     axisGroup.attr('font-size', null);
   };
 
-  /**
-   * Initialize the trained Tiny VGG model.
-   */
-  initModel = async () => {
-    const modelFile = `${
-      import.meta.env.BASE_URL
-    }models/image-classifier/model.json`;
-    this.model = await loadLayersModel(modelFile);
-  };
-
-  /**
-   * Run the model on the current input image
-   * @returns Class probabilities
-   */
-  modelInference = () => {
-    if (this.model === null || this.inputImage === null) {
-      throw Error('Model or input image is not initialized.');
-    }
-
-    // Need to feed the model with a batch
-    const inputImageTensorBatch = stack([this.inputImage.imageTensor]);
-    const predictedProbTensor = this.model.call(
-      inputImageTensorBatch,
-      {}
-    ) as Tensor<Rank>[];
-    const predictedProb = predictedProbTensor[0].dataSync();
-
-    return predictedProb;
-  };
-
-  /**
-   * Explain the current input image
-   */
-  explainInputImage = async () => {
-    if (
-      this.model === null ||
-      this.imageSeg === null ||
-      this.inputImage === null
-    ) {
-      throw Error('Model or data is not initialized.');
-    }
-
-    // We need to create the prediction function as a closure because the number
-    // of segments can vary
-    const predict = (segMasks: number[][]) => {
-      // Step 1: convert segMasks into masked image tensors
-      const maskedImageTensors: Tensor3D[] = [];
-      for (const segMask of segMasks) {
-        const curMaskedImageArray = getMaskedImageData(
-          this.inputImage!.imageData.data,
-          this.imageSeg!.segData.data,
-          segMask
-        );
-
-        const curMaskedTensor = imageDataTo3DTensor(
-          curMaskedImageArray,
-          IMG_SRC_LENGTH,
-          IMG_SRC_LENGTH,
-          true
-        );
-
-        maskedImageTensors.push(curMaskedTensor);
-      }
-
-      // Step 2: create a batch tensor (4D)
-      const batchTensor = stack(maskedImageTensors);
-
-      // Step 3: run the model on this batch
-      const predictedProbTensor = this.model!.call(
-        batchTensor,
-        {}
-      ) as Tensor<Rank>[];
-      const predictedProb = predictedProbTensor[0].arraySync() as number[][];
-
-      // Step 4: return a promise
-      const promise = new Promise<number[][]>(resolve => {
-        resolve(predictedProb);
-      });
-      return promise;
-    };
-
-    // The background data would be empty image (white color)
-    // We represent "features" as a binary array of segSize elements
-    // 0: use white color for the ith segment
-    // 1: use the input image's segment for the ith segment
-    const backgroundData = [new Array<number>(this.imageSeg.segSize).fill(0)];
-    const explainer = new KernelSHAP(predict, backgroundData, 0.2022);
-
-    // To explain the prediction on this image, we provide the "feature" as
-    // showing all segments
-    timeit('Explain image', DEBUG);
-    const allSegData = new Array<number>(this.imageSeg.segSize).fill(1);
-    const shapValues = await explainer.explainOneInstance(
-      allSegData,
-      NUM_SAMPLES
-    );
-    timeit('Explain image', DEBUG);
-
-    return shapValues;
-  };
-
   getExplanationImage = (shapValues: number[]) => {
     if (this.imageSeg === null || this.inputImage === null) {
       throw Error('Image is not initialized');
@@ -457,12 +436,16 @@ export class ImageClassifier {
   handleCustomImage = async (url: string) => {
     // User gives a valid image URL
     await this.loadInputImage(url);
-    this.updateVisualizations();
+    // Inference and explain the input image
+    this.startPredictInputImage();
+    this.startExplainInputImage();
   };
 
   sampleClicked = async () => {
     await this.loadRandomInputImage();
-    this.updateVisualizations();
+    // Inference and explain the input image
+    this.startPredictInputImage();
+    this.startExplainInputImage();
   };
 
   /**
@@ -724,130 +707,12 @@ const getInputImageData = (imgFile: string, normalize = true) => {
           inputImage.height
         );
       }
-      // Get image data and convert it to a 3D array
-      const imageArray = imageData.data;
-      const imageWidth = imageData.width;
-      const imageHeight = imageData.height;
 
       // Remove this newly created canvas element
       canvas.remove();
 
-      const imageTensor = imageDataTo3DTensor(
-        imageArray,
-        imageWidth,
-        imageHeight,
-        normalize
-      );
-
-      resolve({ imageData, imageTensor });
+      resolve({ imageData });
     };
     inputImage.onerror = reject;
   });
-};
-
-/**
- * Crop the largest central square of size IMG_SRC_LENGTH x IMG_SRC_LENGTH x 3
- * of a 3d array.
- *
- * @param {number[][][]} arr array that requires cropping and padding (if a
- * IMG_SRC_LENGTH x IMG_SRC_LENGTH crop is not present)
- * @returns IMG_SRC_LENGTH x IMG_SRC_LENGTH x 3 array
- */
-const cropCentralSquare = (arr: number[][][]) => {
-  const width = arr.length;
-  const height = arr[0].length;
-  let croppedArray: number[][][] = [];
-
-  if (width < IMG_SRC_LENGTH || height < IMG_SRC_LENGTH) {
-    throw Error('Image size is smaller than the specified length.');
-  }
-
-  // Crop largest square from image
-  const startXIdx = Math.floor(width / 2) - Math.floor(IMG_SRC_LENGTH / 2);
-  const startYIdx = Math.floor(height / 2) - Math.floor(IMG_SRC_LENGTH / 2);
-  croppedArray = arr
-    .slice(startXIdx, startXIdx + IMG_SRC_LENGTH)
-    .map(i => i.slice(startYIdx, startYIdx + IMG_SRC_LENGTH));
-  return croppedArray;
-};
-
-/**
- * Get the masked image array
- * @param imageArray Image array
- * @param segArray Segmentation array, R value is the segmentation index
- * @param segMask Binary array: 1 => show image segmentation, 0 => nothing
- * @param background Background color
- * @returns Masked image array
- */
-const getMaskedImageData = (
-  imageArray: Uint8ClampedArray,
-  segArray: Uint8ClampedArray,
-  segMask: number[],
-  background = 255
-) => {
-  // Collect the segmentation index to show
-  const segIndexes = new Set<number>();
-  for (const [i, m] of segMask.entries()) {
-    if (m !== 0) {
-      segIndexes.add(i);
-    }
-  }
-
-  // Fill the image array with the correct RGB values
-  const output = new Array<number>(imageArray.length).fill(background);
-  for (let i = 0; i < imageArray.length; i += 4) {
-    if (segIndexes.has(segArray[i])) {
-      for (let j = 0; j < 3; j++) {
-        output[i + j] = imageArray[i + j];
-      }
-    }
-  }
-
-  return new Uint8ClampedArray(output);
-};
-
-/**
- * Convert canvas image data into a 3D tensor with dimension [height, width, 3].
- * Recall that tensorflow uses NHWC order (batch, height, width, channel).
- * Each pixel is in 0-255 scale.
- *
- * @param imageData Canvas image data
- * @param width Canvas image width
- * @param height Canvas image height
- */
-const imageDataTo3DTensor = (
-  imageData: Uint8ClampedArray,
-  width: number,
-  height: number,
-  normalize = true
-) => {
-  // Create array placeholder for the 3d array
-  let imageArray = fill([width, height, 3], 0).arraySync() as number[][][];
-
-  // Iterate through the data to fill out channel arrays above
-  for (let i = 0; i < imageData.length; i++) {
-    const pixelIndex = Math.floor(i / 4),
-      channelIndex = i % 4,
-      row =
-        width === height ? Math.floor(pixelIndex / width) : pixelIndex % width,
-      column =
-        width === height ? pixelIndex % width : Math.floor(pixelIndex / width);
-
-    if (channelIndex < 3) {
-      let curEntry = imageData[i];
-      // Normalize the original pixel value from [0, 255] to [0, 1]
-      if (normalize) {
-        curEntry /= 255;
-      }
-      imageArray[row][column][channelIndex] = curEntry;
-    }
-  }
-
-  // If the image is not 64x64, crop and or pad the image appropriately.
-  if (width != IMG_SRC_LENGTH && height != IMG_SRC_LENGTH) {
-    imageArray = cropCentralSquare(imageArray);
-  }
-
-  const tensor = tensor3d(imageArray);
-  return tensor;
 };

@@ -17,6 +17,7 @@
 
   const randomIndex = d3.randomInt(views.length)();
   let view = views[randomIndex];
+  view = views[1];
 
   // Check url query to change the view
   if (window.location.search !== '') {

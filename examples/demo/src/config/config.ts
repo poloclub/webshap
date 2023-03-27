@@ -1,17 +1,11 @@
 const layout = {
-  sunburstWidth: 650,
-  treeWindowWidth: 150,
-  treeWindowHeaderHeight: 26,
-  treeWindowHeight: 0,
-  toolbarHeight: 36
+  imageSrcLength: 64,
+  imageLength: 134
 };
 
 const time = {
   mouseenterDelay: 300
 };
-
-layout.treeWindowHeight =
-  layout.treeWindowHeaderHeight + layout.treeWindowWidth;
 
 const colors = {
   'red-50': 'hsl(350, 100.0%, 96.08%)',

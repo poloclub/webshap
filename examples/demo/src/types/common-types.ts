@@ -4,6 +4,55 @@
 
 import type { Tensor3D } from '@tensorflow/tfjs';
 
+export type ImageWorkerMessage =
+  | {
+      command: 'startLoadModel';
+      payload: {
+        url: string;
+      };
+    }
+  | {
+      command: 'finishLoadModel';
+      payload: Record<string, never>;
+    }
+  | {
+      command: 'startPredict';
+      payload: {
+        inputImageData: ImageData;
+      };
+    }
+  | {
+      command: 'finishPredict';
+      payload: {
+        predictedProb: Float32Array;
+      };
+    }
+  | {
+      command: 'startExplain';
+      payload: {
+        inputImageData: ImageData;
+        inputImageSeg: ImageSegmentation;
+      };
+    }
+  | {
+      command: 'finishExplain';
+      payload: {
+        shapValues: number[][];
+      };
+    };
+
+export interface TextExplainResult {
+  inputText: string;
+  tokenWords: string[];
+  shapValues: number[];
+}
+
+export interface TextPredictionResult {
+  inputText: string;
+  tokenWords: string[];
+  probs: number[];
+}
+
 export type TextWorkerMessage =
   | {
       command: 'startLoadModel';
@@ -40,18 +89,6 @@ export type TextWorkerMessage =
       };
     };
 
-export interface TextExplainResult {
-  inputText: string;
-  tokenWords: string[];
-  shapValues: number[];
-}
-
-export interface TextPredictionResult {
-  inputText: string;
-  tokenWords: string[];
-  probs: number[];
-}
-
 type FeatureType = 'cont' | 'cat';
 
 export interface ImageSegmentation {
@@ -62,7 +99,6 @@ export interface ImageSegmentation {
 
 export interface LoadedImage {
   imageData: ImageData;
-  imageTensor: Tensor3D;
 }
 
 export interface SHAPRow {
