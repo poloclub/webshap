@@ -2,7 +2,42 @@
  * Common types.
  */
 
-import type { Tensor3D } from '@tensorflow/tfjs';
+export type TabularWorkerMessage =
+  | {
+      command: 'startLoadModel';
+      payload: {
+        url: string;
+      };
+    }
+  | {
+      command: 'finishLoadModel';
+      payload: Record<string, never>;
+    }
+  | {
+      command: 'startPredict';
+      payload: {
+        x: number[][];
+      };
+    }
+  | {
+      command: 'finishPredict';
+      payload: {
+        posProbs: number[][];
+      };
+    }
+  | {
+      command: 'startExplain';
+      payload: {
+        x: number[];
+        backgroundData: number[][];
+      };
+    }
+  | {
+      command: 'finishExplain';
+      payload: {
+        shapValues: number[][];
+      };
+    };
 
 export type ImageWorkerMessage =
   | {

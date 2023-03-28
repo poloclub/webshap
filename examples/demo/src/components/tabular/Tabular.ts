@@ -7,26 +7,13 @@ import type {
   TabularCatFeature,
   Size,
   Padding,
-  SHAPRow
+  SHAPRow,
+  TabularWorkerMessage
 } from '../../types/common-types';
-import { KernelSHAP } from 'webshap';
 import { round, timeit, downloadJSON } from '../../utils/utils';
 import { getLatoTextWidth } from '../../utils/text-width';
-
-import * as ort from 'onnxruntime-web/dist/ort-web.min.js';
-import wasm from 'onnxruntime-web/dist/ort-wasm.wasm?url';
-import wasmThreaded from 'onnxruntime-web/dist/ort-wasm-threaded.wasm?url';
-import wasmSimd from 'onnxruntime-web/dist/ort-wasm-simd.wasm?url';
-import wasmSimdThreaded from 'onnxruntime-web/dist/ort-wasm-simd-threaded.wasm?url';
+import TabularWorker from './tabular-worker?worker';
 import modelUrl from './../../../../models/lending-club-xgboost.onnx?url';
-
-// Set up the correct WASM paths
-ort.env.wasm.wasmPaths = {
-  'ort-wasm.wasm': wasm,
-  'ort-wasm-threaded.wasm': wasmThreaded,
-  'ort-wasm-simd.wasm': wasmSimd,
-  'ort-wasm-simd-threaded.wasm': wasmSimdThreaded
-};
 
 const DEBUG = config.debug;
 const LCG = d3.randomLcg(0.20230101);
@@ -47,6 +34,7 @@ const BAR_HEIGHT = ROW_HEIGHT - 8;
 export class Tabular {
   component: HTMLElement;
   tabularUpdated: () => void;
+  tabularWorker: Worker;
 
   // SVGs
   predBarSVG: d3.Selection<HTMLElement, unknown, null, undefined>;
@@ -60,6 +48,7 @@ export class Tabular {
   shapScale: d3.ScaleLinear<number, number, never>;
   maxTextWidth = 200;
   maxBarWidth = 200;
+  shapPlotInitialized = false;
 
   // Dataset
   data: TabularData | null = null;
@@ -69,9 +58,7 @@ export class Tabular {
   curY: number | null = null;
   curIndex = 0;
 
-  // ONNX data
-  onnxSession: ort.InferenceSession | null = null;
-  message: string;
+  // Model information
   curPred: number | null = null;
 
   // WebSHAP data
@@ -92,8 +79,23 @@ export class Tabular {
   }) {
     this.component = component;
     this.tabularUpdated = tabularUpdated;
-    this.message = 'initialized';
 
+    // Workers
+    this.tabularWorker = new TabularWorker();
+    this.tabularWorker.onmessage = (e: MessageEvent<TabularWorkerMessage>) => {
+      this.tabularWorkerMessageHandler(e);
+    };
+
+    // Load ONNX model
+    const message: TabularWorkerMessage = {
+      command: 'startLoadModel',
+      payload: {
+        url: modelUrl
+      }
+    };
+    this.tabularWorker.postMessage(message);
+
+    // SVGs
     this.predBarSVG = d3
       .select<HTMLElement, unknown>(this.component)
       .select('svg.pred-bar-svg');
@@ -113,10 +115,47 @@ export class Tabular {
       // Initialize the SVGs
       tick().then(() => {
         this.initPredBar();
-        this.initShapPlot();
       });
     });
   }
+
+  /**
+   * Handling worker messages
+   * @param e Message event
+   */
+  tabularWorkerMessageHandler = (e: MessageEvent<TabularWorkerMessage>) => {
+    switch (e.data.command) {
+      case 'finishLoadModel': {
+        break;
+      }
+
+      case 'finishPredict': {
+        const posProbs = e.data.payload.posProbs;
+        this.curPred = posProbs[0][0];
+        this.updatePred();
+
+        break;
+      }
+
+      case 'finishExplain': {
+        const shapValues = e.data.payload.shapValues;
+        this.curShapValues = shapValues[0];
+
+        if (this.shapPlotInitialized) {
+          this.updateShapPlot();
+        } else {
+          this.initShapPlot();
+        }
+
+        break;
+      }
+
+      default: {
+        console.error('Worker: unknown message', e.data.command);
+        break;
+      }
+    }
+  };
 
   initPredBar = () => {
     if (this.predBarSVG === null) throw Error('predBarSVG is null.');
@@ -157,13 +196,16 @@ export class Tabular {
       .attr('width', this.predBarScale(1))
       .attr('height', this.predBarSVGSize.height);
 
+    // Init with 0 as default pred score
+    const curPred = 0;
+
     content
       .append('rect')
       .attr('class', 'top-rect')
-      .classed('approval', this.curPred ? this.curPred >= 0.5 : true)
+      .classed('approval', curPred ? curPred >= 0.5 : true)
       .attr('rx', this.predBarSVGSize.height / 2)
       .attr('ry', this.predBarSVGSize.height / 2)
-      .attr('width', this.predBarScale(this.curPred || 0))
+      .attr('width', this.predBarScale(curPred || 0))
       .attr('height', this.predBarSVGSize.height);
 
     // Add a threshold bar
@@ -182,6 +224,8 @@ export class Tabular {
     if (this.contFeatures === null) throw Error('contFeatures is null.');
     if (this.catFeatures === null) throw Error('catFeatures is null.');
     if (this.curX === null) throw Error('curX is null.');
+    if (this.shapPlotInitialized)
+      throw Error('shap plot is already initailized.');
 
     // Get the SVG size
     const svgBBox = this.shapSVG.node()?.getBoundingClientRect();
@@ -372,6 +416,8 @@ export class Tabular {
       );
     const axis = d3.axisBottom(shapValueScale).tickValues([-maxAbs, 0, maxAbs]);
     axisGroup.call(axis);
+
+    this.shapPlotInitialized = true;
   };
 
   updateShapPlot = () => {
@@ -530,8 +576,13 @@ export class Tabular {
 
     // Inference the model
     const x = this.getCurX();
-    const result = await this.predict([x]);
-    this.curPred = result[0][0];
+    const predictMessage: TabularWorkerMessage = {
+      command: 'startPredict',
+      payload: {
+        x: [x]
+      }
+    };
+    this.tabularWorker.postMessage(predictMessage);
 
     // Explain this instance
     // Create background data for SHAP
@@ -560,25 +611,15 @@ export class Tabular {
     }
     this.backgroundData.push(curBackgroundData);
 
-    const shapValues = await this.explain(x);
-    this.curShapValues = shapValues[0];
-  };
-
-  profileWebshap = async () => {
-    const times = [];
-    for (let i = 0; i < 50; i++) {
-      try {
-        const randomIndex = d3.randomInt(this.data!.xTest.length)();
-        const start = performance.now();
-        const result = await this.explain(this.data!.xTest[randomIndex]);
-        const end = performance.now();
-        times.push([end - start, randomIndex, result[0][0]]);
-      } catch (e) {
-        console.log(i);
-        break;
+    // Explain the prediction
+    const explainMessage: TabularWorkerMessage = {
+      command: 'startExplain',
+      payload: {
+        x,
+        backgroundData: this.backgroundData
       }
-    }
-    downloadJSON(times, null, 'js-profile-100.json');
+    };
+    this.tabularWorker.postMessage(explainMessage);
   };
 
   /**
@@ -695,118 +736,55 @@ export class Tabular {
   };
 
   /**
-   * Run XGBoost on the given input data x
-   * @param x Input data instances (n, k)
-   * @returns Predicted positive label probabilities (n)
-   */
-  predict = async (x: number[][]) => {
-    // Load the model if it is not loaded already
-    if (this.onnxSession === null) {
-      this.onnxSession = await ort.InferenceSession.create(modelUrl);
-    }
-
-    const posProbs: number[][] = [];
-
-    try {
-      // First need to flatten the x array
-      const xFlat = Float32Array.from(x.flat());
-
-      // Prepare feeds, use model input names as keys.
-      const xTensor = new ort.Tensor('float32', xFlat, [x.length, x[0].length]);
-      const feeds = { float_input: xTensor };
-
-      // Feed inputs and run
-      const results = await this.onnxSession.run(feeds);
-
-      // Read from results, probs has shape (n * 2) => (n, 2)
-      const probs = results.probabilities.data as Float32Array;
-
-      for (const [i, p] of probs.entries()) {
-        // Positive label prob is always at the odd index
-        if (i % 2 === 1) {
-          posProbs.push([p]);
-        }
-      }
-
-      this.message = `Success: ${round(posProbs[0][0], 4)}`;
-    } catch (e) {
-      this.message = `Failed: ${e}.`;
-    }
-
-    this.tabularUpdated();
-    return posProbs;
-  };
-
-  /**
-   * Run WebSHAP to explain the given input data x
-   * @param x Input data instance
-   */
-  explain = async (x: number[]) => {
-    const explainer = new KernelSHAP(
-      (x: number[][]) => this.predict(x),
-      this.backgroundData,
-      0.2022
-    );
-
-    timeit('Explain tabular', DEBUG);
-    const shapValues = await explainer.explainOneInstance(x, 512);
-    // const shapValues = await explainer.explainOneInstance(x);
-    timeit('Explain tabular', DEBUG);
-    return shapValues;
-  };
-
-  /**
    * Event handler for the sample button clicking.
    */
-  sampleClicked = async () => {
+  sampleClicked = () => {
     this.loadRandomSample();
-    const curX = this.getCurX();
 
     // Predict this example
-    const result = await this.predict([curX]);
-    if (result.length == 0) {
-      console.error('ONNX returns empty result.');
-      return;
-    }
-
-    this.curPred = result[0][0];
-    this.updatePred();
-    this.updateShapPlot();
-
-    // Explain the prediction
-    const shapValues = await this.explain(curX);
-    this.curShapValues = shapValues[0];
-    this.tabularUpdated();
-    this.updateShapPlot();
+    this.getNewExplanation();
   };
 
   /**
    * Event handler for the sample button clicking.
    */
-  inputChanged = async () => {
-    const curX = this.getCurX();
-    const result = await this.predict([curX]);
-    if (result.length == 0) {
-      console.error('ONNX returns empty result.');
-      return;
+  inputChanged = () => {
+    this.curX = this.getCurX();
+
+    // Predict this example
+    this.getNewExplanation();
+  };
+
+  getNewExplanation = () => {
+    if (this.curX === null) {
+      throw new Error('curX is null');
     }
 
-    this.curPred = result[0][0];
-    this.updatePred();
-    this.tabularUpdated();
-
+    const predictMessage: TabularWorkerMessage = {
+      command: 'startPredict',
+      payload: {
+        x: [this.curX]
+      }
+    };
+    this.tabularWorker.postMessage(predictMessage);
     // Explain the prediction
-    const shapValues = await this.explain(curX);
-    this.curShapValues = shapValues[0];
-    this.tabularUpdated();
-    this.updateShapPlot();
+    const explainMessage: TabularWorkerMessage = {
+      command: 'startExplain',
+      payload: {
+        x: this.curX,
+        backgroundData: this.backgroundData
+      }
+    };
+    this.tabularWorker.postMessage(explainMessage);
   };
 
   /**
    * Helper function to update the view with the new prediction result
    */
   updatePred = () => {
-    if (this.curPred === null) return;
+    if (this.curPred === null) {
+      throw Error('curPred is null');
+    }
 
     // Update the bar
     const content = this.predBarSVG.select('g.content');
@@ -814,5 +792,7 @@ export class Tabular {
       .select('rect.top-rect')
       .classed('approval', this.curPred >= 0.5)
       .attr('width', this.predBarScale(this.curPred));
+
+    this.tabularUpdated();
   };
 }
