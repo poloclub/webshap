@@ -20,7 +20,6 @@ const DIVERGE_COLORS = [config.colors['pink-600'], config.colors['blue-700']];
 
 const IMG_SRC_LENGTH = config.layout.imageSrcLength;
 const IMG_LENGTH = config.layout.imageLength;
-
 const TOTAL_IMG_NUM = 200;
 
 /**

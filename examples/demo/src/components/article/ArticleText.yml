@@ -27,7 +27,7 @@ tool:
 usage:
   p1: >
     WebSHAP supports both browser and Node.js environments. To install WebSHAP,
-    you can use npm: <code>pip install WebSHAP</code>. Then, you just need to
+    you can use npm: <code>npm install WebSHAP</code>. Then, you just need to
     call one function to explain the predictions of your ML model in the
     browser. To get started, see <a
     href='https://github.com/poloclub/webshap#getting-started' target='_blank'

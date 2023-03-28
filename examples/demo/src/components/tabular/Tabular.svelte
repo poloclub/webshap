@@ -172,7 +172,7 @@
 
     <div class="output-box">
       <div class="pred-number">
-        {myTabular ? predFormatter(myTabular.curPred) : ''}
+        {myTabular?.curPred ? predFormatter(myTabular.curPred) : '00.00%'}
       </div>
 
       <div class="pred-bar">
