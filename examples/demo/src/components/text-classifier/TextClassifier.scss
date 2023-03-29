@@ -410,10 +410,10 @@ $box-padding: 12px 12px;
       top: 0;
       left: 0;
       box-sizing: border-box;
-      animation: animate-loader 1500ms linear infinite;
+      animation: animate-loader-vertical 1500ms linear infinite;
     }
 
-    @keyframes animate-loader {
+    @keyframes animate-loader-vertical {
       0% {
         top: 0;
         opacity: 0;

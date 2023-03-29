@@ -295,27 +295,31 @@ export class TextClassifier {
    * Flip the loading spinner for the data model arrow
    * @param isLoading If the model is loading
    */
-  updateModelLoader = (isLoading: boolean, controlCircle = true) => {
+  updateModelLoader = (isLoading: boolean, loadingModel = true) => {
     const lineLoader = this.component.querySelector(
       '.data-model-arrow .line-loader'
     ) as HTMLElement;
 
-    const circleLoader = this.component.querySelector(
-      '.data-model-arrow .loader-container'
+    const loadingLoader = this.component.querySelector(
+      '.data-model-arrow .loader-container.loading'
+    ) as HTMLElement;
+
+    const predictingLoader = this.component.querySelector(
+      '.data-model-arrow .loader-container.prediction'
     ) as HTMLElement;
 
     if (isLoading) {
       lineLoader.classList.remove('hidden');
 
-      if (controlCircle) {
-        circleLoader.classList.remove('hidden');
+      if (loadingModel) {
+        loadingLoader.classList.remove('hidden');
+      } else {
+        predictingLoader.classList.remove('hidden');
       }
     } else {
       lineLoader.classList.add('hidden');
-
-      if (controlCircle) {
-        circleLoader.classList.add('hidden');
-      }
+      predictingLoader.classList.add('hidden');
+      loadingLoader.classList.add('hidden');
     }
   };
 

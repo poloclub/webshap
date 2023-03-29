@@ -8,8 +8,6 @@
   import iconToxic from '../../imgs/icon-toxic.svg?raw';
   import iconBenign from '../../imgs/icon-benign.svg?raw';
   import iconCheck from '../../imgs/icon-check.svg?raw';
-  import iconUpload from '../../imgs/icon-upload.svg?raw';
-  import iconScissor from '../../imgs/icon-scissor.svg?raw';
   import iconOpen from '../../imgs/icon-open.svg?raw';
 
   let component: HTMLElement | null = null;
@@ -102,9 +100,14 @@
             <span class="model"> XtremeDistil </span>
           </div>
 
-          <div class="loader-container hidden">
+          <div class="loader-container loading hidden">
             <div class="circle-loader"></div>
             <span class="loader-label">Loading model</span>
+          </div>
+
+          <div class="loader-container prediction hidden">
+            <div class="circle-loader"></div>
+            <span class="loader-label">Predicting</span>
           </div>
         </div>
         <div class="end-triangle"></div>
@@ -113,7 +116,7 @@
 
     <div class="model-explain-arrow">
       <div class="background">
-        <span class="line-loader"></span>
+        <span class="line-loader hidden"></span>
         <div class="start-rectangle"></div>
         <div class="content-box">
           <div class="line">
