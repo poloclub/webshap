@@ -155,6 +155,7 @@ export class ImageClassifier {
       // Inference and explain the input image
       this.startPredictInputImage();
       this.startExplainInputImage();
+      this.updateBackgroundImage();
     });
   }
 
@@ -254,6 +255,7 @@ export class ImageClassifier {
         const shapValues = e.data.payload.shapValues;
         this.updateExplanation(shapValues);
         this.updateExplainLoader(false);
+        this.updateBackgroundImage();
         break;
       }
 
@@ -501,6 +503,10 @@ export class ImageClassifier {
     await this.loadInputImage(imgFile);
   };
 
+  updateBackgroundImage = () => {
+    // Pass, this function will be updated in loadInputImage()
+  };
+
   /**
    * Load an image from its url
    * @param url Image url
@@ -532,21 +538,23 @@ export class ImageClassifier {
     );
 
     // Also put the image in explain wrappers as a background
-    for (let c = 0; c < NUM_CLASS; c++) {
-      const curInputCtx = this.inputBackCanvases[c].getContext('2d')!;
-      curInputCtx.clearRect(0, 0, IMG_LENGTH, IMG_LENGTH);
-      curInputCtx.drawImage(
-        hiddenCanvas,
-        0,
-        0,
-        IMG_SRC_LENGTH,
-        IMG_SRC_LENGTH,
-        0,
-        0,
-        IMG_LENGTH,
-        IMG_LENGTH
-      );
-    }
+    this.updateBackgroundImage = () => {
+      for (let c = 0; c < NUM_CLASS; c++) {
+        const curInputCtx = this.inputBackCanvases[c].getContext('2d')!;
+        curInputCtx.clearRect(0, 0, IMG_LENGTH, IMG_LENGTH);
+        curInputCtx.drawImage(
+          hiddenCanvas,
+          0,
+          0,
+          IMG_SRC_LENGTH,
+          IMG_SRC_LENGTH,
+          0,
+          0,
+          IMG_LENGTH,
+          IMG_LENGTH
+        );
+      }
+    };
 
     // Get the segmentation
     this.createSegmentation(this.inputImage.imageData);
