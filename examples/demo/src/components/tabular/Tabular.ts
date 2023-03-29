@@ -94,6 +94,7 @@ export class Tabular {
       }
     };
     this.tabularWorker.postMessage(message);
+    this.updateModelLoader(true, true);
 
     // SVGs
     this.predBarSVG = d3
@@ -120,12 +121,73 @@ export class Tabular {
   }
 
   /**
+   * Flip the loading spinner for the data model arrow
+   * @param isLoading If the model is loading
+   */
+  updateModelLoader = (isLoading: boolean, controlCircle = true) => {
+    const lineLoader = this.component.querySelector(
+      '.data-model-arrow .line-loader'
+    ) as HTMLElement;
+
+    const circleLoader = this.component.querySelector(
+      '.data-model-arrow .loader-container'
+    ) as HTMLElement;
+
+    if (isLoading) {
+      lineLoader.classList.remove('hidden');
+
+      if (controlCircle) {
+        circleLoader.classList.remove('hidden');
+      }
+    } else {
+      lineLoader.classList.add('hidden');
+
+      if (controlCircle) {
+        circleLoader.classList.add('hidden');
+      }
+    }
+  };
+
+  /**
+   * Flip the loading spinner for the explain loaders
+   * @param isLoading If the model is loading
+   */
+  updateExplainLoader = (isLoading: boolean) => {
+    const circleLoader = this.component.querySelector(
+      '.model-explain-arrow .loader-container'
+    ) as HTMLElement;
+
+    const explainBoxLoader = this.component.querySelector(
+      '.explain-box .loader-container'
+    ) as HTMLElement;
+
+    const lineLoader = this.component.querySelector(
+      '.model-explain-arrow .line-loader'
+    ) as HTMLElement;
+
+    if (isLoading) {
+      lineLoader.classList.remove('hidden');
+
+      if (!this.shapPlotInitialized) {
+        explainBoxLoader.classList.remove('hidden');
+      } else {
+        circleLoader.classList.remove('hidden');
+      }
+    } else {
+      lineLoader.classList.add('hidden');
+      circleLoader.classList.add('hidden');
+      explainBoxLoader.classList.add('hidden');
+    }
+  };
+
+  /**
    * Handling worker messages
    * @param e Message event
    */
   tabularWorkerMessageHandler = (e: MessageEvent<TabularWorkerMessage>) => {
     switch (e.data.command) {
       case 'finishLoadModel': {
+        this.updateModelLoader(false, true);
         break;
       }
 
@@ -133,6 +195,7 @@ export class Tabular {
         const posProbs = e.data.payload.posProbs;
         this.curPred = posProbs[0][0];
         this.updatePred();
+        this.updateModelLoader(false, false);
 
         break;
       }
@@ -146,6 +209,7 @@ export class Tabular {
         } else {
           this.initShapPlot();
         }
+        this.updateExplainLoader(false);
 
         break;
       }
@@ -571,6 +635,9 @@ export class Tabular {
       `${import.meta.env.BASE_URL}data/lending-club.json`
     )) as TabularData;
 
+    this.updateExplainLoader(true);
+    this.updateModelLoader(true, false);
+
     // Load a random sample
     this.loadRandomSample();
 
@@ -759,6 +826,9 @@ export class Tabular {
     if (this.curX === null) {
       throw new Error('curX is null');
     }
+
+    this.updateModelLoader(true, false);
+    this.updateExplainLoader(true);
 
     const predictMessage: TabularWorkerMessage = {
       command: 'startPredict',
