@@ -11,7 +11,7 @@
     "deploy": "pnpm run deploy:vercel",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json",
-    "publish": "zsh ./publish.sh"
+    "publish": "pnpm run build:github && pnpm gh-pages -d ../../gh-pages -m \"Deploy $(git log '--format=format:%H' main -1)\""
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^24.0.1",
@@ -76,6 +76,7 @@
     "eslint-config-prettier": "^8.6.0",
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-svelte3": "^4.0.0",
+    "gh-pages": "^5.0.0",
     "node-fetch": "^3.3.0",
     "onnxruntime-web": "^1.14.0",
     "prettier": "^2.8.3",
