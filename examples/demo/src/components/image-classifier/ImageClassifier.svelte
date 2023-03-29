@@ -191,18 +191,18 @@
 
     <div class="data-model-arrow">
       <div class="background">
-        <div class="start-rectangle">
-          <div class="content-box">
-            <div class="line">
-              <span class="svg-icon no-pointer">
-                {@html iconBox}
-              </span>
-              <span class="name"> ML Model </span>
-            </div>
+        <span class="line-loader hidden"></span>
+        <div class="start-rectangle"></div>
+        <div class="content-box">
+          <div class="line">
+            <span class="svg-icon no-pointer">
+              {@html iconBox}
+            </span>
+            <span class="name"> ML Model </span>
+          </div>
 
-            <div class="line">
-              <span class="model"> TinyVGG </span>
-            </div>
+          <div class="line">
+            <span class="model"> TinyVGG </span>
           </div>
         </div>
         <div class="end-triangle"></div>
@@ -217,13 +217,17 @@
 
     <div class="model-explain-arrow">
       <div class="background">
-        <div class="start-rectangle">
-          <div class="content-box">
-            <div class="line">
-              <span class="svg-icon no-pointer">
-                {@html iconWebshap}
-              </span>
-              <span class="name"> WebSHAP </span>
+        <span class="line-loader hidden"></span>
+        <div class="start-rectangle"></div>
+        <div class="content-box">
+          <div class="line">
+            <span class="svg-icon no-pointer">
+              {@html iconWebshap}
+            </span>
+            <span class="name"> WebSHAP </span>
+
+            <div class="loader-container hidden">
+              <div class="circle-loader"></div>
             </div>
           </div>
         </div>

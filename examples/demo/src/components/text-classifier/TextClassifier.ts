@@ -402,10 +402,10 @@ export class TextClassifier {
    * @param result Prediction result
    */
   updatePrediction = (result: TextPredictionResult) => {
-    this.updateModelLoader(false, false);
     this.curPred = result.probs[1];
     this.updatePred();
     this.textClassifierUpdated();
+    this.updateModelLoader(false, false);
   };
 
   /**

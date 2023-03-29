@@ -173,6 +173,7 @@ export class ImageClassifier {
       }
     };
     this.imageWorker.postMessage(message);
+    this.updateModelLoader(true);
   };
 
   /**
@@ -191,6 +192,45 @@ export class ImageClassifier {
       }
     };
     this.imageWorker.postMessage(message);
+    this.updateExplainLoader(true);
+  };
+
+  /**
+   * Flip the loading spinner for the data model arrow
+   * @param isLoading If the model is loading
+   */
+  updateModelLoader = (isLoading: boolean) => {
+    const lineLoader = this.component.querySelector(
+      '.data-model-arrow .line-loader'
+    ) as HTMLElement;
+
+    if (isLoading) {
+      lineLoader.classList.remove('hidden');
+    } else {
+      lineLoader.classList.add('hidden');
+    }
+  };
+
+  /**
+   * Flip the loading spinner for the explain loaders
+   * @param isLoading If the model is loading
+   */
+  updateExplainLoader = (isLoading: boolean) => {
+    const circleLoader = this.component.querySelector(
+      '.model-explain-arrow .loader-container'
+    ) as HTMLElement;
+
+    const lineLoader = this.component.querySelector(
+      '.model-explain-arrow .line-loader'
+    ) as HTMLElement;
+
+    if (isLoading) {
+      lineLoader.classList.remove('hidden');
+      circleLoader.classList.remove('hidden');
+    } else {
+      lineLoader.classList.add('hidden');
+      circleLoader.classList.add('hidden');
+    }
   };
 
   /**
@@ -206,13 +246,14 @@ export class ImageClassifier {
       case 'finishPredict': {
         const predictedProb = e.data.payload.predictedProb;
         this.updateBarChart(predictedProb);
-
+        this.updateModelLoader(false);
         break;
       }
 
       case 'finishExplain': {
         const shapValues = e.data.payload.shapValues;
         this.updateExplanation(shapValues);
+        this.updateExplainLoader(false);
         break;
       }
 
